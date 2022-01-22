@@ -542,7 +542,8 @@ function checkpointDrivingGame(
         lapsCompleted = dword(0x0c6fe8)
         finishConditions = (
             lapsToComplete == lapsCompleted &&
-            lapsToComplete > 0
+            lapsToComplete > 0 &&
+            inGame() == 1
         )
     }
 
