@@ -852,7 +852,7 @@ checkpointDrivingGame(
     badge = "91860",
     missionId = 0x9A,
     requiredTimeSeconds = 144,
-    requiredTimeDescription = "2 minutes 44 seconds",
+    requiredTimeDescription = "2 minutes 24 seconds",
     dirtTrack = true
 )
 
