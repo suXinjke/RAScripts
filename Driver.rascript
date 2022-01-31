@@ -497,7 +497,7 @@ achievement(
 )
 
 achievement(
-    title = "Getaway: Los Angeles", description = "Complete Miami Getaway driving game without taking damage.", points = 5,
+    title = "Getaway: Los Angeles", description = "Complete Los Angeles Getaway driving game without taking damage.", points = 5,
     badge = "91797",
     trigger = completedGetawayDrivingGame(0x48)
 )
