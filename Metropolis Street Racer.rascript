@@ -12,6 +12,8 @@ function garageSlotSelected() => dword(0x186424)
 
 function garageSlotsAvailable() => byte(0x186428)
 
+function garageSlotNotEmpty( garageSlotIndex ) => dword(0x186434 + garageSlotIndex * 0x40)
+
 function garageSlotCarId( garageSlotIndex ) => dword(0x186438 + garageSlotIndex * 0x40)
 
 function garageSlotCarABS( garageSlotIndex ) => dword(0x18646c + garageSlotIndex * 0x40)
@@ -388,9 +390,9 @@ achievement(
         byte(chapterEventFlagsAddress( 0, 1 )) == 0x01 &&
         byte(chapterEventFlagsAddress( 0, 2 )) == 0x01 &&
         (
-            garageSlotCarId( 0 ) != 0 ||
-            garageSlotCarId( 1 ) != 0 ||
-            garageSlotCarId( 2 ) != 0
+            garageSlotNotEmpty( 0 ) != 0 ||
+            garageSlotNotEmpty( 1 ) != 0 ||
+            garageSlotNotEmpty( 2 ) != 0
         ) &&
         unless( isLoadingSave() )
     )
