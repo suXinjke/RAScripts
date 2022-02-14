@@ -511,7 +511,7 @@ achievement(
 
 achievement(
     title = "Anti-Kudos Behaviour",
-    description = "Win any Street Race event in reverse gear",
+    description = "Win any Street Race event while crossing the finish line in reverse gear",
     points = 5,
     trigger = (
         inStreetRacingEvent() &&
