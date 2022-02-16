@@ -10,7 +10,7 @@ function currentEventId() => dword(0x186104)
 // 0xFFFFFFFF - no selection
 function garageSlotSelected() => dword(0x186424)
 
-function garageSlotsAvailable() => byte(0x186428)
+function garageSlotsAvailable() => dword(0x186428)
 
 function garageSlotNotEmpty( garageSlotIndex ) => dword(0x186434 + garageSlotIndex * 0x40)
 
@@ -121,9 +121,10 @@ function hasFinished() => dword(0x1a2d04) == 0x1 && prev(dword(0x1a2d04)) != 0x1
 function showroomCarUnlockedLegit( carIndex ) {
     address = 0x188b68 + carIndex * 4
     return (
-        prev(dword(address)) != dword(address) &&
-        dword(address) != 0 &&
-        bit7(address) == 0
+        prev(dword(address)) == 0 && (
+            dword(address) == 1 ||
+            dword(address) == 3
+        )
     )
 }
 
@@ -442,7 +443,7 @@ achievement(
     description = "Unlock 6 garage slots for your cars",
     points = 10,
     trigger = (
-        garageSlotsAvailable() != prev(garageSlotsAvailable()) &&
+        prev(garageSlotsAvailable()) == 5 &&
         garageSlotsAvailable() == 6 &&
         unless( isLoadingSave() )
     )
