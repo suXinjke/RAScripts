@@ -738,7 +738,7 @@ overtakeChallengeAchievement(
     description = "Driving Toyota Celica, overtake 10 cars or more in Chapter 18, Event 4",
     points = 10,
     carId = 0x19,
-    eventId = 0x72,
+    eventId = 0xAD,
     overtakes = 10
 )
 
