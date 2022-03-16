@@ -883,7 +883,7 @@ overtakeChallengeAchievement(
 
 championshipChallengeAchievement(
     title = "Rotary Experiment",
-    description = "Driving Mazda RX-7, win all three One on One battles in Global Challenge, Event 5",
+    description = "Driving Mazda RX-7, win all three One on One battles in Global Challenge, Event 5 without giving yourself a headstart",
     points = 10,
     carIds = [ 0x2C ],
     eventId = 0xF4,
