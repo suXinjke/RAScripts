@@ -743,6 +743,7 @@ achievement(
         // It's better to use this flag instead of mission script thing, because
         // player loses control and may crash after getting final flag - it'd be unfair.
         trigger_when( prev(playerCarForceStop()) == 0 && playerCarForceStop() == 1 ) &&
+        missionTimer() > 0 &&
         playerDamage() == 0
     )
 )
