@@ -7,6 +7,7 @@ function license() => word(0x1D5866)
 function testId() => byte(0x1D5868)
 function carId() => dword(0x1D58B8)
 function lapTime() => dword(0x1D5E90)
+function timer() => dword(0x046f64)
 
 // 0x1 - License test reached finish line
 // 0x2 - License test failed
@@ -66,7 +67,7 @@ licenseTests = [
     [259, 1, 541442456],
     [259, 2, 308401688],
     [259, 3, 255915868],
-    [259, 4, 571275100],
+    [259, 4, 571275100, true],
     [259, 5, 275268060],
     [259, 6, 321676188],
     [259, 7, 206581976],
@@ -90,6 +91,14 @@ for info in licenseTests {
     testId = info[1]
     carId = info[2]
 
+    alternateStartCondition = currentLap() == 1 && prev(currentLap()) == 0
+    // HACK: The IA-5 test is weird and currentLap value stays at 1
+    // during all the restarts. And I'm not switching all license tests
+    // to the timer logic either.
+    if (length(info) > 3 && info[3] == true) {
+        alternateStartCondition = prev(timer()) == 0 && timer() > 0
+    }
+
     leaderboard(
         title = format("License {0}-{1}", licenseName, testId + 1),
         description = format("Pass License test {0}-{1} in least time", licenseName, testId + 1),
@@ -98,7 +107,7 @@ for info in licenseTests {
             testId() == testId &&
             carId() == carId &&
             replayMode() != 1 &&
-            currentLap() == 1 && prev(currentLap()) == 0
+            alternateStartCondition
         ),
         cancel = licenseTestState() == 2 || replayMode() == 1,
         submit = licenseTestState() == 1 && prev(licenseTestState()) == 0,
