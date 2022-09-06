@@ -2263,7 +2263,7 @@ achievement(
 // BLACKBIRD_CHALLENGE_PAWNS_IN_THE_GAME
 achievement(
     title = "Territorial Dispute",
-    description = "Pawns in the Game, NORMAL/HARD: Blackbird immediately spikes down to summon and destroy 4 other Blackbirds (RF-12A2), then finish the mission in 3:30 or less. Trigger icon will show when it's ok to complete the mission.",
+    description = "Pawns in the Game, NORMAL/HARD: Blackbird immediately spikes down to summon and destroy 4 other Blackbirds (RF-12A2), then finish the mission in 3:00 or less. Trigger icon will show when it's ok to complete the mission.",
     points = 10,
     trigger = (
         usingAircraft(blackbird) &&
