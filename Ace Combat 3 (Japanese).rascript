@@ -2678,7 +2678,7 @@ achievement(
 // AURORA_CHALLENGE_THE_ORIENTATION
 achievement(
     title = "Double Down",
-    description = "The Orientation, HARD, Tier 4 aircraft or worse: have all targets destroyed in 5:00 or less and achieve A rank.",
+    description = "The Orientation, HARD, UI-4054 Aurora: have all targets destroyed in 5:00 or less and achieve A rank.",
     points = 5,
     trigger = (
         usingAircraft(aurora) &&
