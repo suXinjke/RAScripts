@@ -888,12 +888,8 @@ achievement(
     points = 5,
     trigger = (
         missionId == 0x2A &&
-        trigger_when(
-            difficultyIsAtleast(DIFFICULTY_HARD) &&
-            hasFinishedMission() &&
-            missionRankToSet == RANK_A &&
-            missionTimerIsLessThanSeconds(120)
-        ) && inGameMissileCount == 100
+        trigger_when(hasFinishedMission()) &&
+        inGameMissileCount == 100
     )
 )
 
