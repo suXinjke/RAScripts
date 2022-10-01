@@ -1,0 +1,93 @@
+// This set of functions is supposed to help with automating submitting achievements/leaderboard ordering,
+// when there's too much of them - it's extremely tedious and it's possible to make a mistake.
+
+// But then, the way it's done here is extremely hacky and may stop working.
+// I did these for myself, you may borrow these only if you understand what you're doing,
+// otherwise it'd be better if RetroAchievements had Quality of Life drag-and-drop sorting feature.
+
+function delay(msec = 500) {
+    return new Promise(res => setTimeout(res, msec))
+}
+
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]').content
+}
+
+/*
+    achievementsAndOrder example:
+    [
+        ["Name", "1"],
+        ["Name2", "2"]
+    ]
+*/
+async function uploadAchievementOrder(gameId, achievementsAndOrder) {
+    const rows = [ ...document.querySelectorAll('table tr') ]
+    const csrf = getCsrfToken()
+
+    for (const x of achievementsAndOrder) {
+        const [name, order] = x
+        const id = rows.find(tr => tr.textContent.includes(name)).querySelectorAll('td')[0].textContent.trim()
+
+        await fetch("/request/achievement/update-display-order.php", {
+            method: "POST",
+            body: new URLSearchParams({
+                'achievement': id,
+                'game': gameId.toString(), // game id could be retrieved automatically but whatever
+                'number': order,
+            }),
+            headers: {
+                'X-CSRF-TOKEN': csrf
+            }
+        })
+        await delay()
+    }
+
+    console.log('done')
+}
+
+/*
+    leaderboardsAndOrder example:
+    [
+        ["Name", "1"],
+        ["Name2", "2"]
+    ]
+*/
+async function uploadLeaderboardOrder(leaderboardsAndOrder, fillOnly = true) {
+    function waitForOkMessage() {
+        return new Promise((res) => {
+            const statusBlock = document.querySelector('.sticky #status')
+            const handle = setInterval(() => {
+                if (statusBlock.style.display == 'block' && statusBlock.textContent == 'OK.') {
+                    res()
+                    clearInterval(handle)
+                }
+            }, 20)
+        })
+    }
+
+    const leaderboards = [ ...document.querySelectorAll('table tr') ]
+        .filter(x => x.querySelector('input[type="checkbox"]'))
+        .reduce((prev, x) => {
+            prev[x.querySelector('input[id$="Title"]').value] = {
+                id: x.querySelector('a').textContent,
+                setDisplayOrder(order) {
+                    x.querySelector('input[id$="DisplayOrder"]').value = order
+                }
+            }
+            return prev
+        }, {})
+
+    for (const x of leaderboardsAndOrder) {
+        const [name, order] = x
+        leaderboards[name].setDisplayOrder(order)
+
+        if (!fillOnly) {
+            // globally available function
+            UpdateLeaderboard(leaderboards[name].id)
+            await waitForOkMessage()
+            await delay(1000)
+        }
+    }
+
+    console.log('done')
+}
