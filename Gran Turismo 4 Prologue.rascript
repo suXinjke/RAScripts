@@ -1150,7 +1150,7 @@ achievementWinArcadeRace(
 
 achievementWinArcadeTimeTrial(
     title = "Viper Time Trial",
-    description = "Beat the time of 3'18.000 in New York Arcade mode Time trial, EASY difficulty, while driving Dodge Viper GTS `99 with NORMAL tyres, do not crash hard",
+    description = "Beat the time of 3'38.000 in New York Arcade mode Time trial, EASY difficulty, while driving Dodge Viper GTS `99 with NORMAL tyres, do not crash hard",
     leaderboardDescription = "New York / EASY / NORMAL Tyres",
     points = 5,
     carId = 0xD0,
