@@ -730,7 +730,7 @@ arcadeRaceInGamePointer = dword(dword(0x5acb70) + 0x3804)
 
 licenseIdStringAddress = 0x917984
 licenseState = dword(0x9c1aa0)
-licenseTimeInMsec = dword(dword(0x1abb93c) + 0xF04)
+licenseTimeInMsec = dword(0x9c2518)
 
 playerCarId = dword(0x9c23b0)
 
