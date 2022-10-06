@@ -875,7 +875,8 @@ for licenseId in licenseMeta {
         description = leaderboardDescription,
         start = (
             leaderboardStartCondition &&
-            licenseTimeInMsec != 359999999
+            licenseTimeInMsec != 359999999 &&
+            licenseTimeInMsec > 0
         ),
         cancel = byte(licenseIdStringAddress) == 0,
         submit = always_true(),
