@@ -2,6 +2,7 @@
   "name": "icongen",
   "version": "0.0.0",
   "dependencies": {
-    "canvas": "^2.9.3"
+    "canvas": "^2.9.3",
+    "random-seed": "^0.3.0"
   }
 }
