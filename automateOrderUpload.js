@@ -21,17 +21,24 @@ function getCsrfToken() {
     ]
 */
 async function uploadAchievementOrder(gameId, achievementsAndOrder) {
-    const rows = [ ...document.querySelectorAll('table tr') ]
+    const nameToId = [ ...document.querySelectorAll('#leftcontainer table tr') ]
+        .filter(tr => tr.querySelector('img')).reverse()
+        .reduce((prev, tr) => {
+            const id = tr.querySelector('input[type="checkbox"]').value
+            const name = tr.querySelector('td:nth-child(3)').childNodes[0].data
+
+            prev[name] = id
+            return prev
+        }, {})
     const csrf = getCsrfToken()
 
     for (const x of achievementsAndOrder) {
         const [name, order] = x
-        const id = rows.find(tr => tr.textContent.includes(name)).querySelectorAll('td')[0].textContent.trim()
 
         await fetch("/request/achievement/update-display-order.php", {
             method: "POST",
             body: new URLSearchParams({
-                'achievement': id,
+                'achievement': nameToId[name],
                 'game': gameId.toString(), // game id could be retrieved automatically but whatever
                 'number': order,
             }),
