@@ -39,7 +39,8 @@ async function uploadAchievementOrder(gameId, achievementsAndOrder) {
                 'X-CSRF-TOKEN': csrf
             }
         })
-        await delay()
+
+        await delay(1000)
     }
 
     console.log('done')
