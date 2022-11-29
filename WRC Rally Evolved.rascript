@@ -158,7 +158,7 @@ carIdToString = {
     MCE_: "Mitsubishi Colt Rally Extreme",
     CXE_: "Citroen Xsara Extreme 05",
     FFE_: "Ford Focus Extreme 05",
-    SIE_: "Subrau Impreza Extreme 05",
+    SIE_: "Subaru Impreza Extreme 05",
     P3E_: "Peugeot 307 Extreme 05",
     MLE_: "Mitsubishi Lancer Evolution Extreme Max II",
     SFE_: "Skoda Fabia Extreme 05",
