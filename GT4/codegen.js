@@ -208,7 +208,7 @@ const functions = {
                         points: licenseMissionPoints[id],
                         flags: {
                             pal: col[4],
-                            ntsc: col[5],
+                            ntscOffset: col[5],
                         },
                         eventId: {
                             pal: eventId[0].toHexString(),

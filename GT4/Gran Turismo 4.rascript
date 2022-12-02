@@ -3890,7 +3890,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa32268,
-            "ntsc": 0xa205f4
+            "ntscOffset": 0x14764
         },
         "eventId": {
             "pal": 0xef9,
@@ -3905,7 +3905,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa3226c,
-            "ntsc": 0xa205f8
+            "ntscOffset": 0x14768
         },
         "eventId": {
             "pal": 0xefa,
@@ -3920,7 +3920,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa32270,
-            "ntsc": 0xa205fc
+            "ntscOffset": 0x1476C
         },
         "eventId": {
             "pal": 0xefb,
@@ -3935,7 +3935,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa32274,
-            "ntsc": 0xa20600
+            "ntscOffset": 0x14770
         },
         "eventId": {
             "pal": 0xefc,
@@ -3950,7 +3950,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32278,
-            "ntsc": 0xa20604
+            "ntscOffset": 0x14774
         },
         "eventId": {
             "pal": 0xefd,
@@ -3965,7 +3965,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa3227c,
-            "ntsc": 0xa20608
+            "ntscOffset": 0x14778
         },
         "eventId": {
             "pal": 0xefe,
@@ -3980,7 +3980,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa32280,
-            "ntsc": 0xa2060c
+            "ntscOffset": 0x1477C
         },
         "eventId": {
             "pal": 0xeff,
@@ -3995,7 +3995,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa32284,
-            "ntsc": 0xa20610
+            "ntscOffset": 0x14780
         },
         "eventId": {
             "pal": 0xf00,
@@ -4010,7 +4010,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa32288,
-            "ntsc": 0xa20614
+            "ntscOffset": 0x14784
         },
         "eventId": {
             "pal": 0xf01,
@@ -4025,7 +4025,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa3228c,
-            "ntsc": 0xa20618
+            "ntscOffset": 0x14788
         },
         "eventId": {
             "pal": 0xf02,
@@ -4040,7 +4040,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa32290,
-            "ntsc": 0xa2061c
+            "ntscOffset": 0x1478C
         },
         "eventId": {
             "pal": 0xf03,
@@ -4055,7 +4055,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa32294,
-            "ntsc": 0xa20620
+            "ntscOffset": 0x14790
         },
         "eventId": {
             "pal": 0xf04,
@@ -4070,7 +4070,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa32298,
-            "ntsc": 0xa20624
+            "ntscOffset": 0x14794
         },
         "eventId": {
             "pal": 0xf05,
@@ -4085,7 +4085,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa3229c,
-            "ntsc": 0xa20628
+            "ntscOffset": 0x14798
         },
         "eventId": {
             "pal": 0xf06,
@@ -4100,7 +4100,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa322a0,
-            "ntsc": 0xa2062c
+            "ntscOffset": 0x1479C
         },
         "eventId": {
             "pal": 0xf07,
@@ -4115,7 +4115,7 @@ licenseMeta = {
         "points": 2,
         "flags": {
             "pal": 0xa322a4,
-            "ntsc": 0xa20630
+            "ntscOffset": 0x147A0
         },
         "eventId": {
             "pal": 0xf08,
@@ -4130,7 +4130,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322a8,
-            "ntsc": 0xa20634
+            "ntscOffset": 0x147A4
         },
         "eventId": {
             "pal": 0xf09,
@@ -4145,7 +4145,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322ac,
-            "ntsc": 0xa20638
+            "ntscOffset": 0x147A8
         },
         "eventId": {
             "pal": 0xf0a,
@@ -4160,7 +4160,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322b0,
-            "ntsc": 0xa2063c
+            "ntscOffset": 0x147AC
         },
         "eventId": {
             "pal": 0xf0b,
@@ -4175,7 +4175,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322b4,
-            "ntsc": 0xa20640
+            "ntscOffset": 0x147B0
         },
         "eventId": {
             "pal": 0xf0c,
@@ -4190,7 +4190,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa322b8,
-            "ntsc": 0xa20644
+            "ntscOffset": 0x147B4
         },
         "eventId": {
             "pal": 0xf0d,
@@ -4205,7 +4205,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322bc,
-            "ntsc": 0xa20648
+            "ntscOffset": 0x147B8
         },
         "eventId": {
             "pal": 0xf0e,
@@ -4220,7 +4220,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322c0,
-            "ntsc": 0xa2064c
+            "ntscOffset": 0x147BC
         },
         "eventId": {
             "pal": 0xf0f,
@@ -4235,7 +4235,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322c4,
-            "ntsc": 0xa20650
+            "ntscOffset": 0x147C0
         },
         "eventId": {
             "pal": 0xf10,
@@ -4250,7 +4250,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322c8,
-            "ntsc": 0xa20654
+            "ntscOffset": 0x147C4
         },
         "eventId": {
             "pal": 0xf11,
@@ -4265,7 +4265,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa322cc,
-            "ntsc": 0xa20658
+            "ntscOffset": 0x147C8
         },
         "eventId": {
             "pal": 0xf12,
@@ -4280,7 +4280,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322d0,
-            "ntsc": 0xa2065c
+            "ntscOffset": 0x147CC
         },
         "eventId": {
             "pal": 0xf13,
@@ -4295,7 +4295,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322d4,
-            "ntsc": 0xa20660
+            "ntscOffset": 0x147D0
         },
         "eventId": {
             "pal": 0xf14,
@@ -4310,7 +4310,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322d8,
-            "ntsc": 0xa20664
+            "ntscOffset": 0x147D4
         },
         "eventId": {
             "pal": 0xf15,
@@ -4325,7 +4325,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322dc,
-            "ntsc": 0xa20668
+            "ntscOffset": 0x147D8
         },
         "eventId": {
             "pal": 0xf16,
@@ -4340,7 +4340,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa322e0,
-            "ntsc": 0xa2066c
+            "ntscOffset": 0x147DC
         },
         "eventId": {
             "pal": 0xf17,
@@ -4355,7 +4355,7 @@ licenseMeta = {
         "points": 3,
         "flags": {
             "pal": 0xa322e4,
-            "ntsc": 0xa20670
+            "ntscOffset": 0x147E0
         },
         "eventId": {
             "pal": 0xf18,
@@ -4370,7 +4370,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa322e8,
-            "ntsc": 0xa20674
+            "ntscOffset": 0x147E4
         },
         "eventId": {
             "pal": 0xf19,
@@ -4385,7 +4385,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa322ec,
-            "ntsc": 0xa20678
+            "ntscOffset": 0x147E8
         },
         "eventId": {
             "pal": 0xf1a,
@@ -4400,7 +4400,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa322f0,
-            "ntsc": 0xa2067c
+            "ntscOffset": 0x147EC
         },
         "eventId": {
             "pal": 0xf1b,
@@ -4415,7 +4415,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa322f4,
-            "ntsc": 0xa20680
+            "ntscOffset": 0x147F0
         },
         "eventId": {
             "pal": 0xf1c,
@@ -4430,7 +4430,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa322f8,
-            "ntsc": 0xa20684
+            "ntscOffset": 0x147F4
         },
         "eventId": {
             "pal": 0xf1d,
@@ -4445,7 +4445,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa322fc,
-            "ntsc": 0xa20688
+            "ntscOffset": 0x147F8
         },
         "eventId": {
             "pal": 0xf1e,
@@ -4460,7 +4460,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa32300,
-            "ntsc": 0xa2068c
+            "ntscOffset": 0x147FC
         },
         "eventId": {
             "pal": 0xf1f,
@@ -4475,7 +4475,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa32304,
-            "ntsc": 0xa20690
+            "ntscOffset": 0x14800
         },
         "eventId": {
             "pal": 0xf20,
@@ -4490,7 +4490,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa32308,
-            "ntsc": 0xa20694
+            "ntscOffset": 0x14804
         },
         "eventId": {
             "pal": 0xf21,
@@ -4505,7 +4505,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa3230c,
-            "ntsc": 0xa20698
+            "ntscOffset": 0x14808
         },
         "eventId": {
             "pal": 0xf22,
@@ -4520,7 +4520,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa32310,
-            "ntsc": 0xa2069c
+            "ntscOffset": 0x1480C
         },
         "eventId": {
             "pal": 0xf23,
@@ -4535,7 +4535,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa32314,
-            "ntsc": 0xa206a0
+            "ntscOffset": 0x14810
         },
         "eventId": {
             "pal": 0xf24,
@@ -4550,7 +4550,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa32318,
-            "ntsc": 0xa206a4
+            "ntscOffset": 0x14814
         },
         "eventId": {
             "pal": 0xf25,
@@ -4565,7 +4565,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa3231c,
-            "ntsc": 0xa206a8
+            "ntscOffset": 0x14818
         },
         "eventId": {
             "pal": 0xf26,
@@ -4580,7 +4580,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32320,
-            "ntsc": 0xa206ac
+            "ntscOffset": 0x1481C
         },
         "eventId": {
             "pal": 0xf27,
@@ -4595,7 +4595,7 @@ licenseMeta = {
         "points": 4,
         "flags": {
             "pal": 0xa32324,
-            "ntsc": 0xa206b0
+            "ntscOffset": 0x14820
         },
         "eventId": {
             "pal": 0xf28,
@@ -4610,7 +4610,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32328,
-            "ntsc": 0xa206b4
+            "ntscOffset": 0x14824
         },
         "eventId": {
             "pal": 0xf29,
@@ -4625,7 +4625,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa3232c,
-            "ntsc": 0xa206b8
+            "ntscOffset": 0x14828
         },
         "eventId": {
             "pal": 0xf2a,
@@ -4640,7 +4640,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32330,
-            "ntsc": 0xa206bc
+            "ntscOffset": 0x1482C
         },
         "eventId": {
             "pal": 0xf2b,
@@ -4655,7 +4655,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32334,
-            "ntsc": 0xa206c0
+            "ntscOffset": 0x14830
         },
         "eventId": {
             "pal": 0xf2c,
@@ -4670,7 +4670,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32338,
-            "ntsc": 0xa206c4
+            "ntscOffset": 0x14834
         },
         "eventId": {
             "pal": 0xf2d,
@@ -4685,7 +4685,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa3233c,
-            "ntsc": 0xa206c8
+            "ntscOffset": 0x14838
         },
         "eventId": {
             "pal": 0xf2e,
@@ -4700,7 +4700,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32340,
-            "ntsc": 0xa206cc
+            "ntscOffset": 0x1483C
         },
         "eventId": {
             "pal": 0xf2f,
@@ -4715,7 +4715,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32344,
-            "ntsc": 0xa206d0
+            "ntscOffset": 0x14840
         },
         "eventId": {
             "pal": 0xf30,
@@ -4730,7 +4730,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32348,
-            "ntsc": 0xa206d4
+            "ntscOffset": 0x14844
         },
         "eventId": {
             "pal": 0xf31,
@@ -4745,7 +4745,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa3234c,
-            "ntsc": 0xa206d8
+            "ntscOffset": 0x14848
         },
         "eventId": {
             "pal": 0xf32,
@@ -4760,7 +4760,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32350,
-            "ntsc": 0xa206dc
+            "ntscOffset": 0x1484C
         },
         "eventId": {
             "pal": 0xf33,
@@ -4775,7 +4775,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32354,
-            "ntsc": 0xa206e0
+            "ntscOffset": 0x14850
         },
         "eventId": {
             "pal": 0xf34,
@@ -4790,7 +4790,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32358,
-            "ntsc": 0xa206e4
+            "ntscOffset": 0x14854
         },
         "eventId": {
             "pal": 0xf35,
@@ -4805,7 +4805,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa3235c,
-            "ntsc": 0xa206e8
+            "ntscOffset": 0x14858
         },
         "eventId": {
             "pal": 0xf36,
@@ -4820,7 +4820,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32360,
-            "ntsc": 0xa206ec
+            "ntscOffset": 0x1485C
         },
         "eventId": {
             "pal": 0xf37,
@@ -4835,7 +4835,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa32364,
-            "ntsc": 0xa206f0
+            "ntscOffset": 0x14860
         },
         "eventId": {
             "pal": 0xf38,
@@ -4850,7 +4850,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32368,
-            "ntsc": 0xa206f4
+            "ntscOffset": 0x14864
         },
         "eventId": {
             "pal": 0xf39,
@@ -4865,7 +4865,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa3236c,
-            "ntsc": 0xa206f8
+            "ntscOffset": 0x14868
         },
         "eventId": {
             "pal": 0xf3a,
@@ -4880,7 +4880,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32370,
-            "ntsc": 0xa206fc
+            "ntscOffset": 0x1486C
         },
         "eventId": {
             "pal": 0xf3b,
@@ -4895,7 +4895,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32374,
-            "ntsc": 0xa20700
+            "ntscOffset": 0x14870
         },
         "eventId": {
             "pal": 0xf3c,
@@ -4910,7 +4910,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32378,
-            "ntsc": 0xa20704
+            "ntscOffset": 0x14874
         },
         "eventId": {
             "pal": 0xf3d,
@@ -4925,7 +4925,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa3237c,
-            "ntsc": 0xa20708
+            "ntscOffset": 0x14878
         },
         "eventId": {
             "pal": 0xf3e,
@@ -4940,7 +4940,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32380,
-            "ntsc": 0xa2070c
+            "ntscOffset": 0x1487C
         },
         "eventId": {
             "pal": 0xf3f,
@@ -4955,7 +4955,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32384,
-            "ntsc": 0xa20710
+            "ntscOffset": 0x14880
         },
         "eventId": {
             "pal": 0xf40,
@@ -4970,7 +4970,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32388,
-            "ntsc": 0xa20714
+            "ntscOffset": 0x14884
         },
         "eventId": {
             "pal": 0xf41,
@@ -4985,7 +4985,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa3238c,
-            "ntsc": 0xa20718
+            "ntscOffset": 0x14888
         },
         "eventId": {
             "pal": 0xf42,
@@ -5000,7 +5000,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32390,
-            "ntsc": 0xa2071c
+            "ntscOffset": 0x1488C
         },
         "eventId": {
             "pal": 0xf43,
@@ -5015,7 +5015,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32394,
-            "ntsc": 0xa20720
+            "ntscOffset": 0x14890
         },
         "eventId": {
             "pal": 0xf44,
@@ -5030,7 +5030,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa32398,
-            "ntsc": 0xa20724
+            "ntscOffset": 0x14894
         },
         "eventId": {
             "pal": 0xf45,
@@ -5045,7 +5045,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa3239c,
-            "ntsc": 0xa20728
+            "ntscOffset": 0x14898
         },
         "eventId": {
             "pal": 0xf46,
@@ -5060,7 +5060,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa323a0,
-            "ntsc": 0xa2072c
+            "ntscOffset": 0x1489C
         },
         "eventId": {
             "pal": 0xf47,
@@ -5075,7 +5075,7 @@ licenseMeta = {
         "points": 25,
         "flags": {
             "pal": 0xa323a4,
-            "ntsc": 0xa20730
+            "ntscOffset": 0x148A0
         },
         "eventId": {
             "pal": 0xf48,
@@ -5090,7 +5090,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa323a8,
-            "ntsc": 0xa20734
+            "ntscOffset": 0x148A4
         },
         "eventId": {
             "pal": 0xf49,
@@ -5105,7 +5105,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa323ac,
-            "ntsc": 0xa20738
+            "ntscOffset": 0x148A8
         },
         "eventId": {
             "pal": 0xf4a,
@@ -5120,7 +5120,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa323b0,
-            "ntsc": 0xa2073c
+            "ntscOffset": 0x148AC
         },
         "eventId": {
             "pal": 0xf4b,
@@ -5135,7 +5135,7 @@ licenseMeta = {
         "points": 5,
         "flags": {
             "pal": 0xa323b4,
-            "ntsc": 0xa20740
+            "ntscOffset": 0x148B0
         },
         "eventId": {
             "pal": 0xf4c,
@@ -5150,7 +5150,7 @@ licenseMeta = {
         "points": 10,
         "flags": {
             "pal": 0xa323b8,
-            "ntsc": 0xa20744
+            "ntscOffset": 0x148B4
         },
         "eventId": {
             "pal": 0xf4d,
@@ -11979,7 +11979,7 @@ function hasFinishedLicenseTest(eventStringId, requirement) {
 function hasWonAllLicenses(licenseLetter) {
     licenseIds = []
     palMem = []
-    ntscMem = []
+    ntscOffsetMem = []
     for x in licenseMeta {
         if (
             licenseMeta[x]["license"] == licenseLetter &&
@@ -11988,7 +11988,7 @@ function hasWonAllLicenses(licenseLetter) {
             meta = licenseMeta[x]
             array_push(licenseIds, x)
             array_push(palMem,  meta["flags"]["pal"])
-            array_push(ntscMem, meta["flags"]["ntsc"])
+            array_push(ntscOffsetMem, meta["flags"]["ntscOffset"])
         }
     }
 
@@ -11998,16 +11998,23 @@ function hasWonAllLicenses(licenseLetter) {
         hasFinishedLicenseTest(id, LICENSE_BRONZE)
     )))
 
-    function gotAllRewardsConditions(mems) {
+    function gotAllRewardsConditionsPAL(mems) {
         return (
             all_of(mems, mem => high4(mem) <= 0xB) &&
             any_of(mems, mem => prev(high4(mem)) > 0xB && high4(mem) <= 0xB)
         )
     }
 
+    function gotAllRewardsConditionsNTSC(mems) {
+        return (
+            all_of(mems, mem => high4(dword(0x622f4c) + mem) <= 0xB) &&
+            any_of(mems, mem => prev(high4(dword(0x622f4c) + mem)) > 0xB && high4(dword(0x622f4c) + mem) <= 0xB)
+        )
+    }
+
     gotAllRewards = gameFlag == GAME_FLAG_LICENSE && (
-        (isRunningPAL && gotAllRewardsConditions(palMem)) ||
-        (isRunningNTSC && gotAllRewardsConditions(ntscMem))
+        (isRunningPAL && gotAllRewardsConditionsPAL(palMem)) ||
+        (isRunningNTSC && gotAllRewardsConditionsNTSC(ntscOffsetMem))
     )
 
     return wonAllInOneSitting || gotAllRewards
