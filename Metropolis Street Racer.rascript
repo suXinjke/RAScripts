@@ -90,7 +90,10 @@ function oneOnOneHeadstartSeconds() => dword(0x113b6c)
 
 // Values in these addresses change depending on menu screen,
 // but I'm not sure if this combination is unique
-function isLoadingSave() => word(0x53c08c) == 0xB && word(0x53c0b0) == 0x17
+function isLoadingSave() => __ornext(
+    (word(0x53c08c) == 0xB && word(0x53c0b0) == 0x17) ||
+    (prior(word(0x53c08c)) == 0xB && prior(word(0x53c0b0)) == 0x17)
+)
 
 function gameIsNotLoading() => dword(0x53bfc8) != 0x0
 
@@ -121,7 +124,7 @@ function hasFinished() => dword(0x1a2d04) == 0x1 && prev(dword(0x1a2d04)) != 0x1
 function showroomCarUnlockedLegit( carIndex ) {
     address = 0x188b68 + carIndex * 4
     return (
-        prev(dword(address)) == 0 && (
+        prev(dword(address)) == 0 && __ornext(
             dword(address) == 1 ||
             dword(address) == 3
         )
@@ -390,7 +393,7 @@ achievement(
         byte(chapterEventFlagsAddress( 0, 0 )) == 0x01 &&
         byte(chapterEventFlagsAddress( 0, 1 )) == 0x01 &&
         byte(chapterEventFlagsAddress( 0, 2 )) == 0x01 &&
-        (
+        __ornext(
             garageSlotNotEmpty( 0 ) != 0 ||
             garageSlotNotEmpty( 1 ) != 0 ||
             garageSlotNotEmpty( 2 ) != 0
