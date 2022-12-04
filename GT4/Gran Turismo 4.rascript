@@ -12605,7 +12605,9 @@ achievement(
         gameFlag == GAME_FLAG_POWER_AND_SPEED &&
         inGameEventId == 0xCEC &&
         inGameLastLapTimeInMsec < 8000 &&
-        transmission == 0
+        transmission == 0 &&
+        isInASpecMode() &&
+        showingResults == 1
     )
 )
 
