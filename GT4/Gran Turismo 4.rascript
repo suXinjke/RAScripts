@@ -2900,8 +2900,8 @@ eventMeta = {
         "isChampionship": false,
         "nitrousAllowed": false,
         "carIdAnyEvent": [
-            0x28a,
-            "Mazda 110S (L10B) '68, which you can win from this event."
+            0x353,
+            "Mazda 110S (L10A) `67, which you can win from this event."
         ],
         "carIdsForbidden": [
             0xc2,
