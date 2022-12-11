@@ -6788,7 +6788,7 @@ carChallenges = [
         "target": 50,
         "name": "Isuzu Sport Classics: 117",
         "description": "",
-        "fullDescription": "",
+        "fullDescription": "Earn 50 A-Spec points or more at any Isuzu Sport Classics event while driving Isuzu 117 Coupe `68.",
         "points": 1,
         "carIds": [
             0x15
@@ -6811,7 +6811,7 @@ carChallenges = [
         "target": 50,
         "name": "Isuzu Sport Classics: Bellett",
         "description": "",
-        "fullDescription": "",
+        "fullDescription": "Earn 50 A-Spec points or more at any Isuzu Sport Classics event while driving Isuzu Bellett 1600 GT-R `69.",
         "points": 1,
         "carIds": [
             0x2B5
@@ -6834,7 +6834,7 @@ carChallenges = [
         "target": 50,
         "name": "Isuzu Sport Classics: Piazza",
         "description": "",
-        "fullDescription": "",
+        "fullDescription": "Earn 50 A-Spec points or more at any Isuzu Sport Classics event while driving Isuzu PIAZZA XE `81.",
         "points": 1,
         "carIds": [
             0x5F
