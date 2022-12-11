@@ -10864,11 +10864,12 @@ carChallenges = [
         "type": "aSpecHunt",
         "target": 30,
         "name": "Concepts: Honda Dualnote",
-        "description": "",
+        "description": "in Honda Dualnote / Acura DN-X",
         "fullDescription": "",
         "points": 1,
         "carIds": [
-            0x2F7
+            0x2F7,
+            0x2ED
         ],
         "trackIds": [],
         "eventStringIds": [],
