@@ -8972,8 +8972,8 @@ carChallenges = [
         "type": "aSpecHunt",
         "target": 30,
         "name": "World Rally Collection: Xsara",
-        "description": "Earn 30 A-Spec points or more in Citroen Xsara Rally Car `99. Caution! It's inappropriately front-wheel drive!",
-        "fullDescription": "",
+        "description": "",
+        "fullDescription": "Earn 30 A-Spec points or more in Citroen Xsara Rally Car `99. Caution! It's inappropriately front-wheel drive!",
         "points": 2,
         "carIds": [
             0x221
