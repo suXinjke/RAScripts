@@ -7827,7 +7827,7 @@ carChallenges = [
         "target": 485000,
         "name": "RUF Collection: Yellowbird's Daring Flight",
         "description": "",
-        "fullDescription": "Arcade Time Trial, RUF CTR \"Yellow Bird\" `87, Sports Hard tires, no driving aids, manual transimission, no quick tune. Do a clean lap on Nurburgring Nordschleife and beat the time of 8:05'000, originally set by Stefan Roser.",
+        "fullDescription": "Arcade Time Trial, RUF CTR \"Yellow Bird\" `87, Sports Hard tires, no driving aids, manual transmission, no quick tune. Do a clean lap on Nurburgring Nordschleife and beat the time of 8:05'000, originally set by Stefan Roser.",
         "points": 25,
         "carIds": [
             0x259
