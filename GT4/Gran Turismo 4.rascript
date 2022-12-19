@@ -8224,7 +8224,7 @@ carChallenges = [
     {
         "type": "aSpecHunt",
         "target": 50,
-        "name": "DTM: Audi A3",
+        "name": "DTM: Alfa Romeo 155",
         "description": "",
         "fullDescription": "",
         "points": 2,
@@ -10084,11 +10084,12 @@ carChallenges = [
         "type": "aSpecHunt",
         "target": 30,
         "name": "Have You Tried: Daihatsu Cuore?",
-        "description": "",
+        "description": "Daihatsu Cuore / MIRA TR-XX Avanzato R `97",
         "fullDescription": "",
         "points": 1,
         "carIds": [
-            0x270
+            0x270,
+            0x42
         ],
         "trackIds": [],
         "eventStringIds": [],
