@@ -757,7 +757,7 @@ function hasFinishedTheLicense(licenseId) {
 function hasFinishedArcadeRace() {
     flag = dword(arcadeRaceInGamePointer + 0x0)
 
-    return prev(flag) == 0 && flag == 1
+    return prev(flag) == 0 && flag == 1 && dword(licenseIdStringAddress) != 0x3070306C
 }
 
 function hasFinishedArcadeRaceFirst() {
