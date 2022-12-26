@@ -12000,23 +12000,29 @@ function hasWonAllLicenses(licenseLetter) {
         hasFinishedLicenseTest(id, LICENSE_BRONZE)
     )))
 
-    function gotAllRewardsConditionsPAL(mems) {
+    function passedFinalTestPAL(mems) {
+        nonFinalTests = array_map(range(0, 15), i => mems[i])
+        finalTest = mems[15]
+
         return (
-            all_of(mems, mem => high4(mem) <= 0xB) &&
-            any_of(mems, mem => prev(high4(mem)) > 0xB && high4(mem) <= 0xB)
+            all_of(nonFinalTests, mem => high4(mem) <= 0xB) &&
+            prev(high4(finalTest)) > 0xB && high4(finalTest) <= 0xB
         )
     }
 
-    function gotAllRewardsConditionsNTSC(mems) {
+    function passedFinalTestNTSC(mems) {
+        nonFinalTests = array_map(range(0, 15), i => mems[i])
+        finalTest = mems[15]
+
         return (
-            all_of(mems, mem => high4(dword(0x622f4c) + mem) <= 0xB) &&
-            any_of(mems, mem => prev(high4(dword(0x622f4c) + mem)) > 0xB && high4(dword(0x622f4c) + mem) <= 0xB)
+            all_of(nonFinalTests, mem => high4(dword(0x622f4c) + mem) <= 0xB) &&
+            prev(high4(dword(0x622f4c) + finalTest)) > 0xB && high4(dword(0x622f4c) + finalTest) <= 0xB
         )
     }
 
-    gotAllRewards = gameFlag == GAME_FLAG_LICENSE && (
-        (isRunningPAL && gotAllRewardsConditionsPAL(palMem)) ||
-        (isRunningNTSC && gotAllRewardsConditionsNTSC(ntscOffsetMem))
+    gotAllRewards = gameFlag == GAME_FLAG_LICENSE && dword(0x621cb4) != 0 && (
+        (isRunningPAL && passedFinalTestPAL(palMem)) ||
+        (isRunningNTSC && passedFinalTestNTSC(ntscOffsetMem))
     )
 
     return wonAllInOneSitting || gotAllRewards
