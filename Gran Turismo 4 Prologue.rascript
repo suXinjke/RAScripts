@@ -368,7 +368,7 @@ licenseMeta = {
     },
     "l0p0038": {
         "description": "Knock over all cones in a random pattern",
-        "points": 1,
+        "points": 2,
         "pointsGold": 5,
         "rewardRequirement": 60000,
         "rewardRequirementFormatted": "1'00.000",
@@ -457,7 +457,7 @@ licenseMeta = {
     "l0p0039": {
         "description": "Knock over all cones aligned to the marked course",
         "points": 2,
-        "pointsGold": 10,
+        "pointsGold": 5,
         "rewardRequirement": 65000,
         "rewardRequirementFormatted": "1'05.000",
         "licenseId32Bit": 0x39333030,
@@ -534,7 +534,7 @@ licenseMeta = {
     "l0p0040": {
         "description": "Knock over all cones whilst following the racing line",
         "points": 1,
-        "pointsGold": 5,
+        "pointsGold": 3,
         "rewardRequirement": 45000,
         "rewardRequirementFormatted": "0'45.000",
         "licenseId32Bit": 0x30343030,
@@ -599,8 +599,8 @@ licenseMeta = {
     },
     "l0p0035": {
         "description": "Get to the pole position using the BMW McLaren F1 GTR",
-        "points": 10,
-        "pointsGold": 25,
+        "points": 5,
+        "pointsGold": 10,
         "rewardRequirement": 4,
         "rewardRequirementFormatted": "",
         "licenseId32Bit": 0x35333030,
@@ -621,8 +621,8 @@ licenseMeta = {
     },
     "l0p0046": {
         "description": "Carefully manoeuvre your car through the cones",
-        "points": 3,
-        "pointsGold": 10,
+        "points": 2,
+        "pointsGold": 5,
         "rewardRequirement": 60000,
         "rewardRequirementFormatted": "1'00.000",
         "licenseId32Bit": 0x36343030,
@@ -666,7 +666,7 @@ licenseMeta = {
     "l0p0044": {
         "description": "Fine control of your car on a twisting dirt course",
         "points": 5,
-        "pointsGold": 25,
+        "pointsGold": 10,
         "rewardRequirement": 4,
         "rewardRequirementFormatted": "",
         "licenseId32Bit": 0x34343030,
@@ -1042,7 +1042,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "JGTC Race",
     description = "Win Fuji Speedway race in Arcade mode on PRO difficulty while driving any of JGTC cars (except Cusco Impreza)",
-    points = 10,
+    points = 5,
     carIds = [0x8A, 0xA1, 0xA9],
     trackIds = [fisc],
     minDifficulty = ARCADE_PRO
@@ -1051,7 +1051,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "Cappucino / Beat Race",
     description = "Win Tsukuba Circuit race in Arcade mode on PRO difficulty while driving Honda BEAT(J) `91 or Suzuki Cappuccino `92 with NORMAL tyres",
-    points = 10,
+    points = 5,
     carIds = [0x89, 0x21],
     trackIds = [tsuk],
     minDifficulty = ARCADE_PRO,
@@ -1061,7 +1061,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "MX5 Race",
     description = "Win Tsukuba Circuit race in Arcade mode on PRO difficulty while driving Mazda MX-5 `89 with SPORTS tyres",
-    points = 10,
+    points = 5,
     carIds = [0x114],
     trackIds = [tsuk],
     minDifficulty = ARCADE_PRO,
@@ -1071,7 +1071,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "Civic Race",
     description = "Win any race in Arcade mode on HARD difficulty or higher while driving any of Honda Civic cars with NORMAL tyres",
-    points = 5,
+    points = 3,
     carIds = [0xCC, 0xD5],
     trackIds = raceTracks,
     minDifficulty = ARCADE_HARD,
@@ -1081,7 +1081,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "RX-7 / RX-8 Race",
     description = "Win any race in Arcade mode on HARD difficulty or higher while driving Mazda RX-7(J) `02 or Mazda RX-8 `03 with NORMAL tyres",
-    points = 5,
+    points = 3,
     carIds = [0xCD, 0xCE],
     trackIds = raceTracks,
     minDifficulty = ARCADE_HARD,
@@ -1091,7 +1091,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "NSX Race",
     description = "Win any race in Arcade mode on HARD difficulty or higher while driving Honda NSX Type S Zero(J) `97 with NORMAL tyres",
-    points = 5,
+    points = 3,
     carIds = [0x44],
     trackIds = raceTracks,
     minDifficulty = ARCADE_HARD,
@@ -1101,7 +1101,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "G T  P R O L O G U E",
     description = "Win New York race in Arcade mode on HARD difficulty or higher while driving DANDELION YELLOW MITSUBISHI LANCER EVOLUTION V `98 with NORMAL tyres",
-    points = 5,
+    points = 3,
     carIds = [0xD3],
     trackIds = [newy],
     minDifficulty = ARCADE_HARD,
@@ -1120,7 +1120,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "Toyota Motor Triathlon Race",
     description = "Win New York race in Arcade mode while driving Toyota Motor Triathlon Race Car with NORMAL tyres, the car you can get for golding Green lessons",
-    points = 3,
+    points = 2,
     carIds = [0xDB],
     trackIds = [newy]
 )
@@ -1128,7 +1128,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "BMW M5 Concept Race",
     description = "Win New York race in Arcade mode while driving BMW Concept M5 with NORMAL tyres, the car you can get for golding Orange lessons",
-    points = 3,
+    points = 2,
     carIds = [0xF9],
     trackIds = [newy]
 )
@@ -1136,7 +1136,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "Mitsubishi i Race",
     description = "Win Tsukuba Circuit race in Arcade mode while driving Mitsubishi i `03 with NORMAL tyres, the car you can get for golding Blue lessons",
-    points = 3,
+    points = 2,
     carIds = [0x9B],
     trackIds = [tsuk]
 )
@@ -1144,7 +1144,7 @@ achievementWinArcadeRace(
 achievementWinArcadeRace(
     title = "Suzuki Concept Race",
     description = "Win Tsukuba Circuit race in Arcade mode while driving Suzuki CONCEPT-S2 `03 with NORMAL tyres, the car you can get for golding Red lessons",
-    points = 3,
+    points = 2,
     carIds = [0xA3],
     trackIds = [tsuk]
 )
@@ -1173,7 +1173,7 @@ achievementWinArcadeTimeTrial(
     title = "HSC Time Trial",
     description = "Beat the time of 3'18.500 on Fuji Speedway Arcade mode Time trial, EASY difficulty, while driving Honda HSC (37th Tokyo Motor Show Concept Car) `03 with NORMAL tyres, the car you can get for golding Purple lessons, do not cut or go out",
     leaderboardDescription = "Fuji Speedway / EASY / NORMAL Tyres",
-    points = 25,
+    points = 5,
     carId = 0x81,
     trackId = fisc,
     expectedTime = 198500
