@@ -12515,8 +12515,11 @@ function defineCarChallenges() {
                 trigger = (
                     all_of(conditions, c => c) &&
                     isInASpecMode() &&
-                    gameFlag == GAME_FLAG_ARCADE_TIME_TRIAL &&
-                    hasCompletedALap()
+                    hasCompletedALap() && (
+                        gameFlag == GAME_FLAG_ARCADE_TIME_TRIAL ||
+                        gameFlag == GAME_FLAG_FREE_RUN ||
+                        gameFlag == GAME_FLAG_PHOTO_DRIVE
+                    )
                 )
             )
         }
