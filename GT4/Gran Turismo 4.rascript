@@ -12063,7 +12063,7 @@ function defineRaceEvents() {
         if (id == "ex_formula") { // exception: Formula GT event is too big so player is allowed to win three different races instead of all 15
             conditions = [
                 [1, "1st to 5th", [0, 1, 2, 3, 4]],
-                [2, "6th to 10th", [6, 7, 8, 9, 10]],
+                [2, "6th to 10th", [5, 6, 7, 8, 9]],
                 [3, "11th to 15th", [10, 11, 12, 13, 14]]
             ]
 
