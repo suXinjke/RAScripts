@@ -992,7 +992,7 @@ achievement(
 // SELF_AWARENESS_AEON_NO_DAMAGE
 achievement(
     title = "Aeonphobia",
-    description = "Self Awareness, Tier 4 aircraft or worse: destroy Aeonosphere without getting damage and using bombs.",
+    description = "Self Awareness, Tier 4 aircraft or worse: destroy Aeonosphere without getting damage. Using spread bombs is not allowed.",
     points = 5,
     trigger = (
         isFlying() &&
