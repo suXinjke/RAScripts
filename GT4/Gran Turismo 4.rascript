@@ -11758,7 +11758,6 @@ inGameTrackId = dword(dword(0x621cb4) + 0x78)
 inGamePlayerCarId = dword(dword(0x621cb4) + 0x9B0)
 inGamePlayerCarColorId = byte(dword(0x621cb4) + 0x9C8)
 inGameBSpecActive = dword(pointerChain(0x621cb4, [0x84, 0xCCC]))
-inGameControlScheme = dword(pointerChain(0x621cb4, [0x84, 0x58, 0x30, 0x1BC]))
 inGameLapsToGo = dword(dword(0x621cb4) + 0x0)
 
 inGamePlayerPositionByHUD = dword(pointerChain(0x621cb4, [0x84, 0xE420, 0x13B0]))
@@ -11789,7 +11788,11 @@ showingResults = dword(pointerChain(0x621cb4, [0x84, 0xE41C, 0x0]))
 //   AUX
 // =======
 
-function isInASpecMode() => inGameControlScheme == 0
+function isInASpecMode() {
+    ptr = dword(pointerChain(0x621cb4, [0x84, 0x58, 0x30]))
+    inGameControlScheme = dword(ptr + 0x1BC)
+    return ptr != 0 && inGameControlScheme == 0
+}
 
 function hasCompletedALap() {
     return inGameCurrentLapForPlayer > prev(inGameCurrentLapForPlayer)
