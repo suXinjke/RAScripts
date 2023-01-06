@@ -118,6 +118,7 @@ leaderboard(
     cancel = inGame() == 0,
     submit = prev(completed()) == 0 && completed() == 1,
     value = carParkTimer() / 0.6826666666666667,
+    lower_is_better = true,
     format = "MILLISECS"
 )
 
@@ -134,6 +135,7 @@ leaderboard(
     cancel = inGame() == 0,
     submit = prev(completed()) == 0 && completed() == 1,
     value = carParkTimer() / 0.6826666666666667,
+    lower_is_better = true,
     format = "MILLISECS"
 )
 
@@ -358,6 +360,7 @@ leaderboard(
     cancel = inGame() == 0,
     submit = missionScriptIndicatesSuccess(),
     value = missionTimer() / 163.84,
+    lower_is_better = true,
     format = "MILLISECS"
 )
 
@@ -373,6 +376,7 @@ leaderboard(
     cancel = inGame() == 0,
     submit = missionScriptIndicatesSuccess(),
     value = playerDamage(),
+    lower_is_better = true,
     format = "VALUE"
 )
 
@@ -566,6 +570,7 @@ function checkpointDrivingGame(
         cancel = inGame() == 0,
         submit = finishConditions,
         value = missionTimer() / 163.84,
+        lower_is_better = true,
         format = "MILLISECS"
     )
 }
@@ -668,6 +673,7 @@ function trailblazerDrivingGame(title, id, badge, missionId) {
         cancel = inGame() == 0,
         submit = finishConditions,
         value = missionTimer() / 163.84,
+        lower_is_better = false,
         format = "MILLISECS"
     )
 }
@@ -781,6 +787,7 @@ function survivalDrivingGame(title, badge, missionId, requiredTimeSeconds, requi
         cancel = inGame() == 0,
         submit = missionControl() == 1,
         value = missionTimer() / 163.84,
+        lower_is_better = false,
         format = "MILLISECS"
     )
 }
