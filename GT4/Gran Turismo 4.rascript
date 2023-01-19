@@ -10782,7 +10782,7 @@ carChallenges = [
         "target": 128088,
         "name": "Plutonium Not Included",
         "description": "",
-        "fullDescription": "Arcade Time Trial, DMC DeLorean S2 `04, Normal Road tires (Normal Comfort in NTSC version), no quick tune. Do a clean lap on Cote d'Azur and beat the time of 2:08'080.",
+        "fullDescription": "Arcade Time Trial, DMC DeLorean S2 `04, Normal Comfort tires (Normal Road in PAL version of Quick Tune menu), no quick tune. Do a clean lap on Cote d'Azur and beat the time of 2:08'080.",
         "points": 10,
         "carIds": [
             0x403
@@ -12073,7 +12073,7 @@ function defineRaceEvents() {
             for x in conditions {
                 array_push(achievements, {
                     "title": format("{0} - Series #{1}", meta["name"], x[0]),
-                    "description": format("Win in any {0} event placed {1} in the menu, in A-Spec mode while driving Formula Gran Turismo, which you can win from Nurburgring 24h Endurance (but you'd rather borrow a save file).", meta["name"], x[1]),
+                    "description": format("Win in one of {0} {1} race events, in A-Spec mode while driving Formula Gran Turismo, which you can win from Nurburgring 24h Endurance (but you'd rather borrow a save file).", meta["name"], x[1]),
                     "points": (meta["points"] / length(conditions)),
                     "trigger": any_of(x[2], raceIndex => hasWonRaceEvent(
                         id,
