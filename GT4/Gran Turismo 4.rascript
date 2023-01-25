@@ -11659,7 +11659,7 @@ carChallenges = [
         "target": 180000,
         "name": "Tin Lizzie Trial",
         "description": "",
-        "fullDescription": "Arcade Time Trial, Ford Model T Tourer `15, Normal Sports (Normal Road in NTSC version) tires, no quick tune. Be very smooth and gentle to beat a lap time of 3:00'000 on Seattle Circuit (Reverse).",
+        "fullDescription": "Arcade Time Trial, Ford Model T Tourer `15, Normal Road (Normal Sports in PAL version of Quick Tune menu) tires, no quick tune. Be very smooth and gentle to beat a lap time of 3:00'000 on Seattle Circuit (Reverse).",
         "points": 10,
         "carIds": [
             0x406
