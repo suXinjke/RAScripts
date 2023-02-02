@@ -12791,9 +12791,9 @@ function defineRichPresence() {
         carLookup
     )
 
-    for region in ["pal", "ntsc"] {
+    for region in ["pal", "ntscOffset"] {
         regionCondition = isRunningPAL
-        if (region == "ntsc") {
+        if (region == "ntscOffset") {
             regionCondition = isRunningNTSC
         }
 
