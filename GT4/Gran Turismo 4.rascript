@@ -11755,8 +11755,6 @@ gtModePlayerNOSId = dword(dword(0x622F4C) + 0x13A38)
 
 inGameEventId = dword(dword(0x621cb4) + 0x68)
 inGameTrackId = dword(dword(0x621cb4) + 0x78)
-inGamePlayerCarId = dword(dword(0x621cb4) + 0x9B0)
-inGamePlayerCarColorId = byte(dword(0x621cb4) + 0x9C8)
 inGameBSpecActive = dword(pointerChain(0x621cb4, [0x84, 0xCCC]))
 inGameLapsToGo = dword(dword(0x621cb4) + 0x0)
 
@@ -11765,10 +11763,14 @@ inGameASpecPointsWon = byte(dword(0x621cb4) + 0x96C)
 
 function inGameDataForCarAddress(index) => pointerChain(0x621cb4, [0x60, 0x8, 0x0 + index * 4])
 function inGameGridCarId(index) => dword(dword(inGameDataForCarAddress(index)) + 0x20)
+function inGameGridCarColorId(index) => dword(dword(inGameDataForCarAddress(index)) + 0x38)
 function inGameCurrentLapForCarAddress(index) => dword(inGameDataForCarAddress(index)) + 0x1AC
 inGameCurrentLapForPlayer = dword(inGameCurrentLapForCarAddress(0))
 inGameCurrentLapTimeInMsecByHUD = dword(pointerChain(0x621cb4, [0x84, 0xE420, 0x1664]))
 inGameLastLapTimeInMsec = dword(pointerChain(0x621cb4, [0x60, 0x8, 0x0, 0x11DC]))
+
+inGamePlayerCarId = inGameGridCarId(0)
+inGamePlayerCarColorId = inGameGridCarColorId(0)
 
 inGameLicenseState = dword(dword(0x621cb4) + 0x88)
 inGameLicenseFinishTimeInMsec = dword(dword(0x621cb4) + 0x8c)
@@ -12338,8 +12340,8 @@ function defineSpeedAchievement(
         )
     }
 
-    notControlledByAI             = byte(pointerChain(0x621cb4, [0x9A8, 0x56A])) == 0
-    notControlledByAIRollingStart = byte(pointerChain(0x621cb4, [0x9A8, 0x56B])) == 0
+    notControlledByAI             = byte(dword(dword(inGameDataForCarAddress(0)) + 0x18) + 0x56A) == 0
+    notControlledByAIRollingStart = byte(dword(dword(inGameDataForCarAddress(0)) + 0x18) + 0x56B) == 0
 
     hudIsActive = byte(hudPtr + 0x0) == 1
 
