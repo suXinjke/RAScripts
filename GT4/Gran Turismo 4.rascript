@@ -7827,7 +7827,7 @@ carChallenges = [
         "target": 485000,
         "name": "RUF Collection: Yellowbird's Daring Flight",
         "description": "",
-        "fullDescription": "Arcade Time Trial, RUF CTR \"Yellow Bird\" `87, Sports Hard tires, no driving aids, manual transmission, no quick tune. Do a clean lap on Nurburgring Nordschleife and beat the time of 8:05'000, originally set by Stefan Roser.",
+        "fullDescription": "Arcade Time Trial, RUF CTR \"Yellow Bird\" `87, Sports Hard tires, no driving aids, manual transmission, power/weight tune at 0%. Do a clean lap on Nurburgring Nordschleife and beat the time of 8:05'000, originally set by Stefan Roser.",
         "points": 25,
         "carIds": [
             0x259
@@ -8496,7 +8496,7 @@ carChallenges = [
         "target": 195040,
         "name": "Le Mans Prototypes: Sauber C9",
         "description": "",
-        "fullDescription": "Arcade Time Trial, Sauber Mercedes C9 Race Car `89, Racing Hard tires, no quick tune. Do a clean lap on Circuit de la Sarthe 2 and beat the time of 3:15'040, originally set by Team Sauber Mercedes at Le Mans 24hrs 1989.",
+        "fullDescription": "Arcade Time Trial, Sauber Mercedes C9 Race Car `89, Racing Hard tires, power/weight tune at 0%. Do a clean lap on Circuit de la Sarthe 2 and beat the time of 3:15'040, originally set by Team Sauber Mercedes at Le Mans 24hrs 1989.",
         "points": 5,
         "carIds": [
             0x3E6
@@ -9463,7 +9463,7 @@ carChallenges = [
         "target": 116023,
         "name": "Race Cars: CLK-GTR",
         "description": "",
-        "fullDescription": "Arcade Time Trial, AMG Mercedes CLK-GTR Race Car `98, Racing Hard tires, no quick tune. Do a clean lap on Suzuka Circuit and beat the time of 1:56'023, originally set by Team AMG-Mercedes at Suzuka 1000km 1997.",
+        "fullDescription": "Arcade Time Trial, AMG Mercedes CLK-GTR Race Car `98, Racing Hard tires, power/weight tune at 0%. Do a clean lap on Suzuka Circuit and beat the time of 1:56'023, originally set by Team AMG-Mercedes at Suzuka 1000km 1997.",
         "points": 5,
         "carIds": [
             0x184
@@ -10062,7 +10062,7 @@ carChallenges = [
         "target": 65800,
         "name": "Have You Tried: Chrysler Prowler",
         "description": "",
-        "fullDescription": "Arcade Time Trial, Chrysler Prowler `02, Sports Hard tires, no quick tune. Do a clean lap on Clubman Stage Route 5 (Reverse) and beat the time of 1:05'800.",
+        "fullDescription": "Arcade Time Trial, Chrysler Prowler `02, Sports Hard tires, power/weight tune at 0%. Do a clean lap on Clubman Stage Route 5 (Reverse) and beat the time of 1:05'800.",
         "points": 10,
         "carIds": [
             0x2F0
@@ -10759,7 +10759,7 @@ carChallenges = [
         "target": 114900,
         "name": "The Terminator",
         "description": "",
-        "fullDescription": "Arcade Time Trial, Jay Leno Tank Car `03, Sports Soft tires, no quick tune. Do a clean lap on New York circuit (Normal) and beat the time of 1:54'900.",
+        "fullDescription": "Arcade Time Trial, Jay Leno Tank Car `03, Sports Soft tires, power/weight tune at 0%. Do a clean lap on New York circuit (Normal) and beat the time of 1:54'900.",
         "points": 5,
         "carIds": [
             0x231
@@ -10782,7 +10782,7 @@ carChallenges = [
         "target": 128088,
         "name": "Plutonium Not Included",
         "description": "",
-        "fullDescription": "Arcade Time Trial, DMC DeLorean S2 `04, Normal Comfort tires (Normal Road in PAL version of Quick Tune menu), no quick tune. Do a clean lap on Cote d'Azur and beat the time of 2:08'080.",
+        "fullDescription": "Arcade Time Trial, DMC DeLorean S2 `04, Normal Comfort tires (Normal Road in PAL version of Quick Tune menu), power/weight tune at 0%. Do a clean lap on Cote d'Azur and beat the time of 2:08'080.",
         "points": 10,
         "carIds": [
             0x403
@@ -11037,7 +11037,7 @@ carChallenges = [
         "target": 92777,
         "name": "Concepts: Nike ONE",
         "description": "",
-        "fullDescription": "Arcade Time Trial, NIKE One 2022, Sports Soft tires, no quick tune. Do a clean lap on Trial Mountain (Normal) and beat the time of 1:32'777.",
+        "fullDescription": "Arcade Time Trial, NIKE One 2022, Sports Soft tires, power/weight tune at 0%. Do a clean lap on Trial Mountain (Normal) and beat the time of 1:32'777.",
         "points": 10,
         "carIds": [
             0x196
@@ -11102,7 +11102,7 @@ carChallenges = [
         "target": 86400,
         "name": "Concepts: Motor Triathlon",
         "description": "",
-        "fullDescription": "Arcade Time Trial, Toyota Motor Triathlon Race Car `04, Sports Medium tires, no quick tune. Do a clean lap on Deep Forest (Normal) and beat the time of 1:26'400.",
+        "fullDescription": "Arcade Time Trial, Toyota Motor Triathlon Race Car `04, Sports Medium tires, power/weight tune at 0%. Do a clean lap on Deep Forest (Normal) and beat the time of 1:26'400.",
         "points": 10,
         "carIds": [
             0xDB
@@ -11659,7 +11659,7 @@ carChallenges = [
         "target": 180000,
         "name": "Tin Lizzie Trial",
         "description": "",
-        "fullDescription": "Arcade Time Trial, Ford Model T Tourer `15, Normal Road (Normal Sports in PAL version of Quick Tune menu) tires, no quick tune. Be very smooth and gentle to beat a lap time of 3:00'000 on Seattle Circuit (Reverse).",
+        "fullDescription": "Arcade Time Trial, Ford Model T Tourer `15, Normal Road (Normal Sports in PAL version of Quick Tune menu) tires, power/weight tune at 0%. Be very smooth and gentle to beat a lap time of 3:00'000 on Seattle Circuit (Reverse).",
         "points": 10,
         "carIds": [
             0x406
