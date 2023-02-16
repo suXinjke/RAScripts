@@ -11763,7 +11763,7 @@ inGameASpecPointsWon = byte(dword(0x621cb4) + 0x96C)
 
 function inGameDataForCarAddress(index) => pointerChain(0x621cb4, [0x60, 0x8, 0x0 + index * 4])
 function inGameGridCarId(index) => dword(dword(inGameDataForCarAddress(index)) + 0x20)
-function inGameGridCarColorId(index) => dword(dword(inGameDataForCarAddress(index)) + 0x38)
+function inGameGridCarColorId(index) => byte(dword(inGameDataForCarAddress(index)) + 0x38)
 function inGameCurrentLapForCarAddress(index) => dword(inGameDataForCarAddress(index)) + 0x1AC
 inGameCurrentLapForPlayer = dword(inGameCurrentLapForCarAddress(0))
 inGameCurrentLapTimeInMsecByHUD = dword(pointerChain(0x621cb4, [0x84, 0xE420, 0x1664]))
