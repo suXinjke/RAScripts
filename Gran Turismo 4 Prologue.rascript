@@ -953,10 +953,13 @@ function achievementWinArcadeTimeTrial(
         array_push(additionalStartConditions, arcadeDrivingAids == 0)
     }
 
+    if (trackId != assi) {
+      array_push(additionalStartConditions, arcadeOpponents == 0)
+    }
+
     startConditions = (
         arcadeRaceInGamePointer != 0 &&
         prev(arcadeTimeInMsec) == 0 && arcadeTimeInMsec > 0 &&
-        arcadeOpponents == 0 &&
         arcadeTrackStringId == trackId &&
         playerCarId == carId &&
         arcadeLaps == ARCADE_2_LAPS &&
