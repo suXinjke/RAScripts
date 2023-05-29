@@ -1033,6 +1033,7 @@ eventMeta = {
     "am_sunday": {
         "name": "Sunday Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 50,
@@ -1055,6 +1056,7 @@ eventMeta = {
     "am_ff": {
         "name": "FF Challenge",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 80,
@@ -1077,6 +1079,7 @@ eventMeta = {
     "am_fr": {
         "name": "FR Challenge",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 80,
@@ -1099,6 +1102,7 @@ eventMeta = {
     "am_4wd": {
         "name": "4WD Challenge",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 100,
@@ -1121,6 +1125,7 @@ eventMeta = {
     "am_mr": {
         "name": "MR Challenge",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 50,
@@ -1143,6 +1148,7 @@ eventMeta = {
     "am_kcar": {
         "name": "Lightweight K-Car Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 40,
@@ -1163,6 +1169,7 @@ eventMeta = {
     "am_spider": {
         "name": "Spider & Roadster",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 100,
@@ -1183,6 +1190,7 @@ eventMeta = {
     "am_pickup": {
         "name": "Pickup Truck Race",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1203,6 +1211,7 @@ eventMeta = {
     "pr_clubman": {
         "name": "Clubman Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 100,
@@ -1225,6 +1234,7 @@ eventMeta = {
     "pr_tuning": {
         "name": "Tuning Car Grand Prix",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 10,
         "aSpecAnyEvent": 80,
@@ -1247,6 +1257,7 @@ eventMeta = {
     "pr_na": {
         "name": "Race of NA Sports",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 120,
@@ -1269,6 +1280,7 @@ eventMeta = {
     "pr_turbo": {
         "name": "Turbo Sports Cars",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 100,
@@ -1291,6 +1303,7 @@ eventMeta = {
     "pr_boxer": {
         "name": "Boxer Spirit",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 80,
@@ -1311,6 +1324,7 @@ eventMeta = {
     "pr_classic": {
         "name": "World Classics",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1333,6 +1347,7 @@ eventMeta = {
     "pr_compact": {
         "name": "World Compact",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 50,
@@ -1355,6 +1370,7 @@ eventMeta = {
     "pr_supercar": {
         "name": "Supercar Festival",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 10,
         "aSpecAnyEvent": 50,
@@ -1377,6 +1393,7 @@ eventMeta = {
     "pr_gtworld": {
         "name": "Gran Turismo World Championship",
         "descriptionSuffix": "Formula Gran Turismo is not allowed.",
+        "eventNameSuffix": "",
         "points": 50,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1406,6 +1423,7 @@ eventMeta = {
     "ex_gtallstar": {
         "name": "Gran Turismo All Stars",
         "descriptionSuffix": "Formula Gran Turismo is not allowed.",
+        "eventNameSuffix": "",
         "points": 50,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1435,6 +1453,7 @@ eventMeta = {
     "ex_dream": {
         "name": "Dream Car Championship",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 50,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1462,6 +1481,7 @@ eventMeta = {
     "ex_polyphony": {
         "name": "Polyphony Digital Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 30,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1489,6 +1509,7 @@ eventMeta = {
     "ex_wind": {
         "name": "Like the Wind",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1507,6 +1528,7 @@ eventMeta = {
     "ex_formula": {
         "name": "Formula GT World Championship",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 75,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1542,6 +1564,7 @@ eventMeta = {
     "ex_real_circuit": {
         "name": "Real Circuit Tours",
         "descriptionSuffix": "Formula Gran Turismo is not allowed.",
+        "eventNameSuffix": "",
         "points": 40,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1569,6 +1592,7 @@ eventMeta = {
     "ex_premium": {
         "name": "Premium Sports Lounge",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1591,6 +1615,7 @@ eventMeta = {
     "en_grandvalley300": {
         "name": "Grand Valley 300 km",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1609,6 +1634,7 @@ eventMeta = {
     "en_laguna200": {
         "name": "Laguna Seca 200 miles",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1627,6 +1653,7 @@ eventMeta = {
     "en_r246_300": {
         "name": "Tokyo R246 300 km",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1645,6 +1672,7 @@ eventMeta = {
     "en_ssw150": {
         "name": "Super Speedway 150 miles",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1663,6 +1691,7 @@ eventMeta = {
     "en_infinion_alms": {
         "name": "Infineon World Sports Car Race",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1681,6 +1710,7 @@ eventMeta = {
     "en_capitan200": {
         "name": "El Capitan 200 miles",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1699,6 +1729,7 @@ eventMeta = {
     "en_newyork200": {
         "name": "New York 200 mile race",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1717,6 +1748,7 @@ eventMeta = {
     "eureurope": {
         "name": "Pan Euro Championship",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 10,
         "aSpecAnyEvent": 100,
@@ -1739,6 +1771,7 @@ eventMeta = {
     "eurbritish_gt": {
         "name": "British GT Series",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 100,
@@ -1761,6 +1794,7 @@ eventMeta = {
     "eurbritish_light": {
         "name": "British Lightweight Series",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1781,6 +1815,7 @@ eventMeta = {
     "eurdeu_touring": {
         "name": "Deutsche Touring Car Meistershaft",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 10,
         "aSpecAnyEvent": 80,
@@ -1803,6 +1838,7 @@ eventMeta = {
     "euritaly": {
         "name": "La Festa Italiano",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 50,
@@ -1823,6 +1859,7 @@ eventMeta = {
     "eurfrench": {
         "name": "Tous France Championnat",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 40,
@@ -1845,6 +1882,7 @@ eventMeta = {
     "eureuro_classic": {
         "name": "Europe Classic Car League",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -1867,6 +1905,7 @@ eventMeta = {
     "eureuro_hatch": {
         "name": "Euro Hot Hatch League",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 90,
@@ -1889,6 +1928,7 @@ eventMeta = {
     "eur1000mile": {
         "name": "1000 miles!",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 25,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 5,
@@ -1910,6 +1950,7 @@ eventMeta = {
     "eurschvartz_a": {
         "name": "Schwarzwald Liga A",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 80,
@@ -1930,6 +1971,7 @@ eventMeta = {
     "eurschvartz_b": {
         "name": "Schwarzwald Liga B",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 80,
@@ -1952,6 +1994,7 @@ eventMeta = {
     "usrusa": {
         "name": "All American Championship",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 10,
         "aSpecAnyEvent": 50,
@@ -1974,6 +2017,7 @@ eventMeta = {
     "usrstar": {
         "name": "Stars and Stripes",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 100,
@@ -1994,6 +2038,7 @@ eventMeta = {
     "usrmuscle": {
         "name": "Muscle Car Competition",
         "descriptionSuffix": "",
+        "eventNameSuffix": "(Hot Rod Competition in NTSC)",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 100,
@@ -2014,6 +2059,7 @@ eventMeta = {
     "usrmuscle_old": {
         "name": "Old Muscle Car Competition",
         "descriptionSuffix": "",
+        "eventNameSuffix": "(Muscle Car Competition in NTSC)",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 20,
@@ -2034,6 +2080,7 @@ eventMeta = {
     "jprjapan": {
         "name": "Japan Championship",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 10,
         "aSpecAnyEvent": 120,
@@ -2056,6 +2103,7 @@ eventMeta = {
     "jprjgtc": {
         "name": "All Japan GT Championship",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 50,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2083,6 +2131,7 @@ eventMeta = {
     "jprjp_70": {
         "name": "Japanese 70's Classics",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 50,
@@ -2105,6 +2154,7 @@ eventMeta = {
     "jprjp_80": {
         "name": "Japanese 80's Festival",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 90,
@@ -2127,6 +2177,7 @@ eventMeta = {
     "jprjp_90": {
         "name": "Japanese 90's Challenge",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 90,
@@ -2149,6 +2200,7 @@ eventMeta = {
     "jprjp_compact": {
         "name": "Japanese Compact Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 50,
@@ -2171,6 +2223,7 @@ eventMeta = {
     "it_alfa_gta": {
         "name": "GTA Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 0,
@@ -2194,6 +2247,7 @@ eventMeta = {
     "uk_aston": {
         "name": "Aston Martin Festival",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2214,6 +2268,7 @@ eventMeta = {
     "uk_lotus_elise": {
         "name": "Elise Trophy",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2236,6 +2291,7 @@ eventMeta = {
     "uk_lotus_classic": {
         "name": "Lotus Classics",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2258,6 +2314,7 @@ eventMeta = {
     "uk_mg": {
         "name": "MG Festival",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2280,6 +2337,7 @@ eventMeta = {
     "uk_triumph_spitfire": {
         "name": "Spitfire Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2302,6 +2360,7 @@ eventMeta = {
     "uk_tvr": {
         "name": "Blackpool Racers",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2324,6 +2383,7 @@ eventMeta = {
     "de_audi_tt": {
         "name": "Tourist Trophy",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2346,6 +2406,7 @@ eventMeta = {
     "de_audi_a3": {
         "name": "A3 Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2366,6 +2427,7 @@ eventMeta = {
     "de_bmw1": {
         "name": "1 Series Trophy",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2386,6 +2448,7 @@ eventMeta = {
     "de_bmw_m": {
         "name": "Club 'M'",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2410,6 +2473,7 @@ eventMeta = {
     "de_mercedes_arrow": {
         "name": "Legends of the Silver Arrow",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 0,
@@ -2433,6 +2497,7 @@ eventMeta = {
     "de_mercedes_sl": {
         "name": "SL Challenge",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2456,6 +2521,7 @@ eventMeta = {
     "de_mini": {
         "name": "Mini Sports Meeting",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2478,6 +2544,7 @@ eventMeta = {
     "de_opel_speed": {
         "name": "Speedster Trophy",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 20,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2500,6 +2567,7 @@ eventMeta = {
     "de_vw_beetle": {
         "name": "Beetle Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 0,
@@ -2525,6 +2593,7 @@ eventMeta = {
     "de_vw_lupo": {
         "name": "Lupo Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2547,6 +2616,7 @@ eventMeta = {
     "de_vw_gti": {
         "name": "GTi Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2569,6 +2639,7 @@ eventMeta = {
     "us_chev_corvette": {
         "name": "Corvette Festival",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2591,6 +2662,7 @@ eventMeta = {
     "us_chev_camaro": {
         "name": "Camaro Meeting",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2611,6 +2683,7 @@ eventMeta = {
     "us_chry_crossfire": {
         "name": "Crossfire Trophy",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2631,6 +2704,7 @@ eventMeta = {
     "us_saleen_s7": {
         "name": "Saleen S7 Club",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2653,6 +2727,7 @@ eventMeta = {
     "us_shelby_cobra": {
         "name": "Shelby Cobra Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 100,
@@ -2678,6 +2753,7 @@ eventMeta = {
     "fr_citroen_2cv": {
         "name": "2HP - 2CV Classics",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2700,6 +2776,7 @@ eventMeta = {
     "fr_peugeot_206": {
         "name": "206 Cup",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 20,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2724,6 +2801,7 @@ eventMeta = {
     "fr_renault_clio": {
         "name": "Clio Trophy",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2746,6 +2824,7 @@ eventMeta = {
     "fr_renault_megane": {
         "name": "Megane Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2768,6 +2847,7 @@ eventMeta = {
     "fr_renault_alpine": {
         "name": "Renault Alpine Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2790,6 +2870,7 @@ eventMeta = {
     "jp_daihatsu_copen": {
         "name": "Copen Race",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2810,6 +2891,7 @@ eventMeta = {
     "jp_daihatsu_midget2": {
         "name": "Midget II Race",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2828,6 +2910,7 @@ eventMeta = {
     "jp_honda_typer": {
         "name": "Type R Meeting",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2850,6 +2933,7 @@ eventMeta = {
     "jp_honda_civic": {
         "name": "Civic Race",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2872,6 +2956,7 @@ eventMeta = {
     "jp_isuzu": {
         "name": "Isuzu Sports Classics",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2892,6 +2977,7 @@ eventMeta = {
     "jp_mazda_rotary": {
         "name": "Club 'RE'",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 5,
         "aSpecAnyEvent": 0,
@@ -2921,6 +3007,7 @@ eventMeta = {
     "jp_mazda_roadster": {
         "name": "NR-A Roadster Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2943,6 +3030,7 @@ eventMeta = {
     "jp_mazda_rx8": {
         "name": "NR-A RX-8 Cup",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2967,6 +3055,7 @@ eventMeta = {
     "jp_mitsubishi_mirage": {
         "name": "Mirage Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -2989,6 +3078,7 @@ eventMeta = {
     "jp_mitsubishi_evo": {
         "name": "Evolution Meeting",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3014,6 +3104,7 @@ eventMeta = {
     "jp_nissan_gtr": {
         "name": "Race of the Red 'R' Emblem",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 10,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3036,6 +3127,7 @@ eventMeta = {
     "jp_nissan_march": {
         "name": "Micra Brothers",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3058,6 +3150,7 @@ eventMeta = {
     "jp_nissan_silvia": {
         "name": "Silvia Sisters",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3078,6 +3171,7 @@ eventMeta = {
     "jp_nissan_z": {
         "name": "Club 'Z'",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3100,6 +3194,7 @@ eventMeta = {
     "jp_subaru_360": {
         "name": "Subaru 360 Race",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3118,6 +3213,7 @@ eventMeta = {
     "jp_subaru_4wd": {
         "name": "Stars of Pleiades",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3147,6 +3243,7 @@ eventMeta = {
     "jp_suzuki_k": {
         "name": "Suzuki K-Car Cup",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3167,6 +3264,7 @@ eventMeta = {
     "jp_suzuki_concept": {
         "name": "Suzuki Concepts",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 3,
         "aSpecAnyEvent": 0,
@@ -3190,6 +3288,7 @@ eventMeta = {
     "jp_toyota_altezza": {
         "name": "Altezza Race",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3212,6 +3311,7 @@ eventMeta = {
     "jp_toyota_vitz": {
         "name": "Vitz Race",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3234,6 +3334,7 @@ eventMeta = {
     "kr_hyundai_sport": {
         "name": "Hyundai Sports Festival",
         "descriptionSuffix": "Only road cars allowed.",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3258,6 +3359,7 @@ eventMeta = {
     "rh_assisi_e": {
         "name": "Umbria Rally (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3277,6 +3379,7 @@ eventMeta = {
     "rh_assisi_n": {
         "name": "Umbria Rally (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3296,6 +3399,7 @@ eventMeta = {
     "rh_assisi_h": {
         "name": "Umbria Rally (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3315,6 +3419,7 @@ eventMeta = {
     "rh_capri_e": {
         "name": "Capri Rally (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3334,6 +3439,7 @@ eventMeta = {
     "rh_capri_n": {
         "name": "Capri Rally (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3353,6 +3459,7 @@ eventMeta = {
     "rh_capri_h": {
         "name": "Capri Rally (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3372,6 +3479,7 @@ eventMeta = {
     "rh_grandcanyon_e": {
         "name": "Grand Canyon Rally (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3391,6 +3499,7 @@ eventMeta = {
     "rh_grandcanyon_n": {
         "name": "Grand Canyon Rally (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3410,6 +3519,7 @@ eventMeta = {
     "rh_grandcanyon_h": {
         "name": "Grand Canyon Rally (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3429,6 +3539,7 @@ eventMeta = {
     "rh_icerace_e": {
         "name": "Whistler Ice Race (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3448,6 +3559,7 @@ eventMeta = {
     "rh_icerace_n": {
         "name": "Whistler Ice Race (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3467,6 +3579,7 @@ eventMeta = {
     "rh_icerace_h": {
         "name": "Whistler Ice Race (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3486,6 +3599,7 @@ eventMeta = {
     "rh_nursnow_e": {
         "name": "Chamonix Rally (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3505,6 +3619,7 @@ eventMeta = {
     "rh_nursnow_n": {
         "name": "Chamonix Rally (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3524,6 +3639,7 @@ eventMeta = {
     "rh_nursnow_h": {
         "name": "Chamonix Rally (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3543,6 +3659,7 @@ eventMeta = {
     "rh_paris_rally_e": {
         "name": "George V Rally (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3562,6 +3679,7 @@ eventMeta = {
     "rh_paris_rally_n": {
         "name": "George V Rally (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3581,6 +3699,7 @@ eventMeta = {
     "rh_paris_rally_h": {
         "name": "George V Rally (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3600,6 +3719,7 @@ eventMeta = {
     "rh_smtsouth_e": {
         "name": "Swiss Alps Rally (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3619,6 +3739,7 @@ eventMeta = {
     "rh_smtsouth_n": {
         "name": "Swiss Alps Rally (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3638,6 +3759,7 @@ eventMeta = {
     "rh_smtsouth_h": {
         "name": "Swiss Alps Rally (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3657,6 +3779,7 @@ eventMeta = {
     "rh_tahiti_maze_e": {
         "name": "Tour of Tahiti (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3676,6 +3799,7 @@ eventMeta = {
     "rh_tahiti_maze_n": {
         "name": "Tour of Tahiti (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3695,6 +3819,7 @@ eventMeta = {
     "rh_tahiti_maze_h": {
         "name": "Tour of Tahiti (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3714,6 +3839,7 @@ eventMeta = {
     "rh_tsukuba_wet_e": {
         "name": "Tsukuba Wet Race (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3732,6 +3858,7 @@ eventMeta = {
     "rh_tsukuba_wet_n": {
         "name": "Tsukuba Wet Race (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3750,6 +3877,7 @@ eventMeta = {
     "rh_tsukuba_wet_h": {
         "name": "Tsukuba Wet Race (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3768,6 +3896,7 @@ eventMeta = {
     "rh_yosemite_dirt_e": {
         "name": "Yosemite Rally I (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3787,6 +3916,7 @@ eventMeta = {
     "rh_yosemite_dirt_n": {
         "name": "Yosemite Rally I (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3806,6 +3936,7 @@ eventMeta = {
     "rh_yosemite_dirt_h": {
         "name": "Yosemite Rally I (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3825,6 +3956,7 @@ eventMeta = {
     "rh_yosemite_dirt_short_e": {
         "name": "Yosemite Rally II (Easy)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 2,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3844,6 +3976,7 @@ eventMeta = {
     "rh_yosemite_dirt_short_n": {
         "name": "Yosemite Rally II (Normal)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 3,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -3863,6 +3996,7 @@ eventMeta = {
     "rh_yosemite_dirt_short_h": {
         "name": "Yosemite Rally II (Hard)",
         "descriptionSuffix": "",
+        "eventNameSuffix": "",
         "points": 5,
         "pointsChallenge": 0,
         "aSpecAnyEvent": 0,
@@ -12052,6 +12186,11 @@ function defineRaceEvents() {
             descriptionSuffix = " " + meta["descriptionSuffix"]
         }
 
+        eventNameSuffix = ""
+        if (length(meta["eventNameSuffix"]) > 0) {
+            eventNameSuffix = " " + meta["eventNameSuffix"]
+        }
+
         nitrousSuffix = ""
         if (meta["nitrousAllowed"] != true) {
             nitrousSuffix = " Nitrous is not allowed."
@@ -12118,7 +12257,7 @@ function defineRaceEvents() {
                     "trigger": conditions
                 })
             } else {
-                description = format("Win all events of {0} in A-Spec mode in one sitting.", meta["name"])
+                description = format("Win all events of {0}{1} in A-Spec mode in one sitting.", meta["name"], eventNameSuffix)
                 conditions = hasWonAllRaceEventsInOneSitting(id)
 
                 if (raceAmount == 1) {
@@ -12201,7 +12340,7 @@ function defineRaceEvents() {
             } else {
                 array_push(achievements, {
                     "title": format("{0} - A-Spec Challenge", meta["name"]),
-                    "description": format("Earn {0} A-Spec points or more in any of the {1} events.{2}", meta["aSpecAnyEvent"], meta["name"], nitrousSuffix),
+                    "description": format("Earn {0} A-Spec points or more in any of the {1}{3} events.{2}", meta["aSpecAnyEvent"], meta["name"], nitrousSuffix, eventNameSuffix),
                     "points": meta["pointsChallenge"],
                     "trigger": hasWonRaceEvent(id, -1, meta["aSpecAnyEvent"], forbiddenCarIds, meta["nitrousAllowed"])
                 })

@@ -128,6 +128,7 @@ const functions = {
                     prev[id] = {
                         name: col[2],
                         descriptionSuffix: col[15],
+                        eventNameSuffix: col[16],
                         points: Number(col[3]),
                         pointsChallenge: Number(col[4]),
                         aSpecAnyEvent: Number(col[5]),
