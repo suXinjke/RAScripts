@@ -2851,7 +2851,9 @@ achievement(
 
         any_of([ 5, 6, 7, 8 ], function cb(neucomFighter) {
             health = entityHealthByIndex(neucomFighter)
-            return health - prev(health) == 0xFF2E
+            return
+              (inGameDifficulty < DIFFICULTY_NORMAL && health - prev(health) == 0xFE5C) ||
+              (inGameDifficulty >= DIFFICULTY_NORMAL && health - prev(health) == 0xFF2E)
         })
     )
 )
