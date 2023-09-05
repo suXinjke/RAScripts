@@ -1,6 +1,8 @@
 // Ace Combat 3 JAP
 // #ID = 11308
 
+// RATools past 1.9.1 produces different code, 1.12 outright doesn't work
+
 function array_concat(first, second) {
     result = []
 
