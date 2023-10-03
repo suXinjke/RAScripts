@@ -11909,6 +11909,7 @@ inGamePlayerCarColorId = inGameGridCarColorId(0)
 inGameLicenseState = dword(dword(0x621cb4) + 0x88)
 inGameLicenseFinishTimeInMsec = dword(dword(0x621cb4) + 0x8c)
 
+playerCarSetupSlot = byte(dword(0x622f4c) + 0x13DC8)
 playerCarFrontCamber = byte(dword(0x622f4c) + 0x13A79)
 playerCarRearCamber = byte(dword(0x622f4c) + 0x13A7A)
 playerCarWeightBallast = byte(dword(0x622f4c) + 0x13A9B)
@@ -12029,7 +12030,7 @@ function hasWonRaceEvent(
     }
 
     if (nosAllowed == false) {
-        array_push(restrictions, gtModePlayerNOSId == -1)
+        array_push(restrictions, playerCarSetupSlot == 0 && gtModePlayerNOSId == -1)
     }
 
     wonRaceCondition = hasWonRaceInASpec(aSpecRequirement)
@@ -12564,7 +12565,11 @@ function defineCarChallenges() {
             if (challenge["type"] == "aSpecHuntPrius") {
                 array_push(conditions, (
                     gameFlag == GAME_FLAG_ARCADE_RACE ||
-                    ((gtModePlayerGearboxId == 0xE28 || gtModePlayerGearboxId == 0xE29) && (gameFlag == GAME_FLAG_RACE_EVENT || gameFlag == GAME_FLAG_CHAMPIONSHIP))
+                    (
+                      playerCarSetupSlot == 0 &&
+                      (gtModePlayerGearboxId == 0xE28 || gtModePlayerGearboxId == 0xE29) &&
+                      (gameFlag == GAME_FLAG_RACE_EVENT || gameFlag == GAME_FLAG_CHAMPIONSHIP)
+                    )
                 ))
             } else if (challenge["laps"] > 0) {
                 array_push(conditions, gameFlag == GAME_FLAG_ARCADE_RACE && inGameLapsToGo >= challenge["laps"])
@@ -12602,6 +12607,7 @@ function defineCarChallenges() {
             } else if (challenge["type"] == "autoUnionTimeTrial") {
                 array_push(conditions, (
                     gameFlag == GAME_FLAG_FREE_RUN &&
+                    playerCarSetupSlot == 0 &&
                     gtModePlayerTurbineId == 2333 &&
                     gtModePlayerFrontTiresId == 0xDE1B &&
                     gtModePlayerRearTiresId == 0xDE15 &&
@@ -12699,6 +12705,7 @@ achievement(
     points = 5,
     trigger = (
         hasWonRaceEvent("pr_tuning", triggerFlag = true) &&
+        playerCarSetupSlot == 0 &&
         playerCarFrontCamber >= 100 &&
         playerCarRearCamber >= 100
     )
