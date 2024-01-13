@@ -1845,7 +1845,7 @@ for (const [mission, title, points, begin, end] of [
       missionId: mission.Mayhem_10,
       missionStyle: 2,
       craftId: craft.mirage,
-      minimalDifficulty: difficulty.normal,
+      minimalDifficulty: difficulty.hard,
       minimalScore: 14000,
 
       targetsToDestroy: {
@@ -2045,7 +2045,8 @@ for (const [mission, title, points, begin, end] of [
     conditions: completedMissionInAnyMode({
       missionId: mission.Glatisant_07,
       craftId: craft.f15e,
-      minimalDifficulty: difficulty.normal,
+      minimalDifficulty: difficulty.expert,
+      additionalConditions: c => c.completedMissionInLessThan('10:00'),
 
       targetsToDestroy: {
         0x5C: [{ id: 0, additionalConditions: f15eAdditionalConditions }],
@@ -2069,7 +2070,10 @@ for (const [mission, title, points, begin, end] of [
       craftId: craft.f117a,
       minimalDifficulty: difficulty.expert,
       minimalScore: 15000,
-      additionalConditions: c => c.postDidntDestroyYellow
+      additionalConditions: c => $(
+        c.postDidntDestroyYellow,
+        c.completedMissionInLessThan('06:00'),
+      )
     })
   })
 
