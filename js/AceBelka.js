@@ -459,14 +459,27 @@ const codeFor = (region) => {
               ['AndNext', 'Mem', 'Float', 0x264, '<=', 'Float', '', 1500],
             )
 
+            const isInTheRightAreaAndNext = $(
+              basePointer,
+              ['AndNext', 'Mem', 'Float', 0x260, '>=', 'Float', '', 13000],
+              basePointer,
+              ['AndNext', 'Mem', 'Float', 0x260, '<=', 'Float', '', 25000],
+              basePointer,
+              ['AndNext', 'Mem', 'Float', 0x268, '>=', 'Float', '', -154000],
+              basePointer,
+              ['AndNext', 'Mem', 'Float', 0x268, '<=', 'Float', '', -100000],
+            )
+
             return {
               divedIn: $(
+                isInTheRightAreaAndNext,
                 basePointer,
                 ['AndNext', 'Delta', 'Float', 0x264, '>', 'Float', '', 1500],
                 basePointer,
                 ['', 'Mem', 'Float', 0x264, '<=', 'Float', '', 1500]
               ),
               turnedAroundUnder: $(
+                isInTheRightAreaAndNext,
                 isUnderAndNext,
                 basePointer,
                 ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', 0],
@@ -477,6 +490,7 @@ const codeFor = (region) => {
                 basePointer,
                 ['', 'Mem', 'Float', 0x274, '>', 'Float', '', pi2],
 
+                isInTheRightAreaAndNext,
                 isUnderAndNext,
                 basePointer,
                 ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', 0],
@@ -487,6 +501,7 @@ const codeFor = (region) => {
                 basePointer,
                 ['', 'Mem', 'Float', 0x274, '<=', 'Float', '', pi2],
 
+                isInTheRightAreaAndNext,
                 isUnderAndNext,
                 basePointer,
                 ['AndNext', 'Delta', 'Float', 0x274, '<', 'Float', '', 0],
@@ -497,6 +512,7 @@ const codeFor = (region) => {
                 basePointer,
                 ['', 'Mem', 'Float', 0x274, '>', 'Float', '', -pi2],
 
+                isInTheRightAreaAndNext,
                 isUnderAndNext,
                 basePointer,
                 ['AndNext', 'Delta', 'Float', 0x274, '<', 'Float', '', 0],
