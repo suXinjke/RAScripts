@@ -2423,14 +2423,22 @@ for (const [mission, title, points, begin, end] of [
     points: 1,
     conditions: (() => {
       const [alt1, alt2] = [code.pal, code.ntsc].map(c => {
+        const resetNextOnMissionRestart = resetNextIf(
+          ['', 'Delta', '32bit', c.address.missionTimer, '=', 'Value', '', 0]
+        )
+
         return $(
           c.regionCheckPause,
           pauseIf(c.isNotInGame),
           trigger(c.debriefingStarted),
 
-          resetNextIf(
-            ['', 'Delta', '32bit', c.address.missionTimer, '=', 'Value', '', 0]
+          resetNextOnMissionRestart,
+          andNext.once(
+            c.inGameModeIs(inGameMode.gameplayOrCutscene),
+            c.player.usingCockpitCamera
           ),
+
+          resetNextOnMissionRestart,
           pauseIf.once(
             andNext(
               hits(90)(c.missionPhaseTimerAdvanced),
@@ -2438,7 +2446,8 @@ for (const [mission, title, points, begin, end] of [
               c.player.notUsingCockpitCamera
             )
           ),
-          c.player.usingCockpitCamera
+
+          trigger(c.debriefingStarted)
         )
       })
 
