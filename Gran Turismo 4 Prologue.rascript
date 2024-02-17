@@ -725,8 +725,8 @@ arcadeTyres = dword(0x917a54)
 arcadeOpponents = dword(0x9388b4)
 arcadeTrackStringId = dword(0x917944)
 arcadePlayerCarColorIndex = dword(0x917a48)
-arcadeTimeInMsec = dword(dword(dword(0x5acb70) + 0x404) + 0x364)
-arcadeRaceInGamePointer = dword(dword(0x5acb70) + 0x3804)
+arcadeTimeInMsec = dword(dword(dword(0x9c1a9c) + 0x404) + 0x364)
+arcadeRaceInGamePointer = dword(dword(0x9c1a9c) + 0x3804)
 
 licenseIdStringAddress = 0x917984
 licenseState = dword(0x9c1aa0)
@@ -761,7 +761,7 @@ function hasFinishedArcadeRace() {
 }
 
 function hasFinishedArcadeRaceFirst() {
-    racePosition = dword(dword(dword(0x5acb70) + 0x404) + 0x268)
+    racePosition = dword(dword(dword(0x9c1a9c) + 0x404) + 0x268)
 
     return (
         arcadeOpponents == 1 &&
