@@ -114,11 +114,11 @@ const mission = {
   completedInGame: $.one(['', 'Mem', '8bit', 0x59d76, '=', 'Value', '', 2]),
   get completed() {
     return $(
-      andNext.all(
+      andNext(
         techTokens.received,
-        $.one(['', 'Mem', '16bit', 0x34684, '=', 'Value', '', 0x100]),
+        ['', 'Mem', '16bit', 0x34684, '=', 'Value', '', 0x100],
+        once(mission.completedInGame),
       ),
-      once(mission.completedInGame),
     )
   },
 
@@ -194,19 +194,21 @@ function startedMission(opts = {}) {
       demoPlayback
     ).resetIf(
       inMainMenu
-    ).andNext(
+    ),
+
+    andNext(
       opts.ship >= 0 && player.isFlyingShip(opts.ship).with({
         cmp: shipOperator
-      })
+      }),
+      ...acts.map((act, i) => actIs(act).with({
+        flag: i + 1 === acts.length ? 'AndNext' : 'OrNext'
+      })),
+      andNext(
+        opts.mission > 0 && missionIs(opts.mission),
+        ...(opts.additionalConditions || []),
+        ['', 'Mem', '32bit', 0x34a68, '=', 'Value', '', 132, 1],
+      )
     ),
-    ...acts.map((act, i) => actIs(act).with({
-      flag: i + 1 === acts.length ? 'AndNext' : 'OrNext'
-    })),
-    andNext.all(
-      opts.mission > 0 && missionIs(opts.mission),
-      ...(opts.additionalConditions || [])
-    ),
-    ['', 'Mem', '32bit', 0x34a68, '=', 'Value', '', 132, 1],
   )
 }
 
@@ -1095,9 +1097,13 @@ set.addAchievement({
     core: startedMission({ act: 14, mission: 1 }),
     alt1: [
       pauseIf(inLoadingScreen),
-      resetIf(entityIDStats(6).gotKilled)
-        .andNext(mission.inProgress),
-      ['Trigger', 'Mem', '8bit', 0x46016, '<', 'Delta', '8bit', 0x46016, 2],
+      resetIf(entityIDStats(6).gotKilled),
+      trigger(
+        andNext(
+          mission.inProgress,
+          ['', 'Mem', '8bit', 0x46016, '<', 'Delta', '8bit', 0x46016, 2]
+        )
+      ),
     ],
   },
   badge: '201254',
@@ -1306,9 +1312,14 @@ set.addAchievement({
       pauseIf(regionIs.not[region]),
       pauseCodeBelowUntilSubMission(2),
 
-      orNext(player.sufferedShieldDamage)
-        .andNext(player.sufferedHullDamage),
-      ['ResetIf', 'Mem', '8bit', 0x11a96c + regionalOffset(region), '=', 'Value', '', 1],
+      resetIf(
+        orNext(
+          player.sufferedShieldDamage
+        ).andNext(
+          player.sufferedHullDamage,
+          ['', 'Mem', '8bit', 0x11a96c + regionalOffset(region), '=', 'Value', '', 1]
+        )
+      ),
     ])
   },
   badge: '201244',

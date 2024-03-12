@@ -1056,9 +1056,9 @@ function completedSetOfMissionFlags({
 
       // Actually do the check
       // when there's no PauseIf lock
-      orNext.all(
+      orNext(
         c.inDebriefing
-      ).andNext.exceptLast(
+      ).andNext(
         c.wasInDebriefing,
         ...missionFlagsAreOk
       )
@@ -1100,9 +1100,9 @@ function completedAssaultRecords({ begin, end }) {
 
       // Actually do the check
       // when there's no PauseIf lock
-      orNext.all(
+      orNext(
         c.inDebriefing
-      ).andNext.exceptLast(
+      ).andNext(
         c.wasInDebriefing,
         ...assaultRecordsAreOk
       )
@@ -1947,9 +1947,9 @@ for (const [mission, title, points, begin, end] of [
       resetConditions: c => andNext(
         c.entityGroup(0x5D).index(0).isAlive.map(x => x.lvalue.size === 'Bit1' ? x.with({ lvalue: { type: 'Delta' } }) : x),
         ['AddAddress', 'Mem', '32bit', c.address.missionProgressPointer],
-        ['AndNext', 'Delta', '16bit', 0x6e, '>=', 'Value', '', 7],
-        c.player.gotGroundKill,
+        ['', 'Delta', '16bit', 0x6e, '>=', 'Value', '', 7],
       ).also(
+        c.player.gotGroundKill,
         c.missionHasStarted
       )
     })
@@ -2358,7 +2358,7 @@ for (const [mission, title, points, begin, end] of [
         )),
         '0=1.4.',
 
-        orNext.exceptLast(
+        orNext(
           c.entityGroup(0x41).index(0).gotDestroyed,
           c.entityGroup(0x43).index(0).gotDestroyed,
           c.entityGroup(0x45).index(0).gotDestroyed

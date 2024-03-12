@@ -330,7 +330,7 @@ const codeFor = (region) => {
       },
 
       carPos: (coords) => $(
-        andNext.all(
+        andNext(
           baseCondition,
           ['', 'Mem', '32bit', offset(0x0d1394), '<=', 'Value', '', coords.top],
         ).andNext(
@@ -518,7 +518,7 @@ const codeFor = (region) => {
 
       return $(
         gameTypeId >= 0 && pauseIf(gameTypeIdIs(gameTypeId).with({ cmp: '!=' })),
-        Boolean(missionId) && missionIdIs(missionId),
+        missionId && missionIdIs(missionId),
         triggerDecor ? trigger(restOfConditions) : restOfConditions
       )
     },
@@ -582,7 +582,7 @@ function missionAchievement(
           gameTypeId: gameType.mission,
           triggerDecor
         }),
-        Boolean(additionalConditions) && additionalConditions(c)
+        additionalConditions && additionalConditions(c)
       )
       if (resetInsteadOfPause) {
         winConditions = trigger(winConditions)
@@ -593,13 +593,14 @@ function missionAchievement(
           resetInsteadOfPause
         }),
 
-        Boolean(startConditions) && andNext.once(
+        startConditions && andNext.once(
           c.missionIdIs(missionId),
           startConditions(c)
-        ).resetIf(
+        ),
+        startConditions && resetIf(
           c.gameOverRecently
         ),
-        Boolean(resetConditions) && resetIf(resetConditions(c)),
+        resetConditions && resetIf(resetConditions(c)),
 
         winConditions,
       )
@@ -754,7 +755,7 @@ missionAchievement(0x1a, 3, {
     c.missionIdIs(0x1a),
 
     once(c.targetDamageBar.appeared),
-    andNext.all
+    andNext
       .once(c.targetDamageBar.appeared)
       .resetIf(
         ['', 'Mem', '32bit', c.calculateRegionOffset(0x0aa300), '>', 'Delta', '32bit', c.calculateRegionOffset(0x0aa300), 30 * 10]
@@ -1113,9 +1114,9 @@ lists.secretRaces.forEach((x, i) => {
 
         c.missionIdIs(missionId),
 
-        checkingLapTime && andNext.all(
+        checkingLapTime && andNext(
           c.score.increased
-        ).orNext.exceptLast(
+        ).orNext(
           c.lapTimeLessOrEqualThan(0, targetTime),
           c.lapTimeLessOrEqualThan(1, targetTime),
           c.lapTimeLessOrEqualThan(2, targetTime),
