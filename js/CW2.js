@@ -673,7 +673,7 @@ set.addAchievement({
 set.addAchievement({
   title: 'Sole Sol Guardian',
   description:
-    'Mission 6-3, Last stand: while piloting Hex, prevent League convoy from entering Sol with 1 minute left to spare',
+    'Mission 6-3, Last stand: while piloting Hex, prevent League convoy from entering Sol with 1 minute left to spare (or 45 seconds for PAL version)',
   points: 25,
   conditions: {
     core: [
@@ -686,7 +686,7 @@ set.addAchievement({
         inLoadingScreen,
       )
         .andNext(mission.notCompleted)
-        .resetIf(displayedTimeWentBelow(region === 'NTSC' ? 1800 : 1500, region))
+        .resetIf(displayedTimeWentBelow(region === 'NTSC' ? 1800 : 1126, region))
     ])
   },
   badge: '201213',
