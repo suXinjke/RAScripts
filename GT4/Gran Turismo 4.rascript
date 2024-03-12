@@ -12806,12 +12806,6 @@ function defineRichPresence() {
         0x3073306C: "🟪"
     })
 
-    function usernameChar(idx) {
-        address = dword(0x622f4c) + 0x350
-
-        return rich_presence_macro("ASCIIChar", byte(address + idx))
-    }
-
     function defineHasLicenseLookup(license, emoji, region, whiteSpacePrefix = false) {
         bits = []
         for x in licenseMeta {
@@ -12859,9 +12853,7 @@ function defineRichPresence() {
     rich_presence_conditional_display(
         gameFlag == GAME_FLAG_LICENSE && isCoffeeBreak,
 
-        "[☕ {0}{1}{2}{3}{4}{5}{6}{7}{8}{9}] Coffee Break {12}{13} {10} 🚗 {11}",
-        usernameChar(0), usernameChar(1), usernameChar(2), usernameChar(3), usernameChar(4),
-        usernameChar(5), usernameChar(6), usernameChar(7), usernameChar(8), usernameChar(9),
+        "[☕ Coffee Break] {2}{3} {0} 🚗 {1}",
 
         eventLookup,
         carLookup,
@@ -12872,9 +12864,7 @@ function defineRichPresence() {
     rich_presence_conditional_display(
         gameFlag == GAME_FLAG_LICENSE,
 
-        "[🔰 {0}{1}{2}{3}{4}{5}{6}{7}{8}{9}] {10} {11}-{12}{13} {14} 🚗 {15}",
-        usernameChar(0), usernameChar(1), usernameChar(2), usernameChar(3), usernameChar(4),
-        usernameChar(5), usernameChar(6), usernameChar(7), usernameChar(8), usernameChar(9),
+        "[🔰 License Center] {0} {1}-{2}{3} {4} 🚗 {5}",
 
         licenseColorLookup,
         licenseLetterLookup,
@@ -12922,10 +12912,7 @@ function defineRichPresence() {
     rich_presence_conditional_display(
         gameFlag == GAME_FLAG_PHOTO_SCENE,
 
-        "[📸 {0}{1}{2}{3}{4}{5}{6}{7}{8}{9}] 🚗 {10}",
-
-        usernameChar(0), usernameChar(1), usernameChar(2), usernameChar(3), usernameChar(4),
-        usernameChar(5), usernameChar(6), usernameChar(7), usernameChar(8), usernameChar(9),
+        "[📸 Photo Travel] 🚗 {0}",
 
         carLookup
     )
@@ -12950,21 +12937,17 @@ function defineRichPresence() {
             gameFlag == GAME_FLAG_MENUS &&
             matchString(menuProjectAddress, menuProjectStringConditions["gtmode"]),
 
-            "[🏠 {0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{12}{13}{14}{15}{16}] 🚗 {10} 📅 Day {11} | {17} km ",
-
-            usernameChar(0), usernameChar(1), usernameChar(2), usernameChar(3), usernameChar(4),
-            usernameChar(5), usernameChar(6), usernameChar(7), usernameChar(8), usernameChar(9),
+            "[🏠 Home {3}{4}{5}{6}{7}] 🚗 {0} 📅 Day {1} | {2} km ",
 
             homeCarLookup,
             rich_presence_macro("Number", gtModeDateJulian - 2453461),
+            rich_presence_macro("Number", gtModeASpecMileage / 1000),
 
             defineHasLicenseLookup("B",  "🟩", region, whiteSpacePrefix = true),
             defineHasLicenseLookup("A",  "🟨", region),
             defineHasLicenseLookup("IB", "🟦", region),
             defineHasLicenseLookup("IA", "🟥", region),
-            defineHasLicenseLookup("S",  "🟪", region),
-
-            rich_presence_macro("Number", gtModeASpecMileage / 1000)
+            defineHasLicenseLookup("S",  "🟪", region)
         )
     }
 
