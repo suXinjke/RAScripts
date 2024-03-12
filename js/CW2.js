@@ -1,5 +1,5 @@
 // @ts-check
-import { AchievementSet, Condition, define as $, once, trigger, andNext, resetIf, givenRangeOf, orNext, measuredIf, measured, resetNextIf, pauseIf } from '@cruncheevos/core'
+import { AchievementSet, Condition, define as $, once, trigger, andNext, resetIf, givenRangeOf, orNext, measuredIf, measured, resetNextIf, pauseIf, addHits } from '@cruncheevos/core'
 
 /*
 This is a preview of how achievement development with JAVASCRIPT may look like
@@ -185,8 +185,9 @@ const actIs = (act = 0) => $.one(['', 'Mem', '8bit', 0x59d72, '=', 'Value', '', 
 const missionIs = (mission = 0) => $.one(['', 'Mem', '8bit', 0x59d74, '=', 'Value', '', mission])
 
 function startedMission(opts = {}) {
-  const shipOperator = opts.exactShip || opts.ship === 0 ? '=' : '<='
-  const acts = Array.isArray(opts.act) ? opts.act : [opts.act].filter(Boolean)
+  const missions = opts.missions || [[opts.act, opts.mission]]
+
+  const hasMultipleMissions = missions.length > 1
 
   return $(
     pauseIf(
@@ -196,19 +197,16 @@ function startedMission(opts = {}) {
       inMainMenu
     ),
 
-    andNext(
-      opts.ship >= 0 && player.isFlyingShip(opts.ship).with({
-        cmp: shipOperator
+    ...missions.map(([act, mission, isGroundMission]) => andNext(
+      (opts.ship >= 0 && !isGroundMission) && player.isFlyingShip(opts.ship).with({
+        cmp: opts.exactShip || opts.ship === 0 ? '=' : '<='
       }),
-      ...acts.map((act, i) => actIs(act).with({
-        flag: i + 1 === acts.length ? 'AndNext' : 'OrNext'
-      })),
-      andNext(
-        opts.mission > 0 && missionIs(opts.mission),
-        ...(opts.additionalConditions || []),
-        ['', 'Mem', '32bit', 0x34a68, '=', 'Value', '', 132, 1],
-      )
-    ),
+      act > 0 && actIs(act),
+      mission > 0 && missionIs(mission),
+      ...(opts.additionalConditions || []),
+      [hasMultipleMissions ? 'AddHits' : '', 'Mem', '32bit', 0x34a68, '=', 'Value', '', 132, 1],
+    )),
+    hasMultipleMissions && `0=1.1.`
   )
 }
 
@@ -439,17 +437,13 @@ set.addAchievement({
 set.addAchievement({
   title: 'Power Porter',
   description:
-    'Mission 1-3, Bring battle-platform online: while piloting Hex, deliver power cells to Navy platform and ensure it suffers no hull damage',
+    'Mission 1-3, Bring battle-platform online: while piloting Hex, successfully deliver power cells to Navy platform',
   points: 5,
   conditions: {
     core: [
       startedMission({ ship: HEX, act: 1, mission: 3 }),
-      trigger(mission.completed),
-    ],
-    alt1: [
-      pauseIf(inLoadingScreen),
-      resetIf(entityInstance(4).gotHullDamage)
-    ],
+      mission.completed,
+    ]
   },
   badge: '201202',
   id: 165207,
@@ -700,6 +694,25 @@ set.addAchievement({
 })
 
 set.addAchievement({
+  title: 'Cronus',
+  description: 'While piloting Hex or Spook, complete any mission leading to Act 7: Loss of a Pawn',
+  points: 10,
+  conditions: {
+    core: [
+      startedMission({
+        ship: HEX,
+        missions: [
+          [4, 3, 'ground'],
+          [5, 1],
+          [6, 3]
+        ]
+      }),
+      mission.completed,
+    ]
+  }
+})
+
+set.addAchievement({
   title: 'Unexpected Visitor',
   description:
     'Mission 7-1, Scout asteroid field: while piloting Wraith or Hex, secure the asteroid field without suffering hull damage',
@@ -913,6 +926,24 @@ set.addAchievement({
 })
 
 set.addAchievement({
+  title: 'We Watch Alpha Centauri',
+  description: 'While piloting Hex, Wraith or Spook, complete any mission leading to Act 11: The Watch',
+  points: 10,
+  conditions: {
+    core: [
+      startedMission({
+        ship: WRAITH,
+        missions: [
+          [9, 3, 'ground'],
+          [10, 1]
+        ]
+      }),
+      mission.completed,
+    ]
+  }
+})
+
+set.addAchievement({
   title: 'Anomalous Materials',
   description: `Mission 12-1, Rescue science vessel: while piloting Wraith or Hex, divert dangerous materials from science vessel and ensure it's safety`,
   points: 25,
@@ -1123,6 +1154,24 @@ set.addAchievement({
 })
 
 set.addAchievement({
+  title: 'Into the Heart of Boreas',
+  description: 'While piloting Hex, Wraith or Diablo, complete any mission leading to Act 15: The League Cornered?',
+  points: 10,
+  conditions: {
+    core: [
+      startedMission({
+        ship: DIABLO,
+        missions: [
+          [13, 3],
+          [14, 1]
+        ]
+      }),
+      mission.completed,
+    ]
+  }
+})
+
+set.addAchievement({
   title: 'Rotten Core',
   description:
     'Mission 15-1, Spearhead assault into League home system: while piloting Diablo, Wraith or Hex, destroy all League Hammer ships and penetrate the Astro gun defenses to eliminate it from inside',
@@ -1283,6 +1332,24 @@ set.addAchievement({
   },
   badge: '201252',
   id: 180741,
+})
+
+set.addAchievement({
+  title: 'The Abyss Stares Back',
+  description: 'While piloting Hex, Wraith or Diablo, complete any mission leading to Act 19: The Madness of Kron',
+  points: 10,
+  conditions: {
+    core: [
+      startedMission({
+        ship: DIABLO,
+        missions: [
+          [17, 3],
+          [18, 1]
+        ]
+      }),
+      mission.completed,
+    ]
+  }
 })
 
 set.addAchievement({
@@ -1576,7 +1643,12 @@ set.addAchievement({
   description: 'Enter the wrong kind of jumpgate',
   points: 1,
   conditions: {
-    core: startedMission({ act: [3, 18], mission: 1 }),
+    core: startedMission({
+      missions: [
+        [3, 1],
+        [18, 1]
+      ]
+    }),
     alt1: [
       pauseIf(inLoadingScreen),
       player.isDead,
