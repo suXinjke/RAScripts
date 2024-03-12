@@ -3039,37 +3039,19 @@ missionLookup = rich_presence_lookup("Mission", missionId, missionIdToString)
 //       I:0xW0bceb4_M:0xX00000c/30 makes the output correct
 timeLookup = rich_presence_value("MissionTime", inGameMissionTimeSpent / 30, "SECS")
 
-function nameChar(idx) => rich_presence_macro("ASCIIChar", byte(0x0bfc18 + idx))
-
 function dataSwallowRichPresence(corpName, condition) {
     rich_presence_conditional_display(
         condition,
-        "{1}{2}{3}{4}{5}{6}{7}{8} | {0} | Operating Data Swallow",
-        corpName,
-        nameChar(0),
-        nameChar(1),
-        nameChar(2),
-        nameChar(3),
-        nameChar(4),
-        nameChar(5),
-        nameChar(6),
-        nameChar(7)
+        "{0} | Operating Data Swallow",
+        corpName
     )
 }
 
 function missionRichPresence(corpName, condition) {
     rich_presence_conditional_display(
         condition,
-        "{1}{2}{3}{4}{5}{6}{7}{8} | {0} | 📍 {9} ({10}) | ⏰ {11} | ✈️ {12}",
+        "{0} 📍 {1} ({2}) ⏰ {3} ✈️ {4}",
         corpName,
-        nameChar(0),
-        nameChar(1),
-        nameChar(2),
-        nameChar(3),
-        nameChar(4),
-        nameChar(5),
-        nameChar(6),
-        nameChar(7),
         missionLookup,
         difficultyLookup,
         timeLookup,
@@ -3096,10 +3078,10 @@ for x in [
         endingName
     )
 }
-dataSwallowRichPresence("Simulator", gameLoopMode == GAME_LOOP_DATA_SWALLOW && isInMissionSimulator())
+dataSwallowRichPresence("Mission Simulator", gameLoopMode == GAME_LOOP_DATA_SWALLOW && isInMissionSimulator())
 dataSwallowRichPresence(corpLookup, gameLoopMode == GAME_LOOP_DATA_SWALLOW)
 
-missionRichPresence("Simulator", gameLoopMode == GAME_LOOP_GAMEPLAY && isInMissionSimulator())
+missionRichPresence("Mission Simulator", gameLoopMode == GAME_LOOP_GAMEPLAY && isInMissionSimulator())
 missionRichPresence(corpLookup, gameLoopMode == GAME_LOOP_GAMEPLAY)
 
 rich_presence_display("Playing Ace Combat 3: Electropshere")
