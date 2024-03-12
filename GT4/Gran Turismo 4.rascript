@@ -12811,7 +12811,12 @@ function defineRichPresence() {
         for x in licenseMeta {
             meta = licenseMeta[x]
             if (meta["license"] == license && meta["isCoffee"] == false) {
-                array_push(bits, meta["flags"][region])
+                if (region == "ntscOffset") {
+                  offset = 0xa0be90 + meta["flags"]["ntscOffset"]
+                } else {
+                  offset = meta["flags"]["pal"]
+                }
+                array_push(bits, offset)
             }
         }
 
