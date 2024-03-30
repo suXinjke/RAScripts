@@ -276,7 +276,7 @@ const codeFor = (region) => {
     ),
     measured: $(
       measuredIf(regionIs[region]),
-      $.one(['Measured', 'Mem', '32bit', address.missionTimer, '/', 'Value', '', 30], { isLeaderboardValue: true })
+      ['Measured', 'Mem', '32bit', address.missionTimer, '/', 'Value', '', 30]
     )
   }
 
@@ -431,7 +431,7 @@ const codeFor = (region) => {
     measuredLastLapTime: $(
       measuredIf(regionIs[region]),
       ['AddAddress', 'Mem', '32bit', address.score, '*', 'Value', '', 4],
-      $.one(['Measured', 'Mem', '32bit', address.lapTime1 - 4, '/', 'Value', '', 30], { isLeaderboardValue: true })
+      ['Measured', 'Mem', '32bit', address.lapTime1 - 4, '/', 'Value', '', 30]
     ),
 
     gameOverRecently: $.one(['', 'Mem', '32bit', address.gameOverRecently, '>', 'Delta', '32bit', address.gameOverRecently]),

@@ -770,11 +770,11 @@ function timeTrialDebriefingConditions(conditions) {
     value: {
       core: $(
         measuredIf(code.pal.regionCheck),
-        $.one(['Measured', 'Mem', '32bit', code.pal.address.postTime, '*', 'Float', '', 1.2], { isLeaderboardValue: true })
+        ['Measured', 'Mem', '32bit', code.pal.address.postTime, '*', 'Float', '', 1.2]
       ),
       alt1: $(
         measuredIf(code.ntsc.regionCheck),
-        $.one(['Measured', 'Mem', '32bit', code.ntsc.address.postTime], { isLeaderboardValue: true })
+        ['Measured', 'Mem', '32bit', code.ntsc.address.postTime]
       ),
     }
   }
@@ -788,11 +788,11 @@ function timeTrialDuringMissionConditions(conditions) {
     value: {
       core: $(
         measuredIf(code.pal.regionCheck),
-        $.one(['Measured', 'Mem', '32bit', code.pal.address.missionPhaseTimer, '*', 'Float', '', 1.2], { isLeaderboardValue: true })
+        ['Measured', 'Mem', '32bit', code.pal.address.missionPhaseTimer, '*', 'Float', '', 1.2]
       ),
       alt1: $(
         measuredIf(code.ntsc.regionCheck),
-        $.one(['Measured', 'Mem', '32bit', code.ntsc.address.missionPhaseTimer], { isLeaderboardValue: true })
+        ['Measured', 'Mem', '32bit', code.ntsc.address.missionPhaseTimer]
       ),
     }
   }

@@ -204,7 +204,7 @@ set.addLeaderboard({
     cancel: '0xfeed=0xcafe',
     submit: '0xcafe=0xcafe',
     value: [
-      ['Measured', 'Mem', '32bit', 0xb711c4, '', '', '']
+      ['Measured', 'Mem', '32bit', 0xb711c4]
     ]
   }
 })

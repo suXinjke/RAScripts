@@ -105,7 +105,7 @@ function pauseCodeBelowUntilSubMission(subMission = 0) {
 }
 
 const techTokens = {
-  measuredValue: $.one(['Measured', 'Mem', '16bit', 0x5514c], { isLeaderboardValue: true }),
+  measuredValue: $.one(['Measured', 'Mem', '16bit', 0x5514c]),
   hasNone: $.one(['', 'Mem', '16bit', 0x5514c, '=', 'Value', '', 0]),
   received: $.one(['', 'Mem', '16bit', 0x5514c, '>', 'Delta', '16bit', 0x5514c])
 }
@@ -179,7 +179,7 @@ const player = {
   isOperatingParticleGun: $.one(['', 'Mem', '8bit', 0x34c8c, '=', 'Value', '', 4])
 }
 
-const timeTrialValue = $.one(['Measured', 'Mem', '32bit', 0x34440, '*', 'Value', '', 2], { isLeaderboardValue: true })
+const timeTrialValue = $.one(['Measured', 'Mem', '32bit', 0x34440, '*', 'Value', '', 2])
 
 const actIs = (act = 0) => $.one(['', 'Mem', '8bit', 0x59d72, '=', 'Value', '', act])
 const missionIs = (mission = 0) => $.one(['', 'Mem', '8bit', 0x59d74, '=', 'Value', '', mission])
