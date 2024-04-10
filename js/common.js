@@ -11,3 +11,7 @@ export function makeLookup(name, prefix, obj) {
     }
   }
 }
+
+export function givenRangeOf(start = 0, end = 0) {
+  return Array.from({ length: end - start + 1 }, (v, k) => start + k)
+}

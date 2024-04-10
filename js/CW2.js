@@ -1,5 +1,6 @@
 // @ts-check
-import { AchievementSet, Condition, define as $, once, trigger, andNext, resetIf, givenRangeOf, orNext, measuredIf, measured, resetNextIf, pauseIf, addHits } from '@cruncheevos/core'
+import { AchievementSet, Condition, define as $, once, trigger, andNext, resetIf, orNext, measuredIf, measured, resetNextIf, pauseIf } from '@cruncheevos/core'
+import { givenRangeOf } from './common.js'
 
 /*
 This is a preview of how achievement development with JAVASCRIPT may look like
@@ -52,11 +53,12 @@ The jsdoc marks are annoying, I may look into if it's possible to interpret the 
 as typescript files without compiling them in-place.
 */
 
-/** @param {(region: 'NTSC' | 'PAL') => Condition.GroupSet} cb */
+/** @param {(region: 'NTSC' | 'PAL') => Condition.Group} cb */
 function givenMultiRegionalAlts(cb) {
-  return givenRangeOf.alts(1, 2, (i) => {
-    return cb(i === 1 ? 'NTSC' : 'PAL')
-  })
+  return {
+    alt1: cb('NTSC'),
+    alt2: cb('PAL')
+  }
 }
 
 const regionalOffset = (region = '') => region === 'PAL' ? 0x2c0 : 0
