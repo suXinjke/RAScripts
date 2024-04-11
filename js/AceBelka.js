@@ -1218,6 +1218,8 @@ const set = new AchievementSet({ gameId: 20921, title: 'Ace Combat Zero: The Bel
 
 // Regular progression and easy challenges
 for (let missionId in missionMeta) {
+  missionId = Number(missionId)
+
   const meta = missionMeta[missionId]
   if (meta.isNotCampaign) {
     continue
