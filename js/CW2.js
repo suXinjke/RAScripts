@@ -1036,11 +1036,11 @@ set.addAchievement({
         .andNext(mission.inProgress)
         .resetIf(entityIDStats(5).hasKills)
         .andNext(entityInstance(0).probed)
-        .trigger.once(player.markedTraitor)
+        .trigger('once', player.markedTraitor)
         .andNext(
           entityIDStats(5).hasKills,
           player.markedTraitor
-        ).trigger.once(player.cameraDetached)
+        ).trigger('once', player.cameraDetached)
     ]
   },
   badge: '201230',
@@ -1075,7 +1075,7 @@ set.addAchievement({
 
       // grapple holds the escape pod
       ['AndNext', 'Mem', '16bit', 0x11d704 + regionalOffset(region), '=', 'Value', '', 0x2500],
-      measured.hits(3)(entityIDStats(1).gotKilled),
+      measured('hits 3', entityIDStats(1).gotKilled),
       ['MeasuredIf', 'Mem', '16bit', 0x11d704 + regionalOffset(region), '=', 'Value', '', 9472],
     ])
   },
@@ -1329,7 +1329,7 @@ set.addAchievement({
       ),
       measuredIf(weaponInstance(0, region).isAlienLaser)
         .andNext(weaponInstance(0, region).isAlienLaser)
-        .measured.hits(3)(entityIDStats(7).gotKilled)
+        .measured('hits 3', entityIDStats(7).gotKilled)
     ])
   },
   badge: '201252',
@@ -1622,7 +1622,7 @@ set.addAchievement({
         resetNextIf(bailedIntoMainMenu)
           .orNext(currentWeapon.isNotAlienLaser)
           .andNext(currentWeapon.isNotScatterGun)
-          .resetIf.hits(180)(currentWeapon.isNotFired)
+          .resetIf('hits 180', currentWeapon.isNotFired)
       )
 
       return [

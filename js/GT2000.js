@@ -105,7 +105,8 @@ set.addAchievement({
   description: 'Win the race while driving Dandelion Yellow EVO V, always stepping on gas and never applying brakes',
   points: 3,
   conditions: [
-    andNext.once(
+    andNext(
+      'once',
       inGame,
       playerIs.controllingTheCar,
       playerIs.drivingYellowEvo,
@@ -132,7 +133,8 @@ set.addAchievement({
   conditions: {
     core: [
       measured(
-        andNext.hits(3)(
+        andNext(
+          'hits 3',
           inGame,
           playerWon
         )
@@ -164,7 +166,8 @@ set.addAchievement({
     // bailed into menu, but allow it if player won
     alt3: [
       resetNextIf(firstFramesOfRaceStart),
-      pauseIf.once(
+      pauseIf(
+        'once',
         andNext(
           inGame,
           playerWon

@@ -1,4 +1,4 @@
-import { AchievementSet, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, measuredIf, addHits, hits } from '@cruncheevos/core'
+import { AchievementSet, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, measuredIf, addHits, once } from '@cruncheevos/core'
 
 import { makeLookup } from './common.js'
 
@@ -859,7 +859,8 @@ function completedMissionInAnyMode({
       craftId >= 0 && c.inGame.craftIdIsNot(craftId),
       weaponSelection >= 0 && c.inGame.specialWeaponIdIsNot(weaponSelection)
     ).also(
-      startConditions && andNext.once(
+      startConditions && andNext(
+        'once',
         c.inMission,
         startConditions(c)
       ),
@@ -872,7 +873,8 @@ function completedMissionInAnyMode({
           return { group, ...obj }
         })
       ).map(({ group, id, additionalConditions = null }) =>
-        andNext.once(
+        andNext(
+          'once',
           additionalConditions?.(c),
           c.missionTimerAdvanced,
           c.entityGroup(group).index(id).gotDestroyed
@@ -965,7 +967,8 @@ function completedSetOfMissions({
       craftId >= 0 && c.inGame.craftIdIsNot(craftId),
     ).addHits(
       // Complete any mission in the mission group and it marks a hit
-      ...freeMissionGroups.map(group => andNext.once(
+      ...freeMissionGroups.map(group => andNext(
+        'once',
         orNext(
           ...group.map(missionId => c.inGame.missionIdIs(missionId))
         ),
@@ -977,7 +980,8 @@ function completedSetOfMissions({
 
       pauseLockWhen && resetNextIf(
         c.missionHasStarted
-      ).pauseIf.once(
+      ).pauseIf(
+        'once',
         pauseLockWhen(c)
       )
     )
@@ -1047,7 +1051,8 @@ function completedSetOfMissionFlags({
       // the mission with all conditions fulfilled
       resetNextIf(
         c.inBriefingForTwoFrames
-      ).pauseIf.once(
+      ).pauseIf(
+        'once',
         andNext(
           c.inMission,
           ...missionFlagsAreOk
@@ -1091,7 +1096,8 @@ function completedAssaultRecords({ begin, end }) {
       // Put the PauseIf lock if player entered
       // the mission with all conditions fulfilled
       resetNextIf(c.inBriefingForTwoFrames)
-        .pauseIf.once(
+        .pauseIf(
+          'once',
           andNext(
             c.inMission,
             ...assaultRecordsAreOk
@@ -1144,7 +1150,8 @@ function completedPermadeath({
       c.regionCheckPause,
 
       // Hit (1) on correct mission start
-      andNext.once(
+      andNext(
+        'once',
         minimalDifficulty >= 0 && c.inGame.minimalMissionDifficultyIs(minimalDifficulty),
         craftId >= 0 && c.inGame.craftIdIs(craftId),
         c.inGame.missionIdIs(mission.GlacialSkies_01),
@@ -1589,7 +1596,8 @@ for (const [mission, title, points, begin, end] of [
         c.applyingBrakes
       ).andNext(
         c.applyingThrottle
-      ).also.hits(6)(
+      ).also(
+        'hits 6',
         c.missionTimerAdvanced
       )
     })
@@ -1634,11 +1642,10 @@ for (const [mission, title, points, begin, end] of [
         c.player.gotSysMessage.missionUpdate
       ),
       resetConditions: c => $(
+        'hits 3',
         c.missionHasStarted,
         c.player.inAvalon.turnedAroundUnder,
-        hits(3)(
-          c.player.inAvalon.divedIn
-        )
+        c.player.inAvalon.divedIn
       )
     })
   })
@@ -1992,7 +1999,7 @@ for (const [mission, title, points, begin, end] of [
         targetConditions = trigger(targetConditions)
       }
 
-      return $.once(
+      return once(
         c.missionHasStarted
       ).also(targetConditions).resetIf(
         c.player.wingmanGotKill,
@@ -2223,7 +2230,7 @@ for (const [mission, title, points, begin, end] of [
         targetConditions = trigger(targetConditions)
       }
 
-      return $.once(
+      return once(
         c.missionHasStarted
       ).also(targetConditions).resetIf(
         c.player.wingmanGotKill,
@@ -2260,7 +2267,7 @@ for (const [mission, title, points, begin, end] of [
         targetConditions = trigger(targetConditions)
       }
 
-      return $.once(
+      return once(
         c.missionHasStarted
       ).also(targetConditions).resetIf(
         c.player.wingmanGotKill,
@@ -2435,15 +2442,17 @@ for (const [mission, title, points, begin, end] of [
           trigger(c.debriefingStarted),
 
           resetNextOnMissionRestart,
-          andNext.once(
+          andNext(
+            'once',
             c.inGameModeIs(inGameMode.gameplayOrCutscene),
             c.player.usingCockpitCamera
           ),
 
           resetNextOnMissionRestart,
-          pauseIf.once(
+          pauseIf(
+            'once',
             andNext(
-              hits(90)(c.missionPhaseTimerAdvanced),
+              $('hits 90', c.missionPhaseTimerAdvanced),
               c.inGameModeIs(inGameMode.gameplayOrCutscene),
               c.player.notUsingCockpitCamera
             )

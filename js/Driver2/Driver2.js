@@ -593,7 +593,8 @@ function missionAchievement(
           resetInsteadOfPause
         }),
 
-        startConditions && andNext.once(
+        startConditions && andNext(
+          'once',
           c.missionIdIs(missionId),
           startConditions(c)
         ),
@@ -755,8 +756,7 @@ missionAchievement(0x1a, 3, {
     c.missionIdIs(0x1a),
 
     once(c.targetDamageBar.appeared),
-    andNext
-      .once(c.targetDamageBar.appeared)
+    andNext('once', c.targetDamageBar.appeared)
       .resetIf(
         ['', 'Mem', '32bit', c.calculateRegionOffset(0x0aa300), '>', 'Delta', '32bit', c.calculateRegionOffset(0x0aa300), 30 * 10]
       ),
@@ -798,7 +798,8 @@ missionAchievement(0x21, 3, {
     c.gameTypeIdIs(gameType.mission),
     c.missionIdIs(0x21),
 
-    andNext.once(
+    andNext(
+      'once',
       c.target.flagsChanged(0, 0x40000201, 0x2),
       c.carData.forPlayer.hasNoDamage
     ),
@@ -1221,7 +1222,8 @@ for (const x of lists.secretCars) {
 
         resetNextIf(c.frameCountLessThan(2)),
         pauseIf(
-          andNext.hits(2)(
+          andNext(
+            'hits 2',
             c.carData.forPlayer.hasSpecificStats(statData)
           )
         )
@@ -1251,7 +1253,8 @@ for (const x of lists.secretCars) {
 
           resetNextIf(c.frameCountLessThan(2)),
           pauseIf(
-            andNext.hits(1)(
+            andNext(
+              'once',
               c.frameCountLessThan(3),
               c.carData.forPlayer.hasSpecificStats(statData)
             )
