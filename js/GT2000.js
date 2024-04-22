@@ -71,6 +71,7 @@ set.addAchievement({
   title: "Race On!",
   description: 'Win the race with Racing driving style',
   points: 1,
+  type: 'win_condition',
   conditions: [
     pauseIf(notInGame),
     playerWon,
@@ -82,6 +83,7 @@ set.addAchievement({
   title: "Wow! You've Actually Drifted It!",
   description: 'Win the race with Drift driving style',
   points: 2,
+  type: 'win_condition',
   conditions: [
     pauseIf(notInGame),
     playerWon,
@@ -93,6 +95,7 @@ set.addAchievement({
   title: "I Didn't Know You Could Drive Manual!",
   description: 'Win the race with Manual gearbox',
   points: 3,
+  type: 'win_condition',
   conditions: [
     pauseIf(notInGame),
     playerWon,
@@ -187,6 +190,7 @@ set.addAchievement({
   title: "Congratulations, You've Won!",
   description: 'Win the race with Automatic gearbox',
   points: 1,
+  type: 'win_condition',
   conditions: [
     pauseIf(notInGame),
     playerWon,

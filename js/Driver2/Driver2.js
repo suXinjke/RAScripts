@@ -533,6 +533,7 @@ const codeFor = (region) => {
 
 /** @param {{
  title?: string
+ type?: import('@cruncheevos/core').Achievement.Type
  description?: string
  triggerDecor?: boolean
  additionalConditions?: CodeForCallback
@@ -547,6 +548,7 @@ function missionAchievement(
 ) {
   const {
     title,
+    type,
     description,
     startConditions,
     resetConditions,
@@ -567,6 +569,7 @@ function missionAchievement(
     title: title,
     description: `${city}, ${missionTitles[missionId]}: ` + (description || 'complete the mission'),
     points,
+    type,
     badge: b(missionIdString),
     conditions: multiRegionalConditions(region => {
       const c = codeFor(region)
@@ -634,7 +637,7 @@ missionAchievement(0x02, 2, {
     c.carData.forTarget.gotSeriousDamage
   )
 })
-missionAchievement(0x03, 3, { title: "Follow That Train, Tanner!" })
+missionAchievement(0x03, 3, { title: "Follow That Train, Tanner!", type: 'progression' })
 missionAchievement(0x04, 3, {
   title: 'Totally Not Suspicious',
   description: 'keep the reasonable distance to the target at all times',
@@ -665,7 +668,7 @@ missionAchievement(0x06, 10, {
     c.damageBar.surpassedDamage(0x100)
   )
 })
-missionAchievement(0x07, 5, { title: 'Break Out' })
+missionAchievement(0x07, 5, { title: 'Break Out', type: 'progression' })
 set.addLeaderboard({
   title: missionTitles[0x07],
   description: 'The more time left after finishing the mission, the better',
@@ -685,7 +688,7 @@ set.addLeaderboard({
     value: multiRegionalConditions(region => [codeFor(region).missionTimer.measured])
   },
 })
-missionAchievement(0x09, 5, { title: 'Left for Cuba' })
+missionAchievement(0x09, 5, { title: 'Left for Cuba', type: 'progression' })
 
 missionAchievement(0x0a, 3, {
   title: 'Nice and Easy',
@@ -695,10 +698,10 @@ missionAchievement(0x0a, 3, {
   ),
   resetConditions: c => $(c.damageBar.surpassedDamage(0x100))
 })
-missionAchievement(0x0b, 10, { title: "Hard Truck" })
-missionAchievement(0x0d, 10, { title: "Bombing Run" })
-missionAchievement(0x0e, 10, { title: "Quantum Clue" })
-missionAchievement(0x0f, 5, { title: 'Ferry Impressive Jump' })
+missionAchievement(0x0b, 10, { title: "Hard Truck", type: 'progression' })
+missionAchievement(0x0d, 10, { title: "Bombing Run", type: 'progression' })
+missionAchievement(0x0e, 10, { title: "Quantum Clue", type: 'progression' })
+missionAchievement(0x0f, 5, { title: 'Ferry Impressive Jump', type: 'progression' })
 missionAchievement(0x10, 5, {
   title: 'To the Docks',
   description: 'on Hard cop difficulty, get to the docks without leaving your car',
@@ -721,10 +724,10 @@ missionAchievement(0x12, 10, {
     c.damageBar.surpassedDamage(11000)
   )
 })
-missionAchievement(0x13, 5, { title: 'Me and My "Friend" Jericho' })
-missionAchievement(0x14, 10, { title: 'We Leave Again' })
+missionAchievement(0x13, 5, { title: 'Me and My "Friend" Jericho', type: 'progression' })
+missionAchievement(0x14, 10, { title: 'We Leave Again', type: 'progression' })
 
-missionAchievement(0x15, 5, { title: 'Caine Chores' })
+missionAchievement(0x15, 5, { title: 'Caine Chores', type: 'progression' })
 missionAchievement(0x16, 3, {
   title: 'Pickup',
   description: "save one of Caine's guys without damaging the car he's dumped at",
@@ -733,7 +736,7 @@ missionAchievement(0x16, 3, {
   ),
   resetConditions: c => $(c.carData.byIndex(1).gotDamage)
 })
-missionAchievement(0x17, 5, { title: 'Boomerang' })
+missionAchievement(0x17, 5, { title: 'Boomerang', type: 'progression' })
 missionAchievement(0x18, 3, {
   title: 'Limo Getaway',
   description: "escape to safehouse in style: on a Limo!",
@@ -746,7 +749,7 @@ missionAchievement(0x18, 3, {
     ])
   )
 })
-missionAchievement(0x19, 5, { title: 'Jericho Did It Again' })
+missionAchievement(0x19, 5, { title: 'Jericho Did It Again', type: 'progression' })
 missionAchievement(0x1a, 3, {
   title: 'Flatline',
   description: 'make the ambulance stop within 10 seconds after starting the mission',
@@ -769,8 +772,8 @@ missionAchievement(0x1b, 25, {
   description: 'complete the mission on Hard Cop difficulty',
   additionalConditions: c => $(c.isHardCopDifficulty)
 })
-missionAchievement(0x1c, 5, { title: 'Was This Necessary?' })
-missionAchievement(0x1d, 5, { title: 'Ready to Blow' })
+missionAchievement(0x1c, 5, { title: 'Was This Necessary?', type: 'progression' })
+missionAchievement(0x1d, 5, { title: 'Ready to Blow', type: 'progression' })
 missionAchievement(0x1e, 5, {
   title: 'Stealth Bomber',
   description: 'complete the mission without alerting any cops',
@@ -789,7 +792,7 @@ missionAchievement(0x1f, 3, {
     ])
   )
 })
-missionAchievement(0x20, 3, { title: 'Underundercover' })
+missionAchievement(0x20, 3, { title: 'Underundercover', type: 'progression' })
 missionAchievement(0x21, 3, {
   title: 'Slippery Business',
   description: 'Bring the limo to the mansion undamaged',
@@ -813,17 +816,19 @@ missionAchievement(0x21, 3, {
 })
 missionAchievement(0x22, 5, {
   title: 'Well Done You Stopped the Hitman',
-  description: 'Well done you stopped the hitman'
+  description: 'Well done you stopped the hitman',
+  type: 'progression'
 })
-missionAchievement(0x23, 5, { title: 'Drive, Bomb, Jump' })
-missionAchievement(0x25, 25, { title: "Worst Day for Jones" })
-missionAchievement(0x26, 25, { title: 'Deadly Camber' })
+missionAchievement(0x23, 5, { title: 'Drive, Bomb, Jump', type: 'progression' })
+missionAchievement(0x25, 25, { title: "Worst Day for Jones", type: 'progression' })
+missionAchievement(0x26, 25, { title: 'Deadly Camber', type: 'progression' })
 missionAchievement(0x27, 5, {
   title: 'Take Some Backup',
   description: 'complete the mission on Hard Cop difficulty',
-  additionalConditions: c => $(c.isHardCopDifficulty)
+  additionalConditions: c => $(c.isHardCopDifficulty),
+  type: 'progression'
 })
-missionAchievement(0x28, 10, { title: 'In Which Lenny Finally Gets Caught' })
+missionAchievement(0x28, 10, { title: 'In Which Lenny Finally Gets Caught', type: 'win_condition' })
 
 lists.pursuits.forEach((x, i) => {
   const [missionId, title] = x

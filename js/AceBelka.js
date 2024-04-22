@@ -1240,7 +1240,8 @@ for (let missionId in missionMeta) {
     badge: b(`MISSION_${missionNumber}_COMPLETE`),
     description: `Complete Mission ${missionNumber}: ${meta.title}`,
     points,
-    conditions: completedMissionInAnyMode({ missionId })
+    conditions: completedMissionInAnyMode({ missionId }),
+    type: 'progression'
   })
 
   if (missionId === mission.FlickerOfHope_05) {

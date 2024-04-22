@@ -441,6 +441,7 @@ set.addAchievement({
   description:
     'Mission 1-3, Bring battle-platform online: while piloting Hex, successfully deliver power cells to Navy platform',
   points: 5,
+  type: 'progression',
   conditions: {
     core: [
       startedMission({ ship: HEX, act: 1, mission: 3 }),
@@ -699,6 +700,7 @@ set.addAchievement({
   title: 'Cronus',
   description: 'While piloting Hex or Spook, complete any mission leading to Act 7: Loss of a Pawn',
   points: 10,
+  type: 'progression',
   conditions: {
     core: [
       startedMission({
@@ -931,6 +933,7 @@ set.addAchievement({
   title: 'We Watch Alpha Centauri',
   description: 'While piloting Hex, Wraith or Spook, complete any mission leading to Act 11: The Watch',
   points: 10,
+  type: 'progression',
   conditions: {
     core: [
       startedMission({
@@ -1159,6 +1162,7 @@ set.addAchievement({
   title: 'Into the Heart of Boreas',
   description: 'While piloting Hex, Wraith or Diablo, complete any mission leading to Act 15: The League Cornered?',
   points: 10,
+  type: 'progression',
   conditions: {
     core: [
       startedMission({
@@ -1340,6 +1344,7 @@ set.addAchievement({
   title: 'The Abyss Stares Back',
   description: 'While piloting Hex, Wraith or Diablo, complete any mission leading to Act 19: The Madness of Kron',
   points: 10,
+  type: 'progression',
   conditions: {
     core: [
       startedMission({
@@ -1419,6 +1424,7 @@ set.addAchievement({
   title: 'Vengeance',
   description: 'Mission 19-3, Locate and kill Kron: succeed in killing Kron',
   points: 10,
+  type: 'win_condition',
   conditions: [
     startedMission({ act: 19, mission: 3 }),
     mission.completed,
