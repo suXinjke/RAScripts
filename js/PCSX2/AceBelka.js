@@ -1,6 +1,6 @@
 import { AchievementSet, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, measuredIf, addHits, once } from '@cruncheevos/core'
 
-import { makeLookup } from './common.js'
+import { makeLookup } from '../common.js'
 
 Number.prototype.paddedMissionNumber = function () {
   return (this + 1).toString().padStart(2, '0')

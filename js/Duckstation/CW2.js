@@ -1,6 +1,6 @@
 // @ts-check
 import { AchievementSet, Condition, define as $, once, trigger, andNext, resetIf, orNext, measuredIf, measured, resetNextIf, pauseIf } from '@cruncheevos/core'
-import { givenRangeOf } from './common.js'
+import { givenRangeOf } from '../common.js'
 
 /*
 This is a preview of how achievement development with JAVASCRIPT may look like

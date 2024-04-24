@@ -3,7 +3,7 @@
 import { AchievementSet, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, once, measuredIf } from '@cruncheevos/core'
 
 import * as lists from './lists.js'
-import { makeLookup } from '../common.js'
+import { makeLookup } from '../../common.js'
 
 const gameType = {
   mission: 0,
