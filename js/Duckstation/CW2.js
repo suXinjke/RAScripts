@@ -1855,7 +1855,7 @@ set.addLeaderboard({
         ...(
           // HACK: this is mostly to preserve original condition order
           allCheatsOff
-            .toArray()
+            .conditions.slice()
             .concat(levelSelectCheat)
             .sort((a, b) => a.lvalue.value - b.lvalue.value)
         ),
