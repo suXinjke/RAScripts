@@ -2,57 +2,6 @@
 import { AchievementSet, Condition, define as $, once, trigger, andNext, resetIf, orNext, measuredIf, measured, resetNextIf, pauseIf } from '@cruncheevos/core'
 import { givenRangeOf } from '../common.js'
 
-/*
-This is a preview of how achievement development with JAVASCRIPT may look like
-You'd have to to setup a project directory properly (package.json, type: module),
-the RACACHE environment which should point at directory with RACache,
-install the CLI utility and start using it
-
-You would `cruncheevos-cli diff ./js/CW2.js`, which will read this file
-and the default export of AchievementSet at the bottom, then show the diff against
-remote and local code you have in RACache.
-
-`cruncheevos-cli save ./js/CW2.js` will write the updated code into local file
-
-Why this different toolkit was made and why you should care?
-I made it out of frustration with original RATools - it's a limited language of it's own.
-It's also a black box when it comes to placing conditions, it may have and still sometimes
-gets bugs when it comes to mapping the script to conditions. Among the limitations that personally
-frustrated me: dictionary syntax, lack of closures, having to do everything in one file.
-
-Now if you use this toolkit, you're just asking the library to generate the exact
-achievements you ask for, all while coding with mature language: Javascript,
-in mature node.js envrionment, meaning you have entire access to npm.
-Your achievement set can be split into several modules (see that util.js importabove).
-You can store your static data on internet/file system - and fetcth/read said data to make achievements off it.
-In other words - there's more freedom in shaping and populating the achievement set.
-
-Because this is Javascript - your editor already has proper syntax highlighting, Typescript support,
-automatic formatting. Speaking of formatting - I don't recommend prettier for this
-because it breaks arrays into towers often.
-
-The core library alone has potential to make different tools based on it, like online achievement code editor.
-It's possible to make linter on top of it that would advice against bad practicies. You could also make
-editor extensions that would make this linter work, or maybe preview the resulting
-achievement/condition just by holding a mouse cursor over it's code.
-
-The tradeoffs: this whole thing is lower level, because you can only express yourself
-with regular conditions, just like in RAIntegration. How pleasant/complex your dev experience
-will be mostly depends on your Javascript/programming skills and the way you abstract the conditions
-to make them reusable. This makes it less suitable for newbies who didn't program before.
-You can't really write specific tutorials for this because they would mostly end up tutorials for Javascript,
-while everything else will be covered in the documentation.
-
-This Colony Wars Vengeance set is my first set ever on RetroAchievements, originally it was
-made without RATools. While porting the original code to this module, I found out several bugs.
-
-The cruncheevos packages are not published yet. I need to dogfood myself
-more to figure out best practicies and what kind of API is worth keeping in core package.
-
-The jsdoc marks are annoying, I may look into if it's possible to interpret the scripts
-as typescript files without compiling them in-place.
-*/
-
 /** @param {(region: 'NTSC' | 'PAL') => Condition.Group} cb */
 function givenMultiRegionalAlts(cb) {
   return {

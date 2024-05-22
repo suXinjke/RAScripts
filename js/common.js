@@ -1,3 +1,9 @@
+/**
+ *
+ * @param {string} name
+ * @param {string} prefix
+ * @param {Record<number, string>} obj
+ */
 export function makeLookup(name, prefix, obj) {
   let rich = `Lookup:${name}\n`
   for (const key in obj) {
