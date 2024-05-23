@@ -1,7 +1,0 @@
-{
-    "type": "module",
-    "dependencies": {
-        "@types/node": "^20.7.0",
-        "lodash": "^4.17.21"
-    }
-}
