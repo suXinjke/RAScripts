@@ -1,9 +1,5 @@
-/**
- *
- * @param {string} name
- * @param {string} prefix
- * @param {Record<number, string>} obj
- */
+import { ConditionBuilder } from '@cruncheevos/core'
+
 export function makeLookup(name, prefix, obj) {
   let rich = `Lookup:${name}\n`
   for (const key in obj) {
@@ -20,4 +16,26 @@ export function makeLookup(name, prefix, obj) {
 
 export function givenRangeOf(start = 0, end = 0) {
   return Array.from({ length: end - start + 1 }, (v, k) => start + k)
+}
+
+Number.prototype.toHexString = function () {
+  return '0x' + this.toString(16)
+}
+
+String.prototype.removeQuotesFromHex = function () {
+  return this.replace(/"(0x[\dABCDEF]+)"/gi, "$1")
+}
+
+String.prototype.toHexString = function () {
+  return Number(this).toHexString()
+}
+
+ConditionBuilder.prototype.withLast = function (data) {
+  return this.map((c, idx, array) => {
+    if (idx !== array.length - 1) {
+      return c
+    }
+
+    return c.with(data)
+  })
 }
