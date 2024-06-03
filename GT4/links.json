@@ -1,7 +1,0 @@
-{
-    "events": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQKlooGUH8DEkrc1ANPejpL5daP_8HYUWOcXj_eJ55bzZBZOtBiKMIOivdTX5ZRBjYwMaWI8b6G9ZcF/pub?gid=867583429&single=true&output=tsv",
-    "subEvents": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQKlooGUH8DEkrc1ANPejpL5daP_8HYUWOcXj_eJ55bzZBZOtBiKMIOivdTX5ZRBjYwMaWI8b6G9ZcF/pub?gid=528819874&single=true&output=tsv",
-    "tracks": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQKlooGUH8DEkrc1ANPejpL5daP_8HYUWOcXj_eJ55bzZBZOtBiKMIOivdTX5ZRBjYwMaWI8b6G9ZcF/pub?gid=0&single=true&output=tsv",
-    "cars": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQKlooGUH8DEkrc1ANPejpL5daP_8HYUWOcXj_eJ55bzZBZOtBiKMIOivdTX5ZRBjYwMaWI8b6G9ZcF/pub?gid=104858816&single=true&output=tsv",
-    "carChallenges": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQKlooGUH8DEkrc1ANPejpL5daP_8HYUWOcXj_eJ55bzZBZOtBiKMIOivdTX5ZRBjYwMaWI8b6G9ZcF/pub?gid=771870951&single=true&output=tsv"
-}

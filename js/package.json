@@ -1,6 +1,8 @@
 {
   "type": "module",
   "dependencies": {
-    "@cruncheevos/cli": "^0.0.4"
+    "@cruncheevos/cli": "^0.0.4",
+    "canvas": "^2.11.2",
+    "random-seed": "^0.3.0"
   }
 }
