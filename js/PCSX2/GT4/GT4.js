@@ -39,7 +39,6 @@ const stat = (() => {
     ['', 'Mem', '32bit', 0x13940, '!=', 'Value', '', id]
   )
 
-  // TODO: add this to code notes!!
   const selectedSetupSlotIs = slot => $(
     root,
     ['', 'Mem', '8bit', 0x13dc8, '=', 'Value', '', slot]
@@ -57,25 +56,26 @@ const stat = (() => {
     gtModeCarIsNot,
     gtModeCarIs: id => gtModeCarIsNot(id).withLast({ cmp: '=' }),
 
+    gearboxSettingIs: gearbox => $(
+      root,
+      ['', 'Mem', '32bit', 0x39d78, '=', 'Value', '', gearbox === 'manual' ? 0 : 1]
+    ),
     // TODO: hack delete this, exploit is on Underdog Racing
     noNitrous: $(
       root,
       ['', 'Mem', '32bit', 0x13a38, '=', 'Value', '', -1]
     ),
-
     noNitrousSlot0: $(
       selectedSetupSlotIs(0),
       root,
       ['', 'Mem', '32bit', 0x13a38, '=', 'Value', '', -1]
     ),
-
     gearboxIdIs: id => $(
       selectedSetupSlotIs(0),
       root,
       ['', 'Mem', '32bit', 0x13988, '=', 'Value', '', id]
     ),
-
-    correctAutoUnionParts: $(
+    hasCorrectAutoUnionParts: $(
       selectedSetupSlotIs(0),
       root,
       ['', 'Mem', '32bit', 0x139f0, '=', 'Value', '', 0x91d],
@@ -86,7 +86,6 @@ const stat = (() => {
       root,
       ['', 'Mem', '8bit', 0x13a9b, '=', 'Value', '', 0],
     ),
-
     adverseCamberReigns: $(
       selectedSetupSlotIs(0),
       root,
@@ -162,7 +161,7 @@ const main = (() => {
     ['', 'Mem', '32bit', 0x1bc, '!=', 'Value', '', 0]
   )
 
-  const race = (() => {
+  const inGameRace = (() => {
     const finished = $(
       p.root84,
       ['AddAddress', 'Mem', '32bit', 0xe41c],
@@ -189,162 +188,67 @@ const main = (() => {
     }
   })()
 
-  const event = (() => {
-    return {
-      /**
-       * @param {Object} params
-       * @param {number[]} [params.raceIds]
-       * @param {number} [params.aSpecPoints]
-       * @param {ConditionBuilder} [params.protections]
-       */
-      wonRacesInOneSession(params = {}) {
-        const { raceIds = [], aSpecPoints = 0, protections = false } = params
-
-        return $(
-          ...raceIds.map(id => addHits(
-            'once',
-            andNext(
-              aSpecPoints === 0 && earnedASpecPoints,
-              aSpecPoints > 0 && earnedAtleastASpecPoints(aSpecPoints),
-              inASpecMode,
-              race.finished,
-              eventIdIs(id),
-              stat.gameFlagIs.eventRace,
-              protections
-            )
-          )),
-
-          // TODO: should it stay here?
-          `M:0=1.${raceIds.length}.`
-        )
-      },
-
-      /**
-       * @param {Object} params
-       * @param {number[]} [params.raceIds]
-       * @param {number} [params.aSpecPoints]
-       * @param {boolean} [params.championshipPossible]
-       * @param {boolean} [params.arcadeRacePossible]
-       * @param {boolean} [params.arcadeOnly]
-       * @param {boolean} [params.doFlagChecks]
-       * @param {boolean} [params.applyTrigger]
-       * @param {ConditionBuilder} [params.protections]
-       */
-      wonAnyRace(params) {
-        const {
-          raceIds = [],
-          championshipPossible = false,
-          arcadeRacePossible = false,
-          arcadeOnly = false,
-          doFlagChecks = true,
-          aSpecPoints = 0,
-          protections = $()
-        } = params
-
-        let triggerConditions = $(
-          aSpecPoints === 0 && earnedASpecPoints,
-          aSpecPoints > 0 && earnedAtleastASpecPoints(aSpecPoints),
-          inASpecMode,
-          race.finished
-        )
-
-        triggerConditions = params.applyTrigger ? trigger(triggerConditions) : triggerConditions
-
-        return $(
-          triggerConditions,
-          orNext(
-            ...raceIds.map(id => eventIdIs(id))
-          ),
-          doFlagChecks && orNext(
-            (arcadeRacePossible || arcadeOnly) && stat.gameFlagIs.arcadeRace,
-            !arcadeOnly && stat.gameFlagIs.eventRace,
-            championshipPossible && !arcadeOnly && stat.gameFlagIs.eventChampionship
-          ),
-          protections
-        )
-      },
-
-      inFirstChampionshipRace: raceId => $(
-        inASpecMode,
-        stat.gameFlagIs.eventChampionship,
-        eventIdIs(raceId)
-      ),
-
-      earnedChampionshipMoney: $(
-        ['AddAddress', 'Mem', '32bit', 0x6187a8],
-        ['', 'Mem', '32bit', 0x4a8, '>', 'Delta', '32bit', 0x4a8]
-      )
-    }
-  })()
-
-  const inGameRaceState = (() => {
+  const inGameCar = index => {
     const base = $(
       p.root60,
       ['AddAddress', 'Mem', '32bit', 0x8],
     )
 
+    const carBase = $(
+      base,
+      ['AddAddress', 'Mem', '32bit', index * 4],
+    )
+
     return {
-      car(index) {
-        const carBase = $(
-          base,
-          ['AddAddress', 'Mem', '32bit', index * 4],
-        )
-        return {
-          idIs: (id) => $(
-            carBase,
-            ['', 'Mem', '32bit', 0x20, '=', 'Value', '', id]
-          ),
-          colorIdIs: (id) => $(
-            carBase,
-            ['', 'Mem', '8bit', 0x38, '=', 'Value', '', id]
-          ),
+      idIs: (id) => $(
+        carBase,
+        ['', 'Mem', '32bit', 0x20, '=', 'Value', '', id]
+      ),
+      colorIdIs: (id) => $(
+        carBase,
+        ['', 'Mem', '8bit', 0x38, '=', 'Value', '', id]
+      ),
 
-          // TODO: validate meaning of this, code note might be incorrect
-          lapTimeIsGt: target => $(
-            carBase,
-            ['', 'Mem', '32bit', 0x1AC, '>', 'Value', '', target]
-          ),
+      // TODO: validate meaning of this, code note might be incorrect
+      lapTimeIsGt: target => $(
+        carBase,
+        ['', 'Mem', '32bit', 0x1AC, '>', 'Value', '', target]
+      ),
 
-          completedLap: $(
-            carBase,
-            ['', 'Mem', '32bit', 0x1AC, '>', 'Delta', '32bit', 0x1AC]
-          ),
+      completedLap: $(
+        carBase,
+        ['', 'Mem', '32bit', 0x1AC, '>', 'Delta', '32bit', 0x1AC]
+      ),
 
-          measuredLastLapTime: $(
-            carBase,
-            ['Measured', 'Mem', '32bit', 0x11dc]
-          ),
+      measuredLastLapTime: $(
+        carBase,
+        ['Measured', 'Mem', '32bit', 0x11dc]
+      ),
 
-          lastLapTimeWasLte: target => $(
-            carBase,
-            ['', 'Mem', '32bit', 0x11dc, '<=', 'Value', '', target]
-          ),
+      lastLapTimeWasLte: target => $(
+        carBase,
+        ['', 'Mem', '32bit', 0x11dc, '<=', 'Value', '', target]
+      ),
 
-          lastLapTimeWasLt: target => $(
-            carBase,
-            ['', 'Mem', '32bit', 0x11dc, '<', 'Value', '', target]
-          ),
+      lastLapTimeWasLt: target => $(
+        carBase,
+        ['', 'Mem', '32bit', 0x11dc, '<', 'Value', '', target]
+      ),
 
-          isNotControlledByAI: $(
-            carBase,
-            ['AddAddress', 'Mem', '32bit', 0x18],
-            ['', 'Mem', '8bit', 0x56a, '=', 'Value', '', 0]
-          ),
-          isNotControlledByAIRollingStart: $(
-            carBase,
-            ['AddAddress', 'Mem', '32bit', 0x18],
-            ['', 'Mem', '8bit', 0x56b, '=', 'Value', '', 0]
-          ),
-        }
-      }
+      isNotControlledByAI: $(
+        carBase,
+        ['AddAddress', 'Mem', '32bit', 0x18],
+        ['', 'Mem', '8bit', 0x56a, '=', 'Value', '', 0]
+      ),
+      isNotControlledByAIRollingStart: $(
+        carBase,
+        ['AddAddress', 'Mem', '32bit', 0x18],
+        ['', 'Mem', '8bit', 0x56b, '=', 'Value', '', 0]
+      ),
     }
-  })()
+  }
 
-  const inGamePlayerCar = inGameRaceState.car(0)
-  const inGameGearboxIs = gearbox => $(
-    ['AddAddress', 'Mem', '32bit', 0x622f4c],
-    ['', 'Mem', '32bit', 0x39d78, '=', 'Value', '', gearbox === 'manual' ? 0 : 1]
-  )
+  const inGamePlayerCar = inGameCar(0)
 
   const playerWentOut = (() => {
     const tireCombos = [
@@ -404,7 +308,7 @@ const main = (() => {
    * @param {number} params.carId
    * @param {ConditionBuilder} params.protections
    */
-  const beganLap = params => $(
+  const playerBeganLap = params => $(
     inGamePlayerCar.idIs(params.carId),
 
     // TODO: get rid of track condition, plutonium caused this
@@ -414,39 +318,10 @@ const main = (() => {
     inASpecMode,
 
     andNext(
-      race.currentLapTimeMsec.withLast({ cmp: '>', rvalue: { value: 0 } }),
-      race.lapBegan
+      inGameRace.currentLapTimeMsec.withLast({ cmp: '>', rvalue: { value: 0 } }),
+      inGameRace.lapBegan
     )
   )
-
-  /**
-   * @param {Object} params
-   * @param {number} [params.target]
-   * @param {number} params.trackId
-   * @param {number} params.carId
-   * @param {ConditionBuilder} params.protections
-   */
-  const passedTimeTrial = params => {
-    const { target = 0 } = params
-
-    return $(
-      andNext(
-        'once',
-        beganLap(params)
-      ),
-
-      resetIf(
-        playerWentOut.singleChainOfConditions,
-        notInASpecMode,
-        target > 0 && inGamePlayerCar.lapTimeIsGt(params.target)
-      ),
-
-      trigger(
-        inGamePlayerCar.completedLap,
-        target > 0 && inGamePlayerCar.lastLapTimeWasLte(params.target)
-      )
-    )
-  }
 
   /**
     * @param {Object} params
@@ -522,16 +397,12 @@ const main = (() => {
 
     eventIdIs,
     trackIdIs,
-    inGameGearboxIs,
 
-
-    beganLap,
+    playerBeganLap,
     inASpecMode,
     inBSpecMode,
     notInASpecMode,
-    race,
-
-    event,
+    inGameRace,
 
     license: (() => {
       const state = $(
@@ -576,23 +447,126 @@ const main = (() => {
       }
     })(),
 
-    mission: (() => {
-      return {
-        finished: $(
-          earnedASpecPoints,
-          inASpecMode,
-          race.finished,
-          stat.gameFlagIs.mission
-        )
-      }
-    })(),
+    earnedASpecPoints,
 
-    inGameRaceState,
+    inGameCar,
     inGamePlayerCar,
     playerWentOut,
 
-    passedTimeTrial,
     arcadeTimeTrialProtections,
+
+    /**
+     * @param {Object} params
+     * @param {number} [params.target]
+     * @param {number} params.trackId
+     * @param {number} params.carId
+     * @param {ConditionBuilder} params.protections
+     */
+    passedTimeTrial: params => {
+      const { target = 0 } = params
+
+      return $(
+        andNext(
+          'once',
+          playerBeganLap(params)
+        ),
+
+        resetIf(
+          playerWentOut.singleChainOfConditions,
+          notInASpecMode,
+          target > 0 && inGamePlayerCar.lapTimeIsGt(params.target)
+        ),
+
+        trigger(
+          inGamePlayerCar.completedLap,
+          target > 0 && inGamePlayerCar.lastLapTimeWasLte(params.target)
+        )
+      )
+    },
+
+    /**
+     * @param {Object} params
+     * @param {number[]} [params.raceIds]
+     * @param {number} [params.aSpecPoints]
+     * @param {ConditionBuilder} [params.protections]
+     */
+    wonRacesInOneSession(params = {}) {
+      const { raceIds = [], aSpecPoints = 0, protections = false } = params
+
+      return $(
+        ...raceIds.map(id => addHits(
+          'once',
+          andNext(
+            aSpecPoints === 0 && earnedASpecPoints,
+            aSpecPoints > 0 && earnedAtleastASpecPoints(aSpecPoints),
+            inASpecMode,
+            inGameRace.finished,
+            eventIdIs(id),
+            stat.gameFlagIs.eventRace,
+            protections
+          )
+        )),
+
+        // TODO: should it stay here?
+        `M:0=1.${raceIds.length}.`
+      )
+    },
+
+    /**
+     * @param {Object} params
+     * @param {number[]} [params.raceIds]
+     * @param {number} [params.aSpecPoints]
+     * @param {boolean} [params.championshipPossible]
+     * @param {boolean} [params.arcadeRacePossible]
+     * @param {boolean} [params.arcadeOnly]
+     * @param {boolean} [params.doFlagChecks]
+     * @param {boolean} [params.applyTrigger]
+     * @param {ConditionBuilder} [params.protections]
+     */
+    wonRace(params) {
+      const {
+        raceIds = [],
+        championshipPossible = false,
+        arcadeRacePossible = false,
+        arcadeOnly = false,
+        doFlagChecks = true,
+        aSpecPoints = 0,
+        protections = $()
+      } = params
+
+      let triggerConditions = $(
+        aSpecPoints === 0 && earnedASpecPoints,
+        aSpecPoints > 0 && earnedAtleastASpecPoints(aSpecPoints),
+        inASpecMode,
+        inGameRace.finished
+      )
+
+      triggerConditions = params.applyTrigger ? trigger(triggerConditions) : triggerConditions
+
+      return $(
+        triggerConditions,
+        orNext(
+          ...raceIds.map(id => eventIdIs(id))
+        ),
+        doFlagChecks && orNext(
+          (arcadeRacePossible || arcadeOnly) && stat.gameFlagIs.arcadeRace,
+          !arcadeOnly && stat.gameFlagIs.eventRace,
+          championshipPossible && !arcadeOnly && stat.gameFlagIs.eventChampionship
+        ),
+        protections
+      )
+    },
+
+    inFirstChampionshipRace: raceId => $(
+      inASpecMode,
+      stat.gameFlagIs.eventChampionship,
+      eventIdIs(raceId)
+    ),
+
+    earnedChampionshipMoney: $(
+      ['AddAddress', 'Mem', '32bit', 0x6187a8],
+      ['', 'Mem', '32bit', 0x4a8, '>', 'Delta', '32bit', 0x4a8]
+    ),
 
     hud: (() => {
       const base = $(
@@ -644,21 +618,19 @@ const main = (() => {
 /**
  * @param {Object} params
  * @param {boolean} [params.nitrous]
- * @param {boolean} [params.dodgeRAM]
- * @param {boolean} [params.chapparal]
+ * @param {boolean} [params.noCheese]
  * @param {number[]} [params.forbiddenCarIds]
  */
 const generalProtections = (params = {}) => {
   const {
     nitrous = true,
-    chapparal = true,
-    dodgeRAM = true,
+    noCheese = true,
     forbiddenCarIds = []
   } = params
   return $(
     ...forbiddenCarIds.map(id => stat.gtModeCarIsNot(id)),
-    dodgeRAM && stat.gtModeCarIsNot(0x3BB),
-    chapparal && stat.gtModeCarIsNot(0x42D),
+    noCheese && stat.gtModeCarIsNot(0x3BB), // Dodge RAM
+    noCheese && stat.gtModeCarIsNot(0x42D), // Chapparal
     nitrous && stat.noNitrousSlot0,
   )
 }
@@ -677,7 +649,6 @@ const meta = await codegen()
 
 /** @param {ObjectValue<typeof meta["events"]>} e */
 function defineAchievementsForEvent(e) {
-  const eventNameSuffix = e.eventNameSuffix ? ' ' + e.eventNameSuffix : ''
   const descriptionSuffix = e.descriptionSuffix ? ' ' + e.descriptionSuffix : ''
   const progressionTypeMaybe =
     (e.id.startsWith('am_') || e.id.startsWith('pr_')) ?
@@ -685,58 +656,7 @@ function defineAchievementsForEvent(e) {
 
   const nitrousSuffix = e.nitrousAllowed ? '' : ' Nitrous is not allowed.'
 
-  if (e.id === 'ex_formula') {
-    const allRaceIds = meta.events.ex_formula.raceIds
-    const conditions = /** @type const */ ([
-      [1, "1st to 5th", allRaceIds.slice(0, 5)],
-      [2, "6th to 10th", allRaceIds.slice(5, 10)],
-      [3, "11th to 15th", allRaceIds.slice(10, 15)]
-    ])
-
-    for (const [i, subTitle, raceIds] of conditions) {
-      set.addAchievement({
-        title: `${e.name} - Series #${i}`,
-        description:
-          `Win in one of ${e.name} ${subTitle} race events, in A-Spec mode ` +
-          `while driving Formula Gran Turismo, which you can win from Nurburgring 24h Endurance ` +
-          `(but you'd rather borrow a save file).`,
-        points: e.points / conditions.length,
-        type: progressionTypeMaybe,
-        conditions: {
-          core: $(
-            main.event.wonAnyRace({
-              aSpecPoints: e.aSpecAnyEvent,
-              championshipPossible: e.isChampionship
-            }),
-            stat.gtModeCarIs(e.carIdAnyEvent[0])
-          ),
-          ...(raceIds.reduce((prev, id, idx) => {
-            prev[`alt${idx + 1}`] = main.eventIdIs(id)
-            return prev
-          }, {}))
-        }
-      })
-    }
-  } else if (e.id === 'eur1000mile') {
-    set.addAchievement({
-      title: e.name,
-      description: `Win any ${e.name} event in A-Spec mode and earn atleast ${e.aSpecAnyEvent} A-Spec points.` + nitrousSuffix,
-      points: e.points,
-      type: progressionTypeMaybe,
-      conditions: $(
-        main.event.wonAnyRace({
-          raceIds: e.raceIds,
-          aSpecPoints: e.aSpecAnyEvent,
-          championshipPossible: e.isChampionship
-        }),
-        ...generalProtections({
-          chapparal: e.noBrokenASpecCars,
-          dodgeRAM: e.noBrokenASpecCars,
-          nitrous: !e.nitrousAllowed
-        }),
-      )
-    })
-  } else if (e.inOneSitting) {
+  if (e.inOneSitting) {
     if (e.isChampionship) {
       set.addAchievement({
         title: e.name,
@@ -746,31 +666,29 @@ function defineAchievementsForEvent(e) {
         conditions: $(
           andNext(
             'once',
-            main.event.inFirstChampionshipRace(e.raceIds[0]),
+            main.inFirstChampionshipRace(e.raceIds[0]),
             generalProtections({
-              chapparal: e.noBrokenASpecCars,
-              dodgeRAM: e.noBrokenASpecCars,
+              noCheese: e.noCheese,
               nitrous: false,
               forbiddenCarIds: e.carIdsForbidden
             }),
-            main.race.lapBegan
+            main.inGameRace.lapBegan
           ),
 
           resetIf(
             stat.abandonedChampionship,
-            main.race.inBSpecMode
+            main.inGameRace.inBSpecMode
           ),
 
-          main.event.earnedChampionshipMoney
+          main.earnedChampionshipMoney
         )
       })
     } else if (e.aSpecAllEvents) {
-      let conditions = main.event.wonRacesInOneSession({
+      let conditions = main.wonRacesInOneSession({
         raceIds: e.raceIds,
         aSpecPoints: e.aSpecAllEvents,
         protections: generalProtections({
-          chapparal: e.noBrokenASpecCars,
-          dodgeRAM: e.noBrokenASpecCars,
+          noCheese: e.noCheese,
           nitrous: !e.nitrousAllowed,
           forbiddenCarIds: e.carIdsForbidden
         })
@@ -785,12 +703,11 @@ function defineAchievementsForEvent(e) {
           `Win the ${e.name} event in A-Spec mode and earn ` +
           `atleast ${e.aSpecAllEvents} A-Spec points.`
 
-        conditions = main.event.wonAnyRace({
+        conditions = main.wonRace({
           raceIds: e.raceIds,
           aSpecPoints: e.aSpecAllEvents,
           protections: generalProtections({
-            chapparal: e.noBrokenASpecCars,
-            dodgeRAM: e.noBrokenASpecCars,
+            noCheese: e.noCheese,
             nitrous: !e.nitrousAllowed,
             forbiddenCarIds: e.carIdsForbidden
           })
@@ -808,14 +725,14 @@ function defineAchievementsForEvent(e) {
         title: e.name,
         description:
           e.races.length > 1 ?
-            `Win all events of ${e.name}${eventNameSuffix} in A-Spec mode in one sitting.` :
+            `Win all events of ${e.nameWithSuffix} in A-Spec mode in one sitting.` :
             `Win the ${e.name} event in A-Spec mode.`,
         points: e.points,
         type: progressionTypeMaybe,
         conditions:
           e.races.length > 1 ?
-            main.event.wonRacesInOneSession({ raceIds: e.raceIds }) :
-            main.event.wonAnyRace({ raceIds: e.raceIds })
+            main.wonRacesInOneSession({ raceIds: e.raceIds }) :
+            main.wonRace({ raceIds: e.raceIds })
       })
     }
   } else if (!e.inOneSitting) {
@@ -835,14 +752,13 @@ function defineAchievementsForEvent(e) {
 
         // TODO: unnecessary protections when there's no A-Spec point requirement?
         conditions: $(
-          main.event.wonAnyRace({
+          main.wonRace({
             raceIds: [raceId],
             aSpecPoints: e.aSpecAllEvents,
             championshipPossible: e.isChampionship
           }),
-          ...generalProtections({
-            chapparal: e.noBrokenASpecCars,
-            dodgeRAM: e.noBrokenASpecCars,
+          generalProtections({
+            noCheese: e.noCheese,
             nitrous: e.aSpecAllEvents > 0 && !e.nitrousAllowed,
             forbiddenCarIds: e.carIdsForbidden
           })
@@ -850,81 +766,141 @@ function defineAchievementsForEvent(e) {
       })
     })
   }
-
-
-  if (e.id !== 'ex_formula' && e.id !== 'de_mercedes_sl' && e.carIdAnyEvent.length > 0) {
-    let [carId, challengeDescription] = e.carIdAnyEvent
-    let nitrousProtection = false
-    let name = e.name
-
-    const stupidMercedes = e.id === 'de_mercedes_arrow'
-    if (stupidMercedes) {
-      challengeDescription = `Mercedes-Benz 300 SL Coupe '54, which you can win from SL Challenge.`
-      name += ' or SL Challenge'
-    }
-
-    let description = `Win any ${name} event while driving ` + challengeDescription
-    if (e.aSpecAnyEvent > 0) {
-      description = `Win any ${name} event and earn atleast ${e.aSpecAnyEvent} A-Spec points ` +
-        `while driving ${challengeDescription}` + descriptionSuffix
-
-      nitrousProtection = !e.nitrousAllowed
-    }
-
-    const stupidMercedesAlts = stupidMercedes ? [
-      ...meta.events.de_mercedes_arrow.raceIds,
-      ...meta.events.de_mercedes_sl.raceIds
-    ].reduce((prev, id, idx) => {
-      prev[`alt${idx + 1}`] = main.eventIdIs(id)
-      return prev
-    }, {}) : {}
-
-    set.addAchievement({
-      title: e.name + (e.aSpecAnyEvent > 0 ? ' - A-Spec ' : ' - ') + 'Car Challenge',
-
-      // TODO: Add Nitrous warning
-      description,
-      points: e.points,
-      conditions: {
-        core: $(
-          main.event.wonAnyRace({
-            raceIds: Object.values(stupidMercedesAlts).length ? [] : e.raceIds,
-            aSpecPoints: e.aSpecAnyEvent,
-            championshipPossible: e.isChampionship,
-          }),
-          stat.gtModeCarIs(carId),
-          ...generalProtections({
-            chapparal: e.noBrokenASpecCars,
-            dodgeRAM: e.noBrokenASpecCars,
-            nitrous: nitrousProtection
-          })
-        ),
-        ...stupidMercedesAlts
-      }
-    })
-  } else if (e.aSpecAnyEvent && e.id !== 'eur1000mile') {
-    set.addAchievement({
-      title: e.name + ` - A-Spec Challenge`,
-      description:
-        `Earn ${e.aSpecAnyEvent} A-Spec points or more in any of the ${e.name}${eventNameSuffix} events.`
-        + nitrousSuffix,
-      points: e.points,
-      conditions: $(
-        main.event.wonAnyRace({
-          raceIds: e.raceIds,
-          aSpecPoints: e.aSpecAnyEvent,
-          championshipPossible: e.isChampionship
-        }),
-        ...generalProtections({
-          chapparal: e.noBrokenASpecCars,
-          dodgeRAM: e.noBrokenASpecCars,
-          nitrous: !e.nitrousAllowed
-        })
-      )
-    })
-  }
 }
 
+/** @param {ArrayValue<typeof meta["anySubEvent"]>} c */
+function defineAchievementsForAnySubEvent(c) {
+  const events = c.multiEventId.map(eventId => meta.events[eventId])
+  const raceIds = c.specificRaceIds.length > 0 ? c.specificRaceIds : events[0].raceIds
+  const eventName = events[0]?.name || ''
+  const eventNameWithSuffix = events[0]?.nameWithSuffix || ''
+
+  const noCheese = events.some(e => e.noCheese)
+  const championshipPossible = events.some(e => e.isChampionship)
+
+  let nitrousSuffix = c.nitrousAllowed ? '' : ` Nitrous is not allowed.`
+  let subTitle = 'Challenge'
+  let description = ''
+
+  if (c.carIdsRequired.length > 0) {
+    subTitle = 'Car ' + subTitle
+    description = [
+      'Win ',
+      c.eventDescriptionOverride || ('any ' + eventNameWithSuffix + ' event'),
+      (c.aSpecPoints <= 0 ? '' : ` and earn atleast ${c.aSpecPoints} A-Spec points`),
+      ` while driving ${c.descriptionSuffix}`
+    ].join('')
+
+    nitrousSuffix = '' // TODO: stupid shelby screw up
+  } else if (c.specificRaceIds.length > 0) {
+    description = `Win ${c.eventDescriptionOverride} in A-Spec mode and earn atleast ${c.aSpecPoints} A-Spec points.`
+  } else {
+    description = `Earn ${c.aSpecPoints} A-Spec points or more in any of the ${eventNameWithSuffix} events.`
+  }
+
+  if (c.aSpecPoints > 0) {
+    subTitle = `A-Spec ` + subTitle
+  }
+
+  const doStupidAlts = events.some(e => e.id === 'de_mercedes_arrow' || e.id === 'ex_formula')
+  const stupidAlts = !doStupidAlts ? [] : raceIds.reduce((prev, id, idx) => {
+    prev[`alt${idx + 1}`] = main.eventIdIs(id)
+    return prev
+  }, {})
+
+  set.addAchievement({
+    title: c.achievementNameOverride || (eventName + ` - ` + subTitle),
+    description: description + nitrousSuffix,
+    points: c.points,
+    conditions: {
+      core: $(
+        main.wonRace({
+          raceIds: doStupidAlts ? [] : raceIds,
+          aSpecPoints: c.aSpecPoints,
+          championshipPossible
+        }),
+        orNext(
+          ...c.carIdsRequired.map(carId => stat.gtModeCarIs(carId))
+        ),
+        generalProtections({
+          noCheese,
+          nitrous: !c.nitrousAllowed
+        })
+      ),
+
+      ...stupidAlts
+    }
+  })
+}
+
+/** @param {ArrayValue<typeof meta["carEventWin"]>} c */
+function defineAchievementsForCarEventWin(c) {
+  const { raceIds, isChampionship } = meta.events[c.eventId]
+  set.addAchievement({
+    title: c.achName,
+    description: c.achDescription,
+    points: c.points,
+    conditions: $(
+      orNext(...c.carIdsRequired.map(id => main.inGamePlayerCar.idIs(id))),
+      c.raceIndex === -1 && orNext(...raceIds.map(id => main.eventIdIs(id))),
+      main.wonRace({
+        raceIds: c.raceIndex >= 0 ? [raceIds[c.raceIndex]] : undefined,
+        championshipPossible: isChampionship
+      }),
+      orNext(...c.carIdsRequired.map(id => stat.gtModeCarIs(id))),
+    )
+  })
+}
+
+/** @param {ArrayValue<typeof meta["arcadeTimeTrial"]>} c */
+function defineAchievementsForArcadeTimeTrial(c) {
+  // const trackId = c.achName.includes('Plutonium') ? 0 : c.trackId
+
+  c = {
+    ...c,
+    // HACK TODO: original achievement didnt have check for some reason, and had incorrect description
+    trackId: c.achName.includes('Plutonium') ? 0 : c.trackId,
+    description: c.achName.includes('Plutonium') ? c.description.replace('088', '080') : c.description
+  }
+
+  set.addAchievement({
+    title: c.achName,
+    description: c.description,
+    points: c.points,
+    conditions: main.passedTimeTrial({
+      ...c,
+      protections: main.arcadeTimeTrialProtections(c),
+      target: c.target,
+    })
+  }).addLeaderboard({
+    title: c.achName,
+    description: 'Fastest time in msec to complete this achievement',
+    lowerIsBetter: true,
+    type: 'VALUE',
+    conditions: {
+      // TODO: stupid map get rid of it
+      start: main.playerBeganLap({
+        ...c,
+        protections: main.arcadeTimeTrialProtections(c)
+      }).map(x => x.flag === 'AndNext' ? x.with({ flag: '' }) : x),
+      cancel: {
+        core: '1=1',
+        ...([
+          ...main.playerWentOut.arrayOfAlts,
+
+          // TODO: stupid slice hack that can be rewritten into OrNext
+          [...main.notInASpecMode.conditions.slice(0, 4)],
+          [...main.notInASpecMode.conditions.slice(4)],
+        ]).reduce((prev, cur, idx) => {
+          prev[`alt${idx + 1}`] = cur
+          return prev
+        }, {})
+      },
+      submit: main.inGamePlayerCar.completedLap,
+      value: main.inGamePlayerCar.measuredLastLapTime
+    }
+  })
+}
 
 const coffeeNames = {
   "B": ["Caffè Latte", "Coffee Break"],
@@ -1002,7 +978,7 @@ function defineCarChallenge(c) {
         orNext(
           ...raceIds.map(id => main.eventIdIs(id))
         ),
-        main.event.wonAnyRace({
+        main.wonRace({
           arcadeRacePossible: true,
           championshipPossible: true,
           arcadeOnly,
@@ -1032,7 +1008,7 @@ function defineCarChallenge(c) {
           ),
 
           // TODO: stupid flag hack get rid of it
-          main.event.wonAnyRace({
+          main.wonRace({
             doFlagChecks: false,
             aSpecPoints: c.target
           }),
@@ -1046,113 +1022,6 @@ function defineCarChallenge(c) {
           )
           return prev
         }, {})
-      }
-    })
-  }
-
-  if (c.type === 'eventWin') {
-    const event = meta.events[c.eventStringIds[0]]
-    const { raceIds } = event
-    set.addAchievement({
-      title: c.name,
-      description: c.fullDescription,
-      points: c.points,
-      conditions: $(
-        orNext(...c.carIds.map(id => main.inGamePlayerCar.idIs(id))),
-        c.raceIndex === -1 && orNext(...raceIds.map(id => main.eventIdIs(id))),
-        main.event.wonAnyRace({
-          raceIds: c.raceIndex >= 0 ? [raceIds[c.raceIndex]] : undefined,
-          championshipPossible: event.isChampionship
-        }),
-        orNext(...c.carIds.map(id => stat.gtModeCarIs(id))),
-      )
-    })
-  }
-
-  if (c.type === 'arcadeTimeTrial') {
-    // HACK TODO: original achievement didnt have check for some reason
-    const trackId = c.name.includes('Plutonium') ? 0 : c.trackIds[0]
-
-    const params = {
-      carId: c.carIds[0],
-      trackId,
-      tires: c.tires,
-      gearbox: c.gearbox,
-      aid: c.aid,
-      topSpeedTune: c.topSpeedTune,
-      powerTune: c.powerTune,
-    }
-
-    set.addAchievement({
-      title: c.name,
-      description: c.fullDescription,
-      points: c.points,
-      conditions: main.passedTimeTrial({
-        ...params,
-        protections: main.arcadeTimeTrialProtections(params),
-        target: c.target,
-      })
-    }).addLeaderboard({
-      title: c.name,
-      description: 'Fastest time in msec to complete this achievement',
-      lowerIsBetter: true,
-      type: 'VALUE',
-      conditions: {
-        // TODO: stupid map get rid of it
-        start: main.beganLap({
-          ...params,
-          protections: main.arcadeTimeTrialProtections(params)
-        }).map(x => x.flag === 'AndNext' ? x.with({ flag: '' }) : x),
-        cancel: {
-          core: '1=1',
-          ...([
-            ...main.playerWentOut.arrayOfAlts,
-
-            // TODO: stupid slice hack that can be rewritten into OrNext
-            [...main.notInASpecMode.conditions.slice(0, 4)],
-            [...main.notInASpecMode.conditions.slice(4)],
-          ]).reduce((prev, cur, idx) => {
-            prev[`alt${idx + 1}`] = cur
-            return prev
-          }, {})
-        },
-        submit: main.inGamePlayerCar.completedLap,
-        value: main.inGamePlayerCar.measuredLastLapTime
-      }
-    })
-  }
-
-  if (c.type === 'autoUnionTimeTrial') {
-    set.addAchievement({
-      title: c.name,
-      description: c.fullDescription,
-      points: c.points,
-      conditions: main.passedTimeTrial({
-        carId: c.carIds[0],
-        trackId: c.trackIds[0],
-        target: c.target,
-        protections: $(
-          stat.gameFlagIs.freeRun,
-          stat.correctAutoUnionParts
-        )
-      })
-    })
-  }
-
-  if (c.type === 'oneLap') {
-    set.addAchievement({
-      title: c.name,
-      description: c.fullDescription,
-      points: c.points,
-      conditions: {
-        core: $(
-          orNext(...c.carIds.map(id => main.inGamePlayerCar.idIs(id))),
-          main.inASpecMode,
-          main.inGamePlayerCar.completedLap
-        ),
-        alt1: stat.gameFlagIs.arcadeTimeTrial,
-        alt2: stat.gameFlagIs.freeRun,
-        alt3: stat.gameFlagIs.photoDrive,
       }
     })
   }
@@ -1190,8 +1059,20 @@ export default async function () {
     defineCarChallenge(c)
   }
 
-  for (const e of Object.values(meta.events)) {
+  for (const e of Object.values(meta.events).filter(x => x.id !== 'ex_formula' && x.id !== 'eur1000mile')) {
     defineAchievementsForEvent(e)
+  }
+
+  for (const c of meta.anySubEvent) {
+    defineAchievementsForAnySubEvent(c)
+  }
+
+  for (const c of meta.carEventWin) {
+    defineAchievementsForCarEventWin(c)
+  }
+
+  for (const c of meta.arcadeTimeTrial) {
+    defineAchievementsForArcadeTimeTrial(c)
   }
 
   for (const m of Object.values(meta.missions)) {
@@ -1200,7 +1081,12 @@ export default async function () {
       description: `Complete mission #${m.index} - ${m.nameFull}`,
       points: m.points,
       conditions: {
-        core: main.mission.finished,
+        core: $(
+          main.earnedASpecPoints,
+          main.inASpecMode,
+          main.inGameRace.finished,
+          stat.gameFlagIs.mission
+        ),
         alt1: main.eventIdIs(m.eventId.pal),
         alt2: main.eventIdIs(m.eventId.ntsc),
       }
@@ -1286,7 +1172,7 @@ export default async function () {
       main.inASpecMode,
       main.hud.positionIs(2).withLast({ lvalue: { type: 'Delta' } }),
       main.hud.positionIs(1),
-      main.inGameRaceState.car(1).idIs(0x1ED)
+      main.inGameCar(1).idIs(0x1ED)
     )
   })
 
@@ -1295,7 +1181,7 @@ export default async function () {
     description: 'Win any Tuning Car Grand Prix event with all of your wheels camber tuned to 10 deg or more.',
     points: 5,
     conditions: $(
-      main.event.wonAnyRace({
+      main.wonRace({
         applyTrigger: true,
         raceIds: meta.events.pr_tuning.raceIds,
         championshipPossible: true
@@ -1327,7 +1213,7 @@ export default async function () {
     conditions: {
       core: $(
         main.inBSpecMode,
-        main.race.finished.withLast({
+        main.inGameRace.finished.withLast({
           // TODO: remove size property - you get very confusing error message
           cmp: '>', rvalue: { type: 'Delta', size: '32bit', value: 0 }
         }),
@@ -1335,7 +1221,7 @@ export default async function () {
         // TODO: move out in it's own function, this
         // gets you remaining laps for car to complete
         ...Array.from({ length: 6 }, (_, i) => $(
-          main.inGameRaceState.car(i).completedLap.withLast({
+          main.inGameCar(i).completedLap.withLast({
             flag: 'SubSource', cmp: '', rvalue: { type: '', size: '', value: 0 }
           }),
           main.lapCountIsGte(0).withLast({
@@ -1356,10 +1242,10 @@ export default async function () {
     conditions: $(
       stat.gameFlagIs.powerAndSpeed,
       main.eventIdIs(0xCEC),
-      main.inGameRaceState.car(0).lastLapTimeWasLt(8000),
-      main.inGameGearboxIs('manual'),
+      main.inGameCar(0).lastLapTimeWasLt(8000),
+      stat.gearboxSettingIs('manual'),
       main.inASpecMode,
-      main.race.finished
+      main.inGameRace.finished
     )
   })
 
@@ -1369,7 +1255,7 @@ export default async function () {
     points: 25,
     conditions: {
       core: $(
-        main.event.wonAnyRace({
+        main.wonRace({
           doFlagChecks: false,
           aSpecPoints: 200,
           protections: $(
@@ -1398,14 +1284,14 @@ export default async function () {
     description: 'Lap all of your opponents on any Sunday Cup event and finish first.',
     points: 5,
     conditions: $(
-      main.event.wonAnyRace({
+      main.wonRace({
         raceIds: meta.events.am_sunday.raceIds
       }),
 
       // TODO: just wtf did RATools generate previously?
       ...Array.from({ length: 5 }, (_, i) => $(
         ['AddSource', 'Value', '', 0xFFFFFF],
-        main.inGameRaceState.car(i + 1).completedLap.withLast({
+        main.inGameCar(i + 1).completedLap.withLast({
           flag: 'SubSource', cmp: '',
           lvalue: { size: '24bit' }, rvalue: { type: '', size: '', value: 0 }
         }),
@@ -1418,15 +1304,41 @@ export default async function () {
     )
   })
 
-  // for (const l of set.leaderboards) {
-  //   console.log(l.title)
-  // }
-  // [...set.leaderboards]
-  //   .filter(c => !c.title.includes('License'))
-  //   .map(c => c.title)
-  //   .forEach(c => console.log(c))
+  set.addAchievement({
+    title: 'Have You Heard Of: Type C Streamline?',
+    description: `Gran Turismo mode, Free Run, Auto Union V16 Type C Streamline \`37, Racing Soft tires, no turbo kit and weight ballast, body rigidity upgrade optional. Do a clean lap on Nurburgring Nordschleife and beat the time of 6:40'000.`,
+    points: 25, // TODO: make it 50?
+    conditions: main.passedTimeTrial({
+      carId: 0x431,
+      trackId: 0x41,
+      target: 400000,
+      protections: $(
+        stat.gameFlagIs.freeRun,
+        stat.hasCorrectAutoUnionParts
+      )
+    })
+  })
 
-  // console.log([...set.achievements].map(c => c.title).sort().join('\n'))
+  set.addAchievement({
+    title: 'One Horsepower Wonder',
+    description: 'Take any of Mercedes-Benz ONE HORSEPOWER carriages and have enough patience to complete one lap on any track. Did you like it???',
+    points: 1,
+    conditions: {
+      core: $(
+        orNext(
+          main.inGamePlayerCar.idIs(0x3D2),
+          main.inGamePlayerCar.idIs(0x3D3),
+        ),
+        main.inASpecMode,
+        main.inGamePlayerCar.completedLap
+      ),
+      alt1: stat.gameFlagIs.arcadeTimeTrial,
+      alt2: stat.gameFlagIs.freeRun,
+      alt3: stat.gameFlagIs.photoDrive,
+    }
+  })
+
   console.log('Achievement Count: ', [...set.achievements].length)
+  console.log('Leaderboard Count: ', [...set.leaderboards].length)
   return set
 }
