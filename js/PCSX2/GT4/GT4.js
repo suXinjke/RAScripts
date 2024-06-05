@@ -1,15 +1,15 @@
 // @ts-check
 import '../../common.js'
 import {
-  AchievementSet, ConditionBuilder, define as $,
+  AchievementSet, Condition, ConditionBuilder, define as $,
   addHits, andNext, orNext, resetIf, trigger
 } from '@cruncheevos/core'
 import codegen from './codegen.js'
 const set = new AchievementSet({ gameId: 20580, title: 'Gran Turismo 4' })
 
-/** @param {ConditionBuilder} c */
+/** @param {ConditionBuilder | Condition} c */
 function pointerNullCheck(c) {
-  return c.withLast({ flag: '', cmp: '!=', rvalue: { type: 'Value', value: 0 } })
+  return $(c).withLast({ flag: '', cmp: '!=', rvalue: { type: 'Value', value: 0 } })
 }
 
 const stat = (() => {
@@ -388,6 +388,8 @@ const main = (() => {
   }
 
   return {
+    p,
+
     lapCountIsGte: count => $(
       p.root,
       ['', 'Mem', '32bit', 0, '>=', 'Value', '', count]
@@ -414,8 +416,13 @@ const main = (() => {
       )
 
       return {
-        finished(expectedReward = 0) {
+        /** @param {ObjectValue<meta["licenses"]>["eventId"]} eventIds */
+        finished(eventIds, expectedReward = 0) {
           return $(
+            orNext(
+              eventIdIs(eventIds.pal),
+              eventIdIs(eventIds.ntsc),
+            ),
             state,
             expectedReward === 0 && state.withLast(
               { lvalue: { type: 'Mem' }, cmp: '<=', rvalue: { value: 4 } }
@@ -900,21 +907,11 @@ const coffeeNames = {
 }
 /** @param {ObjectValue<typeof meta["licenses"]>} l */
 function defineLicenseAchievements(l) {
-  const gotGold = {
-    core: main.license.finished(2),
-    alt1: main.eventIdIs(l.eventId.pal),
-    alt2: main.eventIdIs(l.eventId.ntsc),
-  }
-
   const leaderboardConditions = {
-    start: {
-      core: $(
-        main.license.finished(),
-        main.license.timeSubmitted
-      ),
-      alt1: main.eventIdIs(l.eventId.pal),
-      alt2: main.eventIdIs(l.eventId.ntsc),
-    },
+    start: $(
+      main.license.finished(l.eventId),
+      main.license.timeSubmitted
+    ),
     cancel: '0=1',
     submit: '1=1',
     value: $(main.license.measuredTime)
@@ -928,7 +925,7 @@ function defineLicenseAchievements(l) {
       `Earn the golden coffee in ${funnyCoffee} for ${l.license} License.` :
       `Earn the gold reward in license test ${shortName} - ${l.name}`,
     points: l.points,
-    conditions: gotGold
+    conditions: main.license.finished(l.eventId, 2)
   }).addLeaderboard({
     title: l.isCoffee ?
       `Coffee Break ${l.license}: ${l.name}` :
@@ -1106,25 +1103,25 @@ export default async function () {
       type: letter === 'S' ? '' : 'progression',
       conditions: {
         core: '1=1',
+
+        // You finished all licenses in one session
         alt1: $(
           addHits(
             ...tests
               .map(x =>
                 andNext(
                   'once',
-                  orNext(
-                    main.eventIdIs(x.eventId.pal),
-                    main.eventIdIs(x.eventId.ntsc),
-                  ),
-                  main.license.finished(4)
+                  main.license.finished(x.eventId, 4)
                 )
               )
           ),
           `M:0=1.${tests.length}.'`
         ),
+
+        // PAL version - checking final license flag flip
         alt2: $(
           stat.gameFlagIs.license,
-          ['', 'Mem', '32bit', 0x621cb4, '!=', 'Value', '', 0],
+          pointerNullCheck(main.p.root),
           ['', 'Mem', '32bit', 0x68bb00, '=', 'Value', '', 0x53454353],
           ['', 'Mem', '32bit', 0x68bb04, '=', 'Value', '', 0x3731352d],
           ...tests.map((test, idx) => $(
@@ -1134,9 +1131,12 @@ export default async function () {
             )
           ))
         ),
+
+        // NTSC version - checking final license flag flip
+        // Version 2.00 has flags positioned different, so a pointer dereference is done
         alt3: $(
           stat.gameFlagIs.license,
-          ['', 'Mem', '32bit', 0x621cb4, '!=', 'Value', '', 0],
+          pointerNullCheck(main.p.root),
           ['', 'Mem', '32bit', 0x68bb00, '=', 'Value', '', 0x53554353],
           ['', 'Mem', '32bit', 0x68bb04, '=', 'Value', '', 0x3337392d],
           ...tests.map((test, idx) => $(
