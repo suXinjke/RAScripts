@@ -772,7 +772,7 @@ function defineAchievementsForAnySubEvent(c) {
   const noCheese = events.some(e => e.noCheese)
   const championshipPossible = events.some(e => e.isChampionship)
 
-  let nitrousSuffix = c.nitrousAllowed ? '' : ` Nitrous is not allowed.`
+  const nitrousSuffix = c.nitrousAllowed ? '' : ` Nitrous is not allowed.`
   let subTitle = 'Challenge'
   let description = ''
 
@@ -784,8 +784,6 @@ function defineAchievementsForAnySubEvent(c) {
       (c.aSpecPoints <= 0 ? '' : ` and earn atleast ${c.aSpecPoints} A-Spec points`),
       ` while driving ${c.descriptionSuffix}`
     ].join('')
-
-    nitrousSuffix = '' // TODO: stupid shelby screw up
   } else if (c.specificRaceIds.length > 0) {
     description = `Win ${c.eventDescriptionOverride} in A-Spec mode and earn atleast ${c.aSpecPoints} A-Spec points.`
   } else {
