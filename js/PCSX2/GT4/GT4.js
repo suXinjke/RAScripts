@@ -863,19 +863,15 @@ function defineAchievementsForArcadeTimeTrial(c) {
     lowerIsBetter: true,
     type: 'VALUE',
     conditions: {
-      // TODO: stupid map get rid of it
       start: main.playerBeganLap({
         ...c,
         protections: main.arcadeTimeTrialProtections(c)
-      }).map(x => x.flag === 'AndNext' ? x.with({ flag: '' }) : x),
+      }),
       cancel: {
         core: '1=1',
         ...([
           ...main.playerWentOut.arrayOfAlts,
-
-          // TODO: stupid slice hack that can be rewritten into OrNext
-          [...main.notInASpecMode.conditions.slice(0, 4)],
-          [...main.notInASpecMode.conditions.slice(4)],
+          orNext(main.notInASpecMode)
         ]).reduce((prev, cur, idx) => {
           prev[`alt${idx + 1}`] = cur
           return prev
