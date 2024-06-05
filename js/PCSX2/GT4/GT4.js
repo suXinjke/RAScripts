@@ -310,9 +310,7 @@ const main = (() => {
    */
   const playerBeganLap = params => $(
     inGamePlayerCar.idIs(params.carId),
-
-    // TODO: get rid of track condition, plutonium caused this
-    params.trackId > 0 && trackIdIs(params.trackId),
+    trackIdIs(params.trackId),
 
     params.protections,
     inASpecMode,
@@ -854,15 +852,6 @@ function defineAchievementsForCarEventWin(c) {
 
 /** @param {ArrayValue<typeof meta["arcadeTimeTrial"]>} c */
 function defineAchievementsForArcadeTimeTrial(c) {
-  // const trackId = c.achName.includes('Plutonium') ? 0 : c.trackId
-
-  c = {
-    ...c,
-    // HACK TODO: original achievement didnt have check for some reason, and had incorrect description
-    trackId: c.achName.includes('Plutonium') ? 0 : c.trackId,
-    description: c.achName.includes('Plutonium') ? c.description.replace('088', '080') : c.description
-  }
-
   set.addAchievement({
     title: c.achName,
     description: c.description,
