@@ -209,12 +209,6 @@ const main = (() => {
         ['', 'Mem', '8bit', 0x38, '=', 'Value', '', id]
       ),
 
-      // TODO: validate meaning of this, code note might be incorrect
-      lapTimeIsGt: target => $(
-        carBase,
-        ['', 'Mem', '32bit', 0x1AC, '>', 'Value', '', target]
-      ),
-
       completedLap: $(
         carBase,
         ['', 'Mem', '32bit', 0x1AC, '>', 'Delta', '32bit', 0x1AC]
@@ -462,32 +456,27 @@ const main = (() => {
 
     /**
      * @param {Object} params
-     * @param {number} [params.target]
+     * @param {number} params.target
      * @param {number} params.trackId
      * @param {number} params.carId
      * @param {ConditionBuilder} params.protections
      */
-    passedTimeTrial: params => {
-      const { target = 0 } = params
+    passedTimeTrial: params => $(
+      andNext(
+        'once',
+        playerBeganLap(params)
+      ),
 
-      return $(
-        andNext(
-          'once',
-          playerBeganLap(params)
-        ),
+      resetIf(
+        playerWentOut.singleChainOfConditions,
+        notInASpecMode
+      ),
 
-        resetIf(
-          playerWentOut.singleChainOfConditions,
-          notInASpecMode,
-          target > 0 && inGamePlayerCar.lapTimeIsGt(params.target)
-        ),
-
-        trigger(
-          inGamePlayerCar.completedLap,
-          target > 0 && inGamePlayerCar.lastLapTimeWasLte(params.target)
-        )
+      trigger(
+        inGamePlayerCar.completedLap,
+        inGamePlayerCar.lastLapTimeWasLte(params.target)
       )
-    },
+    ),
 
     /**
      * @param {Object} params
