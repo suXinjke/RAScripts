@@ -96,7 +96,10 @@ async function makeEvents() {
         name,
         nameWithSuffix: col[12] ? name + ' ' + col[12] : name,
 
-        descriptionSuffix,
+        /** @type {'progression' || ''} */
+        achType: (id.startsWith('am_') || id.startsWith('pr_')) ? 'progression' : '',
+
+        descriptionSuffix: descriptionSuffix ? ' ' + descriptionSuffix : '',
         // eventNameSuffix: col[12],
         points: Number(col[3]),
         pointsChallenge: Number(col[4]),
