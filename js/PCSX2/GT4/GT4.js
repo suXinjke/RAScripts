@@ -603,8 +603,6 @@ function defineAchievementsForOneSittingChampionships(e) {
       andNext(
         'once',
         main.inFirstChampionshipRace(e.raceIds[0]),
-        // TODO: remove Unnecessary!!!
-        e.noCheese && generalProtections.noCheese,
         generalProtections.forbiddenCarIds(...e.carIdsForbidden),
         main.inGameRace.lapBegan
       ),
@@ -675,7 +673,6 @@ function defineAchievementForIndividualRace(e, params = {}) {
 
   description += aSpecSuffix
 
-  // TODO: unnecessary protections when there's no A-Spec point requirement?
   set.addAchievement({
     title,
     description: description + nitrousSuffix + e.descriptionSuffix,
@@ -690,8 +687,7 @@ function defineAchievementForIndividualRace(e, params = {}) {
       ),
 
       generalProtections.forbiddenCarIds(...e.carIdsForbidden),
-      // TODO: stupid ex wind check
-      e.id !== 'ex_wind' && e.noCheese && generalProtections.noCheese,
+      e.aSpecAllEvents > 0 && e.noCheese && generalProtections.noCheese,
       e.aSpecAllEvents > 0 && !e.nitrousAllowed && generalProtections.noNitrous,
     )
   })
