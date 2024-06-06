@@ -789,7 +789,7 @@ function defineAchievementsForArcadeTimeTrial(c) {
     title: c.achName,
     description: 'Fastest time in msec to complete this achievement',
     lowerIsBetter: true,
-    type: 'VALUE',
+    type: 'FIXED3',
     conditions: {
       start: main.playerBeganLap({
         ...c,
@@ -844,7 +844,7 @@ function defineLicenseAchievements(l) {
       `Coffee Break ${l.license}: ${l.name}` :
       `License ${shortName}: ${l.name}`,
     description: `Fastest time to complete in msec`,
-    type: 'VALUE',
+    type: 'FIXED3',
     lowerIsBetter: true,
     conditions: leaderboardConditions
   })
