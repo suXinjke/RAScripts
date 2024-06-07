@@ -2,7 +2,7 @@
 import '../../common.js'
 import {
   AchievementSet, Condition, ConditionBuilder, define as $,
-  addHits, andNext, orNext, resetIf, trigger
+  addHits, andNext, orNext, resetIf, trigger, pauseIf
 } from '@cruncheevos/core'
 import codegen from './codegen.js'
 const set = new AchievementSet({ gameId: 20580, title: 'Gran Turismo 4' })
@@ -44,6 +44,45 @@ const stat = (() => {
     ['', 'Mem', '8bit', 0x13dc8, '=', 'Value', '', slot]
   )
 
+  const forSetupSlot = slot => {
+    const base = selectedSetupSlotIs(slot)
+
+    const partOffset = slot * 0x178
+
+    return {
+      /** @param {number[]} ids */
+      gearboxIdIsNotOneOf: ids => andNext(
+        base,
+        andNext(
+          ...ids.map(id => $(
+            root,
+            ['', 'Mem', '32bit', 0x13988 + partOffset, '!=', 'Value', '', id]
+          ))
+        )
+      ),
+      wrongAdverseCamberReigns: orNext(
+        root,
+        ['', 'Mem', '8bit', 0x13a79 + partOffset, '<', 'Value', '', 100],
+      ).andNext(
+        root,
+        ['', 'Mem', '8bit', 0x13a7a + partOffset, '<', 'Value', '', 100],
+        base
+      ),
+      wrongAutoUnionParts: orNext(
+        root,
+        ['', 'Mem', '32bit', 0x139f0 + partOffset, '!=', 'Value', '', 0x91d],
+        root,
+        ['', 'Mem', '32bit', 0x139a0 + partOffset, '!=', 'Value', '', 0xde1b],
+        root,
+        ['', 'Mem', '32bit', 0x139a8 + partOffset, '!=', 'Value', '', 0xde15],
+      ).andNext(
+        root,
+        ['', 'Mem', '8bit', 0x13a9b + partOffset, '!=', 'Value', '', 0],
+        base
+      ),
+    }
+  }
+
   return {
     gameFlagIs,
     abandonedChampionship: andNext(
@@ -74,29 +113,16 @@ const stat = (() => {
       root,
       ['', 'Mem', '32bit', 0x13a38, '=', 'Value', '', -1]
     ),
-    gearboxIdIs: id => $(
-      selectedSetupSlotIs(0),
-      root,
-      ['', 'Mem', '32bit', 0x13988, '=', 'Value', '', id]
-    ),
-    hasCorrectAutoUnionParts: $(
-      selectedSetupSlotIs(0),
-      root,
-      ['', 'Mem', '32bit', 0x139f0, '=', 'Value', '', 0x91d],
-      root,
-      ['', 'Mem', '32bit', 0x139a0, '=', 'Value', '', 0xde1b],
-      root,
-      ['', 'Mem', '32bit', 0x139a8, '=', 'Value', '', 0xde15],
-      root,
-      ['', 'Mem', '8bit', 0x13a9b, '=', 'Value', '', 0],
-    ),
-    adverseCamberReigns: $(
-      selectedSetupSlotIs(0),
-      root,
-      ['', 'Mem', '8bit', 0x13a79, '>=', 'Value', '', 100],
-      root,
-      ['', 'Mem', '8bit', 0x13a7a, '>=', 'Value', '', 100],
-    )
+
+    // (ReturnType<typeof forSetupSlot>)
+    /** @param {(setupSlot: ReturnType<typeof forSetupSlot>) => ConditionBuilder} cb */
+    forEachSetupSlot: cb => {
+      return $(
+        cb(forSetupSlot(0)),
+        cb(forSetupSlot(1)),
+        cb(forSetupSlot(2)),
+      )
+    }
   }
 })()
 
@@ -883,13 +909,6 @@ function defineCarChallenge(c) {
   }
 
   if (c.type === 'aSpecHuntPrius') {
-    const carParts = /** @type const */ ([
-      [3624, stat.gameFlagIs.eventRace],
-      [3624, stat.gameFlagIs.eventChampionship],
-      [3625, stat.gameFlagIs.eventRace],
-      [3625, stat.gameFlagIs.eventChampionship],
-    ])
-
     set.addAchievement({
       title: c.name,
       description: `Earn ${c.target} A-Spec points or more in ${c.description}.`,
@@ -900,14 +919,15 @@ function defineCarChallenge(c) {
           main.wonRace({ aSpecPoints: c.target }),
         ),
         alt1: stat.gameFlagIs.arcadeRace,
-
-        ...carParts.reduce((prev, [gearboxId, flagCheck], idx) => {
-          prev[`alt${idx + 2}`] = $(
-            stat.gearboxIdIs(gearboxId),
-            flagCheck
+        alt2: $(
+          orNext(
+            stat.gameFlagIs.eventRace,
+            stat.gameFlagIs.eventChampionship,
+          ),
+          pauseIf(
+            stat.forEachSetupSlot(s => s.gearboxIdIsNotOneOf([3624, 3625]))
           )
-          return prev
-        }, {})
+        )
       }
     })
   }
@@ -1100,8 +1120,9 @@ export default async function () {
         stat.gameFlagIs.eventRace,
         stat.gameFlagIs.eventChampionship,
       ),
-
-      stat.adverseCamberReigns
+      pauseIf(
+        stat.forEachSetupSlot(s => s.wrongAdverseCamberReigns)
+      )
     )
   })
 
@@ -1216,20 +1237,49 @@ export default async function () {
     )
   })
 
-  set.addAchievement({
-    title: 'Have You Heard Of: Type C Streamline?',
-    description: `Gran Turismo mode, Free Run, Auto Union V16 Type C Streamline \`37, Racing Soft tires, no turbo kit and weight ballast, body rigidity upgrade optional. Do a clean lap on Nurburgring Nordschleife and beat the time of 6:40'000.`,
-    points: 25, // TODO: make it 50?
-    conditions: main.passedTimeTrial({
-      carId: 0x431,
-      trackId: 0x41,
-      target: 400000,
-      additionalConditions: $(
-        stat.gameFlagIs.freeRun,
-        stat.hasCorrectAutoUnionParts
-      )
+  {
+    set.addAchievement({
+      title: 'Have You Heard Of: Type C Streamline?',
+      description: `Gran Turismo mode, Free Run, Auto Union V16 Type C Streamline \`37, Racing Soft tires, no turbo kit and weight ballast, body rigidity upgrade optional. Do a clean lap on Nurburgring Nordschleife and beat the time of 6:40'000.`,
+      points: 25, // TODO: make it 50?
+      conditions: main.passedTimeTrial({
+        carId: 0x431,
+        trackId: 0x41,
+        target: 400000,
+        additionalConditions: $(
+          stat.gameFlagIs.freeRun,
+          pauseIf(stat.forEachSetupSlot(s => s.wrongAutoUnionParts))
+        )
+      })
+    }).addLeaderboard({
+      title: 'Have You Heard Of: Type C Streamline?',
+      description: 'Fastest time in msec to complete this achievement',
+      lowerIsBetter: true,
+      type: 'FIXED3',
+      conditions: {
+        start: main.playerBeganLap({
+          carId: 0x431,
+          trackId: 0x41,
+          additionalConditions: $(
+            stat.gameFlagIs.freeRun,
+            pauseIf(stat.forEachSetupSlot(s => s.wrongAutoUnionParts))
+          )
+        }),
+        cancel: {
+          core: '1=1',
+          ...([
+            ...main.playerWentOut.arrayOfAlts,
+            orNext(main.notInASpecMode)
+          ]).reduce((prev, cur, idx) => {
+            prev[`alt${idx + 1}`] = cur
+            return prev
+          }, {})
+        },
+        submit: main.inGamePlayerCar.completedLap,
+        value: main.inGamePlayerCar.measuredLastLapTime
+      }
     })
-  })
+  }
 
   set.addAchievement({
     title: 'One Horsepower Wonder',
