@@ -5,6 +5,9 @@ import {
   addHits, andNext, orNext, resetIf, trigger, pauseIf
 } from '@cruncheevos/core'
 import codegen from './codegen.js'
+import { makeRichPresenceDisplay, makeRichPresenceLookup } from '../../common.js'
+import { asciiToNumberLE } from '../../common.js'
+
 const set = new AchievementSet({ gameId: 20580, title: 'Gran Turismo 4' })
 
 /** @param {ConditionBuilder | Condition} c */
@@ -26,18 +29,24 @@ const stat = (() => {
       eventChampionship: gameFlagIs(3),
       powerAndSpeed: gameFlagIs(4),
       freeRun: gameFlagIs(5),
+      raceMeeting: gameFlagIs(6),
       license: gameFlagIs(7),
       mission: gameFlagIs(8),
       photoDrive: gameFlagIs(9),
       arcadeRace: gameFlagIs(0xA),
       arcadeTimeTrial: gameFlagIs(0xB),
+      photoScene: gameFlagIs(0x15),
     }
   })()
 
-  const gtModeCarIsNot = id => $(
+  const gtModeCarValue = $(
     root,
-    ['', 'Mem', '32bit', 0x13940, '!=', 'Value', '', id]
+    ['Measured', 'Mem', '32bit', 0x13940]
   )
+
+  const gtModeCarIsNot = id => gtModeCarValue.withLast({
+    flag: '', cmp: '!=', rvalue: { type: 'Value', value: id }
+  })
 
   const selectedSetupSlotIs = slot => $(
     root,
@@ -90,6 +99,13 @@ const stat = (() => {
   }
 
   return {
+    root,
+
+    inGTModeProject: $(
+      root,
+      ['', 'Mem', '32bit', 0x3A3BC, '=', 'Value', '', asciiToNumberLE('gtmo')]
+    ),
+
     gameFlagIs,
     abandonedChampionship: andNext(
       gameFlagIs.inGameMenus,
@@ -98,6 +114,7 @@ const stat = (() => {
       ['', 'Mem', '8bit', 0x38c20, '=', 'Value', '', 0]
     ),
 
+    gtModeCarValue,
     gtModeCarIsNot,
 
     /** @param {number[]} ids */
@@ -146,19 +163,27 @@ const main = (() => {
     }
   })()
 
+  const eventIdValue = $(
+    p.root,
+    ['Measured', 'Mem', '32bit', 0x68]
+  )
+
   /** @param {number[]} ids */
   const eventIdIs = (...ids) => orNext(
     ...ids.map(id => $(
-      p.root,
-      ['', 'Mem', '32bit', 0x68, '=', 'Value', '', id]
+      eventIdValue.withLast({ flag: '', cmp: '=', rvalue: { type: 'Value', value: id } })
     ))
+  )
+
+  const trackIdValue = $(
+    p.root,
+    ['Measured', 'Mem', '32bit', 0x78]
   )
 
   /** @param {number[]} ids */
   const trackIdIs = (...ids) => orNext(
     ...ids.map(id => $(
-      p.root,
-      ['', 'Mem', '32bit', 0x78, '=', 'Value', '', id]
+      trackIdValue.withLast({ flag: '', cmp: '=', rvalue: { type: 'Value', value: id } })
     ))
   )
 
@@ -231,13 +256,19 @@ const main = (() => {
       ['AddAddress', 'Mem', '32bit', index * 4],
     )
 
+    const idValue = $(
+      carBase,
+      ['Measured', 'Mem', '32bit', 0x20]
+    )
+
     return {
+      idValue,
+
       /** @param {number[]} ids */
       idIs: (...ids) => orNext(
-        ...ids.map(id => $(
-          carBase,
-          ['', 'Mem', '32bit', 0x20, '=', 'Value', '', id]
-        ))
+        ...ids.map(id => idValue.withLast({
+          flag: '', cmp: '=', rvalue: { type: 'Value', value: id }
+        }))
       ),
       colorIdIs: (id) => $(
         carBase,
@@ -424,7 +455,20 @@ const main = (() => {
       ['', 'Mem', '32bit', 0, '>=', 'Value', '', count]
     ),
 
+    regionIs: {
+      pal: $(
+        ['', 'Mem', '32bit', 0x68bb00, '=', 'Value', '', 0x53454353],
+        ['', 'Mem', '32bit', 0x68bb04, '=', 'Value', '', 0x3731352d],
+      ),
+      ntsc: $(
+        ['', 'Mem', '32bit', 0x68bb00, '=', 'Value', '', 0x53554353],
+        ['', 'Mem', '32bit', 0x68bb04, '=', 'Value', '', 0x3337392d],
+      ),
+    },
+
+    eventIdValue,
     eventIdIs,
+    trackIdValue,
     trackIdIs,
 
     playerBeganLap,
@@ -1053,8 +1097,7 @@ export default async function () {
         alt2: $(
           stat.gameFlagIs.license,
           pointerNullCheck(main.p.root),
-          ['', 'Mem', '32bit', 0x68bb00, '=', 'Value', '', 0x53454353],
-          ['', 'Mem', '32bit', 0x68bb04, '=', 'Value', '', 0x3731352d],
+          main.regionIs.pal,
           ...tests.map((test, idx) => $(
             ['', 'Mem', 'Upper4', test.palFlagAddress, '<=', 'Value', '', 0xB],
             idx === tests.length - 1 && (
@@ -1068,8 +1111,7 @@ export default async function () {
         alt3: $(
           stat.gameFlagIs.license,
           pointerNullCheck(main.p.root),
-          ['', 'Mem', '32bit', 0x68bb00, '=', 'Value', '', 0x53554353],
-          ['', 'Mem', '32bit', 0x68bb04, '=', 'Value', '', 0x3337392d],
+          main.regionIs.ntsc,
           ...tests.map((test, idx) => $(
             ['AddAddress', 'Mem', '32bit', 0x622f4c],
             ['', 'Mem', 'Upper4', test.ntscFlagOffset, '<=', 'Value', '', 0xB],
@@ -1287,4 +1329,184 @@ export default async function () {
   console.log('Achievement Count: ', [...set.achievements].length)
   console.log('Leaderboard Count: ', [...set.leaderboards].length)
   return set
+}
+
+if (process.argv.includes('rich')) {
+  const carLookup = makeRichPresenceLookup({
+    name: 'Car', keyFormat: 'dec',
+    defaultAddress: stat.gtModeCarValue, values: {
+      ...meta.carLookup,
+      '*': '- -'
+    }
+  })
+
+  const eventLookup = makeRichPresenceLookup({
+    name: 'Event', keyFormat: 'dec',
+    defaultAddress: main.eventIdValue, values: meta.eventLookup
+  })
+
+  const trackLookup = makeRichPresenceLookup({
+    name: 'Track', keyFormat: 'dec',
+    defaultAddress: main.trackIdValue, values: {
+      ...meta.trackLookup,
+      174: 'Gymkhana Course'
+    },
+  })
+
+  function makeLicenseCheck(letter = '', emoji = '', id = '', whitespace = '') {
+    return {
+      lookup: makeRichPresenceLookup({
+        name: `License_${letter}`, keyFormat: 'dec', values: {
+          16: whitespace + emoji
+        }
+      }),
+      letter,
+      emoji,
+      idKey: asciiToNumberLE(id)
+    }
+  }
+
+  const substringEventString = $(
+    ['AddAddress', 'Mem', '32bit', 0x6187a8],
+    ['Measured', 'Mem', '8bit', 0x3c8]
+  )
+
+  const letters = [
+    substringEventString.withLast({ lvalue: { value: 0x3cd } }),
+    substringEventString.withLast({ lvalue: { value: 0x3ce } }),
+  ].map(x => `@ASCIIChar(${x})`).join('')
+
+  const licenses = {
+    B: makeLicenseCheck('B', '🟩', 'l0b0', ' '),
+    A: makeLicenseCheck('A', '🟨', 'l0a0'),
+    IB: makeLicenseCheck('IB', '🟦', 'lib0'),
+    IA: makeLicenseCheck('IA', '🟥', 'lia0'),
+    S: makeLicenseCheck('S', '🟪', 'l0s0'),
+  }
+
+  const licenseColor = makeRichPresenceLookup({
+    name: 'LicenseColor', keyFormat: 'dec',
+    defaultAddress: substringEventString.withLast({ lvalue: { size: '32bit' } }),
+    values: Object.values(licenses).reduce((prev, cur) => {
+      prev[cur.idKey] = cur.emoji
+      return prev
+    }, {})
+  })
+
+  const licenseLetter = makeRichPresenceLookup({
+    name: 'LicenseLetter', keyFormat: 'dec',
+    defaultAddress: substringEventString.withLast({ lvalue: { size: '32bit' } }),
+    values: Object.values(licenses).reduce((prev, cur) => {
+      prev[cur.idKey] = cur.letter
+      return prev
+    }, {})
+  })
+
+  const lookups = [
+    carLookup,
+    eventLookup,
+
+    ...Object.values(licenses).map(l => l.lookup),
+    licenseColor,
+    licenseLetter,
+
+    trackLookup
+  ].join('\n\n')
+
+  function displayValue(strings, ...args) {
+    return strings.map((str, i) => {
+      let val = i === strings.length - 1 ? '' : args[i]
+      if (val.defaultPoint) {
+        val = `@${val.name}(${val.defaultPoint()})`
+      }
+      return `${str}${val}`;
+    }).join('');
+  }
+
+  const displays = [
+    makeRichPresenceDisplay(
+      stat.gameFlagIs.arcadeRace,
+      displayValue`[🏁 Arcade Race] 📍 ${trackLookup} 🚗 ${carLookup}`
+    ),
+    makeRichPresenceDisplay(
+      stat.gameFlagIs.raceMeeting,
+      displayValue`[🏁 Race Meeting] 📍 ${trackLookup} 🚗 ${carLookup}`
+    ),
+    makeRichPresenceDisplay(
+      stat.gameFlagIs.arcadeTimeTrial,
+      displayValue`[🏁 Arcade Time Trial] 📍 ${trackLookup} 🚗 ${carLookup}`
+    ),
+    makeRichPresenceDisplay(
+      $(
+        stat.gameFlagIs.license,
+        substringEventString.withLast({ flag: '', lvalue: { size: '32bit' }, cmp: '=', rvalue: { type: 'Value', value: asciiToNumberLE('l0c0') } }),
+      ),
+      displayValue`[☕ Coffee Break] ${letters} ${eventLookup} 🚗 ${carLookup.point(main.inGamePlayerCar.idValue)}`
+    ),
+    makeRichPresenceDisplay(
+      stat.gameFlagIs.license,
+      displayValue`[🔰 License Center] ${licenseColor} ${licenseLetter}-${letters} ${eventLookup} 🚗 ${carLookup.point(main.inGamePlayerCar.idValue)}`
+    ),
+    makeRichPresenceDisplay(
+      stat.gameFlagIs.mission,
+      displayValue`[🎯 ${eventLookup}] 🚗 ${carLookup.point(main.inGamePlayerCar.idValue)}`
+    ),
+    makeRichPresenceDisplay(
+      stat.gameFlagIs.freeRun,
+      displayValue`[⏱ Free Run] 📍 ${trackLookup} 🚗 ${carLookup}`
+    ),
+    makeRichPresenceDisplay(
+      stat.gameFlagIs.powerAndSpeed,
+      displayValue`[⏱ ${eventLookup}] 🚗 ${carLookup}`
+    ),
+    makeRichPresenceDisplay(
+      stat.gameFlagIs.photoDrive,
+      displayValue`[📸 ${trackLookup}] 🚗 ${carLookup}`
+    ),
+    makeRichPresenceDisplay(
+      stat.gameFlagIs.photoScene,
+      displayValue`[📸 Photo Travel] 🚗 ${carLookup}`
+    ),
+    makeRichPresenceDisplay(
+      orNext(stat.gameFlagIs.eventRace, stat.gameFlagIs.eventChampionship),
+      displayValue`[🏁 ${eventLookup}] 📍 ${trackLookup} 🚗 ${carLookup}`
+    ),
+
+    ...['pal', 'ntsc'].map(region => {
+      const licenseBadges = Object.values(licenses).map(l => {
+        const tests = Object.values(meta.licenses)
+          .filter(license => license.license === l.letter && license.isCoffee === false)
+
+        const amountOfTestsPassed = $(...tests.map(test => region === 'pal' ?
+          $(['AddSource', 'Mem', 'Bit0', test.palFlagAddress]) :
+          $(
+            ['AddAddress', 'Mem', '32bit', 0x622f4c],
+            ['AddSource', 'Mem', 'Bit0', test.ntscFlagOffset]
+          )
+        ))
+
+        return l.lookup.point($(amountOfTestsPassed, ['Measured', 'Value', '', 0]))
+      }).join('')
+
+      const date = $(
+        ['SubSource', 'Value', '', 2453461],
+        stat.root,
+        ['Measured', 'Mem', '32bit', 0xBC28]
+      )
+
+      const mileage = $(
+        stat.root,
+        ['Measured', 'Mem', '32bit', 0x3b8, '*', 'Float', '', 0.001]
+      )
+
+      return makeRichPresenceDisplay($(
+        main.regionIs[region],
+        stat.gameFlagIs.inGameMenus,
+        stat.inGTModeProject
+      ), displayValue`[🏠 Home${licenseBadges}] 🚗 ${carLookup.point(stat.gtModeCarValue)} 📅 Day @Number(${date}) | @Number(${mileage}) km`)
+    }),
+    'Playing Gran Turismo 4'
+  ].join('\n')
+
+  console.log(lookups + '\n\nDisplay:\n' + displays)
 }
