@@ -80,6 +80,12 @@ const stat = (() => {
         ['', 'Mem', '8bit', 0x13a9b + partOffset, '!=', 'Value', '', 0],
         base
       ),
+
+      hasNitrous: andNext(
+        base,
+        root,
+        ['', 'Mem', '32bit', 0x13a38 + partOffset, '!=', 'Value', '', -1]
+      )
     }
   }
 
@@ -102,16 +108,6 @@ const stat = (() => {
     gearboxSettingIs: gearbox => $(
       root,
       ['', 'Mem', '32bit', 0x39d78, '=', 'Value', '', gearbox === 'manual' ? 0 : 1]
-    ),
-    // TODO: hack delete this, exploit is on Underdog Racing
-    noNitrous: $(
-      root,
-      ['', 'Mem', '32bit', 0x13a38, '=', 'Value', '', -1]
-    ),
-    noNitrousSlot0: $(
-      selectedSetupSlotIs(0),
-      root,
-      ['', 'Mem', '32bit', 0x13a38, '=', 'Value', '', -1]
     ),
 
     // (ReturnType<typeof forSetupSlot>)
@@ -593,7 +589,8 @@ const main = (() => {
 const generalProtections = {
   /** @param {number[]} ids */
   forbiddenCarIds(...ids) {
-    return $(
+    // TODO: empty $() results in wrong code, fix cruncheevos
+    return ids.length > 0 && $(
       ...ids.map(id => stat.gtModeCarIsNot(id)),
     )
   },
@@ -603,7 +600,7 @@ const generalProtections = {
     stat.gtModeCarIsNot(0x42D), // Chapparal
   ),
 
-  noNitrous: stat.noNitrousSlot0,
+  pauseIfHasNitrous: pauseIf(stat.forEachSetupSlot(s => s.hasNitrous))
 }
 
 const meta = await codegen()
@@ -650,12 +647,12 @@ function defineAchievementsForOneSittingRaces(e) {
     const nitrousSuffix = e.nitrousAllowed ? '' : ' Nitrous is not allowed.'
     description =
       `Win all ${e.name} events in one sitting in A-Spec mode, earning ` +
-      `atleast ${e.aSpecAllEvents} A-Spec points in each.` + nitrousSuffix + e.descriptionSuffix
+      `atleast ${e.aSpecAllEvents} A-Spec points in each.` + nitrousSuffix
   }
 
   set.addAchievement({
     title: e.name,
-    description,
+    description: description + e.descriptionSuffix,
     points: e.points,
     type: e.achType,
     conditions: $(
@@ -665,14 +662,14 @@ function defineAchievementsForOneSittingRaces(e) {
           main.wonRace({ aSpecPoints: e.aSpecAllEvents }),
           main.eventIdIs(id),
           stat.gameFlagIs.eventRace,
+          generalProtections.forbiddenCarIds(...e.carIdsForbidden),
           e.aSpecAllEvents > 0 && $(
-            generalProtections.forbiddenCarIds(...e.carIdsForbidden),
             e.noCheese && generalProtections.noCheese,
-            generalProtections.noNitrous,
           )
         )
       )),
-      `M:0=1.${e.raceIds.length}.`
+      `M:0=1.${e.raceIds.length}.`,
+      e.aSpecAllEvents > 0 && generalProtections.pauseIfHasNitrous
     )
   })
 }
@@ -714,7 +711,7 @@ function defineAchievementForIndividualRace(e, params = {}) {
 
       generalProtections.forbiddenCarIds(...e.carIdsForbidden),
       e.aSpecAllEvents > 0 && e.noCheese && generalProtections.noCheese,
-      e.aSpecAllEvents > 0 && !e.nitrousAllowed && generalProtections.noNitrous,
+      e.aSpecAllEvents > 0 && !e.nitrousAllowed && generalProtections.pauseIfHasNitrous,
     )
   })
 }
@@ -751,31 +748,21 @@ function defineAchievementsForAnySubEvent(c) {
     subTitle = `A-Spec ` + subTitle
   }
 
-  const doStupidAlts = events.some(e => e.id === 'de_mercedes_arrow' || e.id === 'ex_formula')
-  const stupidAlts = !doStupidAlts ? [] : raceIds.reduce((prev, id, idx) => {
-    prev[`alt${idx + 1}`] = main.eventIdIs(id)
-    return prev
-  }, {})
-
   set.addAchievement({
     title: c.achievementNameOverride || (eventName + ` - ` + subTitle),
     description: description + nitrousSuffix,
     points: c.points,
-    conditions: {
-      core: $(
-        main.wonRace({ aSpecPoints: c.aSpecPoints }),
-        !doStupidAlts && main.eventIdIs(...raceIds),
-        orNext(
-          stat.gameFlagIs.eventRace,
-          championshipPossible && stat.gameFlagIs.eventChampionship,
-        ),
-        stat.gtModeCarIs(...c.carIdsRequired),
-        noCheese && generalProtections.noCheese,
-        !c.nitrousAllowed && generalProtections.noNitrous
+    conditions: $(
+      main.wonRace({ aSpecPoints: c.aSpecPoints }),
+      main.eventIdIs(...raceIds),
+      orNext(
+        stat.gameFlagIs.eventRace,
+        championshipPossible && stat.gameFlagIs.eventChampionship,
       ),
-
-      ...stupidAlts
-    }
+      stat.gtModeCarIs(...c.carIdsRequired),
+      noCheese && generalProtections.noCheese,
+      !c.nitrousAllowed && generalProtections.pauseIfHasNitrous
+    )
   })
 }
 
@@ -1207,7 +1194,7 @@ export default async function () {
           ...meta.events.de_opel_speed.raceIds,
           ...meta.events.fr_peugeot_206.raceIds,
         ].map(id => main.eventIdIs(id).withLast({ cmp: '!=' })),
-        stat.noNitrous
+        generalProtections.pauseIfHasNitrous
       )
     }
   })
@@ -1241,7 +1228,7 @@ export default async function () {
     set.addAchievement({
       title: 'Have You Heard Of: Type C Streamline?',
       description: `Gran Turismo mode, Free Run, Auto Union V16 Type C Streamline \`37, Racing Soft tires, no turbo kit and weight ballast, body rigidity upgrade optional. Do a clean lap on Nurburgring Nordschleife and beat the time of 6:40'000.`,
-      points: 25, // TODO: make it 50?
+      points: 25,
       conditions: main.passedTimeTrial({
         carId: 0x431,
         trackId: 0x41,
