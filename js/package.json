@@ -1,6 +1,6 @@
 {
   "type": "module",
   "dependencies": {
-    "@cruncheevos/cli": "^0.0.3"
+    "@cruncheevos/cli": "^0.0.4"
   }
 }
