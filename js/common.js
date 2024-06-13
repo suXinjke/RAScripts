@@ -75,13 +75,3 @@ String.prototype.removeQuotesFromHex = function () {
 String.prototype.toHexString = function () {
   return Number(this).toHexString()
 }
-
-ConditionBuilder.prototype.withLast = function (data) {
-  return this.map((c, idx, array) => {
-    if (idx !== array.length - 1) {
-      return c
-    }
-
-    return c.with(data)
-  })
-}

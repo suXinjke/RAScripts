@@ -1,5 +1,4 @@
 import type { Condition, ConditionBuilder } from '@cruncheevos/core'
-import type { DeepPartial } from '@cruncheevos/core/util'
 
 declare global {
   interface Number {
@@ -9,12 +8,6 @@ declare global {
   interface String {
     removeQuotesFromHex(): string
     toHexString(): string
-  }
-}
-
-declare module '@cruncheevos/core' {
-  interface ConditionBuilder {
-    withLast(data: DeepPartial<Condition.Data>): ConditionBuilder
   }
 }
 
