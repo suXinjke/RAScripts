@@ -79,41 +79,44 @@ async function makeEvents() {
   const eventArray = eventRows
     .filter((col) => {
       const isLicense = col[1].startsWith('l')
-      const shouldNotExclude = col[13].includes('exclude|') === false
+      const shouldNotExclude = col[11].includes('exclude|') === false
       return isLicense === false && shouldNotExclude
     })
     .map((col) => {
       const id = col[1]
 
-      const hasForbiddenCars = Boolean(col[11])
-      const carIdsForbidden = hasForbiddenCars ? col[11].split('|').slice(0, -1).map(Number) : []
-      const descriptionSuffix = hasForbiddenCars ? col[11].split('|').slice(-1)[0] : ''
+      const hasForbiddenCars = Boolean(col[9])
+      const carIdsForbidden = hasForbiddenCars ? col[9].split('|').slice(0, -1).map(Number) : []
+      const descriptionSuffix = hasForbiddenCars ? col[9].split('|').slice(-1)[0] : ''
 
       const name = col[2]
+      const eventNameSuffix = col[10]
+
+      const specialFlags = col[11].split('|')
 
       return {
         id,
         name,
-        nameWithSuffix: col[12] ? name + ' ' + col[12] : name,
+        nameWithSuffix: eventNameSuffix ? name + ' ' + eventNameSuffix : name,
 
         /** @type {'progression' || ''} */
         achType: (id.startsWith('am_') || id.startsWith('pr_')) ? 'progression' : '',
 
         descriptionSuffix: descriptionSuffix ? ' ' + descriptionSuffix : '',
-        // eventNameSuffix: col[12],
         points: Number(col[3]),
-        pointsChallenge: Number(col[4]),
-        aSpecAnyEvent: Number(col[5]),
-        aSpecAllEvents: Number(col[6]),
-        inOneSitting: Boolean(col[7]),
-        isChampionship: Boolean(col[8]),
-        nitrousAllowed: Boolean(col[9]),
+
+        aSpecPoints: Number(col[4]),
+
+        inOneSitting: Boolean(col[5]),
+        isChampionship: Boolean(col[6]),
+        nitrousAllowed: Boolean(col[7]),
 
         /** @type {[number, string]} */
-        carIdAnyEvent: col[10] ? col[10].split('|').map((x, i) => i === 0 ? Number(x) : x) : [],
+        carIdAnyEvent: col[8] ? col[8].split('|').map((x, i) => i === 0 ? Number(x) : x) : [],
         carIdsForbidden,
-        noCheese: col[13].includes('noCheese'),
-        noPenalty: col[13].includes('noPenalty'),
+        noCheese: specialFlags.includes('noCheese'),
+        noPenalty: specialFlags.includes('noPenalty'),
+        subsetOnly: specialFlags.includes('subsetOnly'),
 
         /** @type {Array<{ trackId: number, raceId: number}>} */
         races: [],
@@ -206,7 +209,6 @@ async function makeEvents() {
 
   /** @type {Record<number, string> */
   const eventLookup = subEventRows
-    .filter((col) => col[3] != '#N/A')
     .reduce((prev, col) => {
       const name = col[3]
       const eventIds = col[0].split(', ').map(Number)
@@ -234,55 +236,45 @@ async function makeCarChallenges() {
   const rows = await getParsedSheet('carChallenges')
 
   return rows.map((col) => {
-    let description = col[10]
+    let description = col[9]
     let fullDescription = ''
     if (description.startsWith('!')) {
       fullDescription = description.slice(1)
       description = ''
     }
 
-    const target = Number(col[7])
+    const aSpecPoints = Number(col[6])
 
     const eventStringIds = col[4] ? col[4].split(', ') : []
     const raceIndex = col[5] ? Number(col[5]) : -1
 
     if (eventStringIds.some(trackId => trackId.startsWith('rh_'))) {
-      fullDescription = `In any Dirt or Snow rally event of Special Conditions hall, earn ${target} A-Spec points or more in ${description || col[1]}.`
+      fullDescription = `In any Dirt or Snow rally event of Special Conditions hall, earn ${aSpecPoints} A-Spec points or more in ${description || col[1]}.`
       description = ''
     }
 
-    /** @returns {number} */
-    function fallback(str, def) {
-      return str.length > 0 ? Number(str) : def
-    }
+    const {
+      laps = -1,
+      colorId = -1,
+      forbiddenGearboxId = []
+    } = col[10] ? JSON.parse(col[10]) : {}
 
     return {
-      /**
-       * @type { 'arcadeTimeTrial' | 'aSpecHunt' | 'aSpecHuntPrius' |
-       * 'autoUnionTimeTrial' | 'eventWin' | 'oneLap' }
-       * */
-      type: col[6],
-      target,
-      name: col[8],
+      aSpecPoints,
+      name: col[7],
       description,
       fullDescription,
-      points: Number(col[9]),
+      points: Number(col[8]),
       carIds: col[0] ? col[0].split(', ').map(Number) : [],
       trackIds: col[2] ? col[2].split(', ').map(Number) : [],
       eventStringIds,
       raceIndex,
 
-      /** @type { '' | 'sh' | 'sm' | 'ss' | 'rh' | 'rs' | 'n2' | 'n3' } */
-      tires: col[11],
-      /** @type { '' | 'manual' } */
-      gearbox: col[12],
-      /** @type { '' | 'none' } */
-      aid: col[13],
+      laps,
+      colorId,
 
-      topSpeedTune: fallback(col[14], 0),
-      powerTune: fallback(col[15], 0),
-      laps: fallback(col[16], -1),
-      colorId: fallback(col[17], -1),
+      /** @type {number[]} */
+      forbiddenGearboxId
     }
   })
 }
@@ -357,9 +349,11 @@ async function makeArcadeTimeTrial() {
       achName: col[5],
       description: col[6],
       points: Number(col[4]),
-      target: extractTime(description),
+      lapTimeTargetMsec: extractTime(description),
       carId: Number(col[0]),
       trackId: Number(col[2]),
+
+      /** @type { ReturnType<typeof extractTires> } */
       tires: extractTires(description),
 
       /** @type {'' | 'manual'} */
