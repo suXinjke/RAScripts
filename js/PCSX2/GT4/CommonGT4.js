@@ -222,6 +222,11 @@ export const main = (() => {
     ['', 'Mem', '32bit', 0x1bc, '!=', 'Value', '', 0]
   )
 
+  const lapCountMeasured = $(
+    p.root,
+    ['Measured', 'Mem', '32bit', 0]
+  )
+
   const lapCountIsGte = count => $(
     p.root,
     ['', 'Mem', '32bit', 0, '>=', 'Value', '', count]
@@ -263,6 +268,11 @@ export const main = (() => {
       ),
 
       completedLap,
+      lapsCompletedMeasured: completedLap.withLast({
+        flag: 'Measured',
+        cmp: '',
+        rvalue: { size: '', type: '', value: 0 }
+      }),
 
       lapsCompletedAre: laps => completedLap.withLast({
         cmp: '=', rvalue: { type: 'Value', size: '', value: laps }
@@ -513,10 +523,38 @@ export const main = (() => {
     )
   }
 
+  const totalTimeInMsec = (() => {
+    const isGtThanZero = $(
+      p.root84,
+      ['AddAddress', 'Mem', '32bit', 0x70],
+      ['', 'Mem', '32bit', 0xF898, '>', 'Value', '', 0],
+    )
+
+    return {
+      isGtThanZero,
+      passed: time => andNext(
+        isGtThanZero.withLast({
+          lvalue: { type: 'Delta' }, cmp: '<',
+          rvalue: time
+        }),
+        isGtThanZero.withLast({
+          cmp: '>=',
+          rvalue: time
+        }),
+      ),
+      measured: isGtThanZero.withLast({
+        flag: 'Measured', cmp: '',
+        rvalue: { type: '', size: '', value: 0 }
+      })
+    }
+  })()
+
   return {
     p,
 
+    lapCountMeasured,
     lapCountIsGte,
+    totalTimeInMsec,
 
     regionIs: {
       pal: $(

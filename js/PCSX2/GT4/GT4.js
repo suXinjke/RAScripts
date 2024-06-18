@@ -724,7 +724,25 @@ if (process.argv.includes('rich')) {
     }).join('');
   }
 
+  const lapTracker = $(
+    ['AddSource', 'Value', '', 1],
+    main.inGamePlayerCar.lapsCompletedMeasured
+  )
+
+  const totalTimeTracker = main.totalTimeInMsec.measured.withLast({
+    cmp: '/',
+    rvalue: { type: 'Value', value: 3000 }
+  })
+
   const displays = [
+    makeRichPresenceDisplay(
+      andNext(
+        stat.gameFlagIs.arcadeRace,
+        main.totalTimeInMsec.isGtThanZero,
+        main.hud.showingRaceResults.withLast({ rvalue: { value: 0 } })
+      ),
+      displayValue`[🏁 Arcade Race] 📍 ${trackLookup} 🚗 ${carLookup} | Lap @Number(${lapTracker})/@Number(${main.lapCountMeasured})`
+    ),
     makeRichPresenceDisplay(
       stat.gameFlagIs.arcadeRace,
       displayValue`[🏁 Arcade Race] 📍 ${trackLookup} 🚗 ${carLookup}`
@@ -767,6 +785,29 @@ if (process.argv.includes('rich')) {
     makeRichPresenceDisplay(
       stat.gameFlagIs.photoScene,
       displayValue`[📸 Photo Travel] 🚗 ${carLookup}`
+    ),
+
+    makeRichPresenceDisplay(
+      orNext(
+        stat.gameFlagIs.eventRace,
+      ).andNext(
+        stat.gameFlagIs.eventChampionship,
+        main.totalTimeInMsec.isGtThanZero,
+        main.lapCountIsGte(0).withLast({ cmp: '=' }),
+        main.hud.showingRaceResults.withLast({ rvalue: { value: 0 } })
+      ),
+      displayValue`[🏁 ${eventLookup}] 📍 ${trackLookup} 🚗 ${carLookup} ⏱ @Seconds(${totalTimeTracker})`
+    ),
+    makeRichPresenceDisplay(
+      orNext(
+        stat.gameFlagIs.eventRace,
+      ).andNext(
+        stat.gameFlagIs.eventChampionship,
+        main.totalTimeInMsec.isGtThanZero,
+        main.lapCountIsGte(0),
+        main.hud.showingRaceResults.withLast({ rvalue: { value: 0 } })
+      ),
+      displayValue`[🏁 ${eventLookup}] 📍 ${trackLookup} 🚗 ${carLookup} | Lap @Number(${lapTracker})/@Number(${main.lapCountMeasured})`
     ),
     makeRichPresenceDisplay(
       orNext(stat.gameFlagIs.eventRace, stat.gameFlagIs.eventChampionship),
