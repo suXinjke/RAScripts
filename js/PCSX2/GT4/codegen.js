@@ -94,6 +94,8 @@ async function makeEvents() {
 
       const specialFlags = col[11].split('|')
 
+      const multiPoints = col[3].split('|').map(Number)
+
       return {
         id,
         name,
@@ -103,7 +105,9 @@ async function makeEvents() {
         achType: (id.startsWith('am_') || id.startsWith('pr_')) ? 'progression' : '',
 
         descriptionSuffix: descriptionSuffix ? ' ' + descriptionSuffix : '',
-        points: Number(col[3]),
+        points: multiPoints[0],
+        /** @type {number[] | null} */
+        multiPoints: multiPoints.length > 1 ? multiPoints : null,
 
         aSpecPoints: Number(col[4]),
 
@@ -118,7 +122,15 @@ async function makeEvents() {
         noPenalty: specialFlags.includes('noPenalty'),
         subsetOnly: specialFlags.includes('subsetOnly'),
 
-        /** @type {Array<{ trackId: number, raceId: number}>} */
+        /** @type {Array<{
+         * trackId: number,
+         * raceId: number,
+         * aSpec200?: {
+         *  requirement: number,
+         *  achPoints: number
+         *  descriptionSuffix: string,
+         * }
+         * }>} */
         races: [],
         get raceIds() {
           return this.races.map(r => r.raceId)
@@ -157,8 +169,13 @@ async function makeEvents() {
 
       if (subEventIsNotChampionship) {
         events[eventId].races.push({
-          trackId: Number(col[6]),
-          raceId: Number(col[0])
+          trackId: Number(col[4]),
+          raceId: Number(col[0]),
+          aSpec200: col[8] ? {
+            requirement: col[9] ? Number(col[9]) : 200,
+            achPoints: Number(col[8]),
+            descriptionSuffix: col[10]
+          } : null
         })
       }
     })
@@ -181,8 +198,8 @@ async function makeEvents() {
       return {
         id,
         name: col[3],
-        palFlagAddress: Number(col[4]),
-        ntscFlagOffset: Number(col[5]),
+        palFlagAddress: Number(col[5]),
+        ntscFlagOffset: Number(col[6]),
         license: license.toUpperCase(),
         index: Number(id.slice(-2)),
         isCoffee,
