@@ -32,15 +32,16 @@ function defineChampionship(e) {
         'once',
         main.inFirstChampionshipRace(e.raceIds[0]),
         generalProtections.forbiddenCarIds(...e.carIdsForbidden),
-        main.inGameRace.lapBegan
+        main.hud.lapTime.newLap,
+        main.inGamePlayerCar.lapsCompletedAre(0)
       ),
 
       resetIf(
         stat.abandonedChampionship,
-        main.inGameRace.inBSpecMode
+        main.hud.inBSpecMode
       ),
 
-      main.earnedChampionshipMoney
+      trigger(main.earnedChampionshipMoney)
     )
   })
 }
@@ -356,7 +357,7 @@ export default function () {
         core: $(
           main.earnedASpecPoints,
           main.inASpecMode,
-          main.inGameRace.finished,
+          main.hud.showingRaceResults,
           stat.gameFlagIs.mission
         ),
         alt1: main.eventIdIs(m.eventId.pal),
@@ -489,7 +490,7 @@ export default function () {
     conditions: {
       core: $(
         main.inBSpecMode,
-        main.inGameRace.finished.withLast({
+        main.hud.showingRaceResults.withLast({
           // TODO: remove size property - you get very confusing error message
           cmp: '>', rvalue: { type: 'Delta', size: '32bit', value: 0 }
         }),
@@ -517,7 +518,7 @@ export default function () {
       main.inGameCar(0).lastLapTimeWasLt(8000),
       stat.gearboxSettingIs('manual'),
       main.inASpecMode,
-      main.inGameRace.finished
+      main.hud.showingRaceResults
     )
   })
 

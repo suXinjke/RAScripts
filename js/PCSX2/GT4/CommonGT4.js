@@ -222,33 +222,6 @@ export const main = (() => {
     ['', 'Mem', '32bit', 0x1bc, '!=', 'Value', '', 0]
   )
 
-  const inGameRace = (() => {
-    const finished = $(
-      p.root84,
-      ['AddAddress', 'Mem', '32bit', 0xe41c],
-      ['', 'Mem', '32bit', 0x0, '=', 'Value', '', 1]
-    )
-
-    const currentLapTimeMsec = $(
-      p.root84,
-      ['AddAddress', 'Mem', '32bit', 0xE420],
-      ['', 'Delta', '32bit', 0x1664, '<=', 'Value', '', 0x3F]
-    )
-
-    return {
-      finished,
-      currentLapTimeMsec,
-      lapBegan: andNext(
-        currentLapTimeMsec,
-        currentLapTimeMsec.withLast({ lvalue: { type: 'Mem' }, cmp: '>' })
-      ),
-      inBSpecMode: $(
-        p.root84,
-        ['', 'Mem', '32bit', 0xCCC, '=', 'Value', '', 1]
-      )
-    }
-  })()
-
   const lapCountIsGte = count => $(
     p.root,
     ['', 'Mem', '32bit', 0, '>=', 'Value', '', count]
@@ -290,6 +263,10 @@ export const main = (() => {
       ),
 
       completedLap,
+
+      lapsCompletedAre: laps => completedLap.withLast({
+        cmp: '=', rvalue: { type: 'Value', size: '', value: laps }
+      }),
 
       lapsRemainingAre: laps => $(
         completedLap.withLast({
@@ -380,6 +357,77 @@ export const main = (() => {
     }
   })()
 
+  const hud = (() => {
+    const base = $(
+      p.root84,
+      ['AddAddress', 'Mem', '32bit', 0xe420],
+    )
+    const speedBase = $(
+      base,
+      ['AddAddress', 'Mem', '32bit', 0x14],
+    )
+
+    const lapTime = {
+      current: $(
+        base,
+        ['', 'Delta', '32bit', 0x1664, '<=', 'Value', '', 0x3F]
+      )
+    }
+
+    return {
+      positionIs: position => $(
+        base,
+        ['', 'Mem', '32bit', 0x13b0, '=', 'Value', '', position]
+      ),
+      lapTime: {
+        ...lapTime,
+        newLap: andNext(
+          lapTime.current.withLast({
+            lvalue: { type: 'Mem' }, cmp: '!=',
+            rvalue: { value: -1 }
+          }),
+          lapTime.current,
+          lapTime.current.withLast({ lvalue: { type: 'Mem' }, cmp: '>' })
+        ),
+      },
+      inBSpecMode: $(
+        p.root84,
+        ['', 'Mem', '32bit', 0xCCC, '=', 'Value', '', 1]
+      ),
+      showingRaceResults: $(
+        p.root84,
+        ['AddAddress', 'Mem', '32bit', 0xe41c],
+        ['', 'Mem', '32bit', 0x0, '=', 'Value', '', 1]
+      ),
+      speed: {
+        isRendered: $(
+          speedBase,
+          ['', 'Mem', '8bit', 0, '=', 'Value', '', 1],
+        ),
+        wentPastSpeed: (units, hudIsMini, speed) => {
+          const unitValue = units === 'kph' ? 0 : 1
+
+          const valueCheck = $(
+            speedBase,
+            ['', 'Delta', '16bit', hudIsMini ? 0x7A : 0xA1A, '<', 'Value', '', speed],
+            speedBase,
+            ['', 'Mem', '16bit', hudIsMini ? 0x7A : 0xA1A, '>=', 'Value', '', speed],
+          )
+
+          return $(
+            ['AddAddress', 'Mem', '32bit', 0x622f4c],
+            ['', 'Mem', '8bit', 0x38cc0, '=', 'Value', '', unitValue],
+
+            speedBase,
+            ['', 'Mem', '32bit', 0x60, hudIsMini ? '=' : '!=', 'Value', '', asciiToNumberLE('GT4m')],
+
+            valueCheck
+          )
+        }
+      }
+    }
+  })()
+
   /**
    * @param {Object} params
    * @param {number} params.trackId
@@ -394,8 +442,8 @@ export const main = (() => {
     inASpecMode,
 
     andNext(
-      inGameRace.currentLapTimeMsec.withLast({ cmp: '>', rvalue: { value: 0 } }),
-      inGameRace.lapBegan
+      hud.lapTime.current.withLast({ cmp: '>', rvalue: { value: 0 } }),
+      hud.lapTime.newLap
     )
   )
 
@@ -490,7 +538,6 @@ export const main = (() => {
     inASpecMode,
     inBSpecMode,
     notInASpecMode,
-    inGameRace,
 
     license: (() => {
       const state = $(
@@ -583,7 +630,7 @@ export const main = (() => {
         aSpecPoints === 0 && earnedASpecPoints,
         aSpecPoints > 0 && earnedAtleastASpecPoints(aSpecPoints),
         inASpecMode,
-        inGameRace.finished
+        hud.showingRaceResults
       )
     },
 
@@ -598,49 +645,7 @@ export const main = (() => {
       ['', 'Mem', '32bit', 0x4a8, '>', 'Delta', '32bit', 0x4a8]
     ),
 
-    hud: (() => {
-      const base = $(
-        p.root84,
-        ['AddAddress', 'Mem', '32bit', 0xe420],
-      )
-      const speedBase = $(
-        base,
-        ['AddAddress', 'Mem', '32bit', 0x14],
-      )
-
-      return {
-        positionIs: position => $(
-          base,
-          ['', 'Mem', '32bit', 0x13b0, '=', 'Value', '', position]
-        ),
-        speed: {
-          isRendered: $(
-            speedBase,
-            ['', 'Mem', '8bit', 0, '=', 'Value', '', 1],
-          ),
-          wentPastSpeed: (units, hudIsMini, speed) => {
-            const unitValue = units === 'kph' ? 0 : 1
-
-            const valueCheck = $(
-              speedBase,
-              ['', 'Delta', '16bit', hudIsMini ? 0x7A : 0xA1A, '<', 'Value', '', speed],
-              speedBase,
-              ['', 'Mem', '16bit', hudIsMini ? 0x7A : 0xA1A, '>=', 'Value', '', speed],
-            )
-
-            return $(
-              ['AddAddress', 'Mem', '32bit', 0x622f4c],
-              ['', 'Mem', '8bit', 0x38cc0, '=', 'Value', '', unitValue],
-
-              speedBase,
-              ['', 'Mem', '32bit', 0x60, hudIsMini ? '=' : '!=', 'Value', '', asciiToNumberLE('GT4m')],
-
-              valueCheck
-            )
-          }
-        }
-      }
-    })()
+    hud
   }
 })()
 
