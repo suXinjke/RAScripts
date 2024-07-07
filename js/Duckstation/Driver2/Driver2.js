@@ -116,7 +116,7 @@ const asciiTo32Bit = (ascii = '') => {
   return parseInt(res, 16)
 }
 
-const b = (fileName = '') => `local\\\\driver\\\\${fileName}.png`
+const b = (fileName = '') => process.argv.includes('badge') ? `local\\\\driver\\\\${fileName}.png` : undefined
 
 /** @typedef {'us' | 'eu' | 'fr' | 'de' | 'it' | 'sp'} Region */
 /** @param {(region: Region) => any} cb */
