@@ -4,5 +4,8 @@
     "@cruncheevos/cli": "^0.0.4",
     "canvas": "^2.11.2",
     "random-seed": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10"
   }
 }
