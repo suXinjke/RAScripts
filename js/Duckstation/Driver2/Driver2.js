@@ -772,7 +772,8 @@ missionAchievement(0x1a, 3, {
 missionAchievement(0x1b, 25, {
   title: 'Nowhere to Drive, Nowhere to Hide',
   description: 'complete the mission on Hard Cop difficulty',
-  additionalConditions: c => $(c.isHardCopDifficulty)
+  additionalConditions: c => $(c.isHardCopDifficulty),
+  triggerDecor: true
 })
 missionAchievement(0x1c, 5, { title: 'Was This Necessary?', type: 'progression' })
 missionAchievement(0x1d, 5, { title: 'Ready to Blow', type: 'progression' })
@@ -828,7 +829,7 @@ missionAchievement(0x27, 5, {
   title: 'Take Some Backup',
   description: 'complete the mission on Hard Cop difficulty',
   additionalConditions: c => $(c.isHardCopDifficulty),
-  type: 'progression'
+  triggerDecor: true
 })
 missionAchievement(0x28, 10, { title: 'In Which Lenny Finally Gets Caught', type: 'win_condition' })
 
