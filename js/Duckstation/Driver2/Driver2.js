@@ -485,11 +485,13 @@ const codeFor = (region) => {
       triggerDecor = false,
       hardCops = false,
       scoreTarget = 0,
-      timeTarget = ''
+      timeTarget = '',
+      deltaFix = true
     }) => {
       const restOfConditions = $(
         ['', 'Mem', '16bit', offset(0x0d7d20), '=', 'Value', '', pauseMode.missionComplete],
-        ['', 'Mem', '16bit', offset(0x0d7d22), '>', 'Value', '', 0],
+        deltaFix && ['', 'Mem', '16bit', offset(0x0d7d22), '<', 'Delta', '16bit', offset(0x0d7d22)],
+        !deltaFix && ['', 'Mem', '16bit', offset(0x0d7d22), '>', 'Value', '', 0],
 
         scoreTarget > 0 && score.equalsOrGreaterThan(scoreTarget),
         timeTarget !== '' && missionTimer.equalsOrLessThan(timeTarget),
@@ -888,7 +890,7 @@ lists.getaways.forEach((x, i) => {
 lists.gateRaces.forEach((x, i) => {
   const [missionId, title] = x
 
-  const conditions = multiRegionalConditions(region => {
+  const conditions = deltaFix => multiRegionalConditions(region => {
     const c = codeFor(region)
 
     return $(
@@ -896,7 +898,8 @@ lists.gateRaces.forEach((x, i) => {
 
       c.hasCompletedMissionInGame({
         missionId,
-        gameTypeId: gameType.gateRace
+        gameTypeId: gameType.gateRace,
+        deltaFix
       }),
     )
   })
@@ -906,7 +909,7 @@ lists.gateRaces.forEach((x, i) => {
     description: `Get through the final gate in ${title} Gate Race driving game`,
     points: 5,
     badge: b(`Gate${i + 1}`),
-    conditions
+    conditions: conditions(true)
   })
 
   set.addLeaderboard({
@@ -915,7 +918,7 @@ lists.gateRaces.forEach((x, i) => {
     lowerIsBetter: false,
     type: 'MILLISECS',
     conditions: {
-      start: conditions,
+      start: conditions(false),
       submit: '1=1',
       cancel: '0=1',
       value: multiRegionalConditions(region => [codeFor(region).missionTimer.measured])
@@ -946,7 +949,7 @@ set.addAchievement({
 lists.trailblzers.forEach((x, i) => {
   const [missionId, title] = x
 
-  const conditions = multiRegionalConditions(region => {
+  const conditions = deltaFix => multiRegionalConditions(region => {
     const c = codeFor(region)
 
     return $(
@@ -954,7 +957,8 @@ lists.trailblzers.forEach((x, i) => {
 
       c.hasCompletedMissionInGame({
         missionId,
-        gameTypeId: gameType.trailblazer
+        gameTypeId: gameType.trailblazer,
+        deltaFix,
       }),
     )
   })
@@ -964,7 +968,7 @@ lists.trailblzers.forEach((x, i) => {
     description: `Smash the final cone in ${title} Trailblazer driving game`,
     points: 5,
     badge: b(`Trail${i + 1}`),
-    conditions
+    conditions: conditions(true)
   })
 
   set.addLeaderboard({
@@ -973,7 +977,7 @@ lists.trailblzers.forEach((x, i) => {
     lowerIsBetter: false,
     type: 'MILLISECS',
     conditions: {
-      start: conditions,
+      start: conditions(false),
       submit: '1=1',
       cancel: '0=1',
       value: multiRegionalConditions(region => [codeFor(region).missionTimer.measured])
@@ -1039,7 +1043,8 @@ lists.checkpointRaces.forEach((x, i) => {
 
           c.hasCompletedMissionInGame({
             missionId,
-            gameTypeId: gameType.checkpoint
+            gameTypeId: gameType.checkpoint,
+            deltaFix: false,
           }),
         )
       }),
