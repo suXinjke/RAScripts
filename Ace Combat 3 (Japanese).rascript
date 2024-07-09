@@ -1845,7 +1845,8 @@ leaderboard(
         bailedIntoDataSwallow()
     ),
     submit = (
-        inGameTargetsDestroyed == inGameTargetsRequired
+        inGameTargetsDestroyed == inGameTargetsRequired &&
+        inGameTargetsDestroyed > prev(inGameTargetsDestroyed)
     ),
     value = measured(inGameMissionTimeSpent * 3.333334),
     lower_is_better = true,
