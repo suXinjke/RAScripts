@@ -109,14 +109,15 @@ leaderboard(
     title = "Car Park",
     description = "Complete the Undercover park job or Car park practice WITHOUT REAR WHEEL cheat.",
     start = (
+        inGame() == 1 &&
         noFilmDirector() &&
         practiceDemonstrationMode() == 0 &&
-        carParkTimer() == 0 &&
         (missionId() == 0xAD || missionId() == 0xAE) &&
-        rearWheelCheat() == 0
+        rearWheelCheat() == 0 &&
+        prev(completed()) == 0 && completed() == 1
     ),
-    cancel = inGame() == 0,
-    submit = prev(completed()) == 0 && completed() == 1,
+    cancel = always_false(),
+    submit = always_true(),
     value = carParkTimer() / 0.6826666666666667,
     lower_is_better = true,
     format = "MILLISECS"
@@ -126,14 +127,15 @@ leaderboard(
     title = "Car Park - REAR WHEELS",
     description = "Complete the Undercover park job or Car park practice WITH REAR WHEEL cheat.",
     start = (
+        inGame() == 1 &&
         noFilmDirector() &&
         practiceDemonstrationMode() == 0 &&
-        carParkTimer() == 0 &&
         (missionId() == 0xAD || missionId() == 0xAE) &&
-        rearWheelCheat() == 1
+        rearWheelCheat() == 1 &&
+        prev(completed()) == 0 && completed() == 1
     ),
-    cancel = inGame() == 0,
-    submit = prev(completed()) == 0 && completed() == 1,
+    cancel = always_false(),
+    submit = always_true(),
     value = carParkTimer() / 0.6826666666666667,
     lower_is_better = true,
     format = "MILLISECS"
@@ -352,13 +354,14 @@ leaderboard(
     title = "The President's Run - Hard - Speedrun",
     description = "Complete The President's Run as fast as possible on hardest difficulty",
     start = (
+        inGame() == 1 &&
         withMissionCheatProtection() &&
         copsDifficulty() == 2 &&
         missionId() == 0x2C &&
-        missionTimer() == 0
+        missionScriptIndicatesSuccess()
     ),
-    cancel = inGame() == 0,
-    submit = missionScriptIndicatesSuccess(),
+    cancel = always_false(),
+    submit = always_true(),
     value = missionTimer() / 163.84,
     lower_is_better = true,
     format = "MILLISECS"
@@ -368,13 +371,14 @@ leaderboard(
     title = "The President's Run - Hard - Least damage",
     description = "Complete The President's Run with least damage possible on hardest difficulty",
     start = (
+        inGame() == 1 &&
         withMissionCheatProtection() &&
         copsDifficulty() == 2 &&
         missionId() == 0x2C &&
-        missionTimer() == 0
+        missionScriptIndicatesSuccess()
     ),
-    cancel = inGame() == 0,
-    submit = missionScriptIndicatesSuccess(),
+    cancel = always_false(),
+    submit = always_true(),
     value = playerDamage(),
     lower_is_better = true,
     format = "VALUE"
@@ -566,9 +570,9 @@ function checkpointDrivingGame(
     leaderboard(
         title = format("{0}", title),
         description = format("Complete {0} driving game", title),
-        start = startConditions && missionTimer() == 0,
-        cancel = inGame() == 0,
-        submit = finishConditions,
+        start = inGame() == 1 && startConditions && finishConditions,
+        cancel = always_false(),
+        submit = always_true(),
         value = missionTimer() / 163.84,
         lower_is_better = true,
         format = "MILLISECS"
@@ -669,9 +673,9 @@ function trailblazerDrivingGame(title, id, badge, missionId, points = 5) {
     leaderboard(
         title = format("Trailblazer: {0}", title),
         description = format("Complete Trailblazer: {0} driving game", title),
-        start = startConditions && missionTimer() == 0,
-        cancel = inGame() == 0,
-        submit = finishConditions,
+        start = inGame() == 1 && startConditions && finishConditions,
+        cancel = always_false(),
+        submit = always_true(),
         value = missionTimer() / 163.84,
         lower_is_better = false,
         format = "MILLISECS"
@@ -785,9 +789,9 @@ function survivalDrivingGame(title, badge, missionId, requiredTimeSeconds, requi
     leaderboard(
         title = format("Survival: {0}", title),
         description = format("Complete Survival: {0} driving game on hard Cop difficulty", title),
-        start = startConditions && missionTimer() == 0,
-        cancel = inGame() == 0,
-        submit = missionControl() == 1,
+        start = inGame() == 1 && startConditions && missionControl() == 1,
+        cancel = always_false(),
+        submit = always_true(),
         value = missionTimer() / 163.84,
         lower_is_better = false,
         format = "MILLISECS"
