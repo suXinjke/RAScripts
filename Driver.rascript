@@ -142,7 +142,7 @@ leaderboard(
 achievement(
     title = "Case for a Key",
     description = "Complete Miami missions: Hide the Evidence -> Case for a Key.",
-    points = 5,
+    points = 10,
     trigger = completedRegularMission(0x38)
 )
 
@@ -156,7 +156,7 @@ achievement(
 achievement(
     title = "A Shipment's Coming In",
     description = "Complete Miami missions: Payback -> A Shipment's Coming In.",
-    points = 5,
+    points = 10,
     trigger = completedRegularMission(0xA)
 )
 
@@ -189,7 +189,7 @@ achievement(
 achievement(
     title = "The Briefcase",
     description = "Complete San Francisco missions: The Casino Job -> The Briefcase.",
-    points = 5,
+    points = 10,
     trigger = completedRegularMission(0x39)
 )
 
@@ -221,7 +221,7 @@ achievement(
 achievement(
     title = "The Chinatown Pick Up",
     description = "Complete San Francisco missions: In the Pickup -> The Chinatown Pick Up.",
-    points = 5,
+    points = 10,
     trigger = completedRegularMission(0x15)
 )
 
@@ -260,7 +260,7 @@ achievement(
 achievement(
     title = "Maya",
     description = "Complete Los Angeles missions: Lucky to the Doc's -> Maya.",
-    points = 5,
+    points = 10,
     id = 84463,
     badge = "91792",
     trigger = completedRegularMission(0x1D)
@@ -292,14 +292,14 @@ achievement(
 achievement(
     title = "The Accident",
     description = "Complete New York missions: Grand Central Station Switch -> The Accident.",
-    points = 5,
+    points = 10,
     trigger = completedRegularMission(0x24)
 )
 
 achievement(
     title = "The Rescue",
     description = "Complete New York missions: Luther's Heap O' Junk -> The Rescue.",
-    points = 5,
+    points = 10,
     id = 84649,
     badge = "92223",
     trigger = completedRegularMission(0x25)
@@ -603,8 +603,8 @@ checkpointDrivingGame(
     title = "Checkpoints: San Francisco 2",
     badge = "91359",
     missionId = 0x53,
-    requiredTimeSeconds = 41,
-    requiredTimeDescription = "41 seconds"
+    requiredTimeSeconds = 42,
+    requiredTimeDescription = "42 seconds"
 )
 
 checkpointDrivingGame(
@@ -643,7 +643,7 @@ checkpointDrivingGame(
 // TRAILBLAZER DRIVING GAMES
 // =========================
 
-function trailblazerDrivingGame(title, id, badge, missionId) {
+function trailblazerDrivingGame(title, id, badge, missionId, points = 5) {
 
     startConditions = (
         noFilmDirector() &&
@@ -656,7 +656,7 @@ function trailblazerDrivingGame(title, id, badge, missionId) {
     achievement(
         title = format("Trailblazer: {0}", title),
         description = format("Collect all 100 flags in Trailblazer: {0} driving game.", title),
-        points = 5,
+        points = points,
         id = id,
         badge = badge,
         trigger = (
@@ -682,7 +682,8 @@ trailblazerDrivingGame(
     title = "Miami 1",
     id = 84050,
     badge = "91360",
-    missionId = 0x5a
+    missionId = 0x5a,
+    points = 10
 )
 
 trailblazerDrivingGame(
@@ -710,7 +711,8 @@ trailblazerDrivingGame(
     title = "Los Angeles 1",
     id = 84473,
     badge = "91851",
-    missionId = 0x5e
+    missionId = 0x5e,
+    points = 10
 )
 
 trailblazerDrivingGame(
@@ -841,8 +843,8 @@ checkpointDrivingGame(
     title = "Time Trial: Dirt Track 2",
     badge = "91857",
     missionId = 0x98,
-    requiredTimeSeconds = 80,
-    requiredTimeDescription = "1 minute 20 seconds",
+    requiredTimeSeconds = 81,
+    requiredTimeDescription = "1 minute 21 seconds",
     dirtTrack = true
 )
 
@@ -926,4 +928,4 @@ function dirtTrailing(missionId, targetScore, index) {
 
 dirtTrailing(0xAA, 200, 1)
 dirtTrailing(0xAB, 165, 2)
-dirtTrailing(0xAC, 350, 3)
+dirtTrailing(0xAC, 330, 3)
