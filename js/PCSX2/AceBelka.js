@@ -1,6 +1,4 @@
-import { AchievementSet, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, measuredIf, addHits, once } from '@cruncheevos/core'
-
-import { makeLookup } from '../common.js'
+import { AchievementSet, RichPresence, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, measuredIf, addHits, once } from '@cruncheevos/core'
 
 Number.prototype.paddedMissionNumber = function () {
   return (this + 1).toString().padStart(2, '0')
@@ -2502,7 +2500,8 @@ for (const [mission, title, points, begin, end] of [
 }
 
 // Campaign / Free Mission (DIFFICULTY) | 📍 Mission | ✈️ Craft | SCORE: %d
-if (process.argv.includes('rich')) {
+export const rich = (() => {
+
   const regions = ['pal', 'ntsc']
   const missionFree = {
     0x00: 'Glacial Skies',
@@ -2538,184 +2537,157 @@ if (process.argv.includes('rich')) {
     0x1E: 'Gauntlet'
   }
 
-  const missionFreeFlight = Object.fromEntries(
-    Object.entries(missionFree).map(
-      ([key, value]) => [Number(key) + 0x4E, value.replace(/ \(.*\)$/, '')]
-    )
-  )
+  return RichPresence({
+    lookupDefaultParameters: {
+      compressRanges: false,
+      keyFormat: 'hex'
+    },
+    lookup: {
+      Difficulty: {
+        values: {
+          0: 'VERY EASY',
+          1: 'EASY',
+          2: 'NORMAL',
+          3: 'HARD',
+          4: 'EXPERT',
+          5: 'ACE',
+        }
+      },
+      MissionC: {
+        values: Object.fromEntries(
+          Object.entries(missionMeta).filter(x => !x[1].isNotCampaign).map(([key, value]) => [key, value.title])
+        )
+      },
+      MissionF: {
+        values: missionFree
+      },
+      MissionFF: {
+        values: Object.fromEntries(
+          Object.entries(missionFree).map(
+            ([key, value]) => [Number(key) + 0x4E, value.replace(/ \(.*\)$/, '')]
+          )
+        )
+      },
+      Craft: {
+        values: {
+          0x00: 'J35J Draken',
+          0x01: 'Gripen C',
+          0x02: 'Typhoon',
+          0x03: 'Tornado GR.4',
+          0x04: 'F-4E Phantom II',
+          0x05: 'F-15C Eagle',
+          0x06: 'F-15E Strike Eagle',
+          0x07: 'F-15S/MTD',
+          0x08: 'F/A-18C Hornet',
+          0x09: 'EA-18G',
+          0x0A: 'F-16C Fighting Falcon',
+          0x0B: 'F-16XL',
+          0x0C: 'F-117A Nighthawk',
+          0x0D: 'F/A-22A Raptor',
+          0x0E: 'F-35C',
+          0x0F: 'F-5E Tiger II',
+          0x10: 'F-20A Tigershark',
+          0x11: 'X-29A',
+          0x12: 'F-14D Super Tomcat',
+          0x13: 'YF-23A Black Widow II',
+          0x14: 'EA-6B Prowler',
+          0x15: 'A-10A Thunderbolt II',
+          0x16: 'Mirage 2000D',
+          0x17: 'Rafale M',
+          0x18: 'Su-27 Flanker',
+          0x19: 'Su-32 Strike Flanker',
+          0x1A: 'Su-37 Terminator',
+          0x1B: 'Su-47 Berkut',
+          0x1C: 'MiG-21bis Fishbed',
+          0x1D: 'MiG-29A Fulcrum',
+          0x1E: 'MiG-31 Foxhound',
+          0x1F: 'F-1',
+          0x20: 'F-2A',
+          0x21: 'X-02 Wyvern',
+          0x22: 'ADF-01 FALKEN',
+          0x23: 'ADFX-01 Morgan',
+        }
+      }
+    },
 
-  const craftMap = {
-    0x00: 'J35J Draken',
-    0x01: 'Gripen C',
-    0x02: 'Typhoon',
-    0x03: 'Tornado GR.4',
-    0x04: 'F-4E Phantom II',
-    0x05: 'F-15C Eagle',
-    0x06: 'F-15E Strike Eagle',
-    0x07: 'F-15S/MTD',
-    0x08: 'F/A-18C Hornet',
-    0x09: 'EA-18G',
-    0x0A: 'F-16C Fighting Falcon',
-    0x0B: 'F-16XL',
-    0x0C: 'F-117A Nighthawk',
-    0x0D: 'F/A-22A Raptor',
-    0x0E: 'F-35C',
-    0x0F: 'F-5E Tiger II',
-    0x10: 'F-20A Tigershark',
-    0x11: 'X-29A',
-    0x12: 'F-14D Super Tomcat',
-    0x13: 'YF-23A Black Widow II',
-    0x14: 'EA-6B Prowler',
-    0x15: 'A-10A Thunderbolt II',
-    0x16: 'Mirage 2000D',
-    0x17: 'Rafale M',
-    0x18: 'Su-27 Flanker',
-    0x19: 'Su-32 Strike Flanker',
-    0x1A: 'Su-37 Terminator',
-    0x1B: 'Su-47 Berkut',
-    0x1C: 'MiG-21bis Fishbed',
-    0x1D: 'MiG-29A Fulcrum',
-    0x1E: 'MiG-31 Foxhound',
-    0x1F: 'F-1',
-    0x20: 'F-2A',
-    0x21: 'X-02 Wyvern',
-    0x22: 'ADF-01 FALKEN',
-    0x23: 'ADFX-01 Morgan',
-  }
+    displays: ({ lookup }) =>
+      regions.flatMap(region => {
+        const c = codeFor(region)
+        const atMissionC = lookup.MissionC.at(`0xX` + c.address.campaignMissionId.toString(16).toUpperCase())
+        const atMissionF = lookup.MissionF.at(`0xX` + c.address.freeMissionId.toString(16).toUpperCase())
+        const atMissionFF = lookup.MissionFF.at(`0xX` + c.address.freeMissionId.toString(16).toUpperCase())
+        const atCraftC = lookup.Craft.at(`0xX` + c.address.campaignCraftId.toString(16).toUpperCase())
+        const atCraftF = lookup.Craft.at(`0xX` + c.address.freeCraftId.toString(16).toUpperCase())
+        const atDifficultyC = lookup.Difficulty.at(`0xX` + c.address.campaignMissionDifficulty.toString(16).toUpperCase())
+        const atDifficultyF = lookup.Difficulty.at(`0xX` + c.address.freeMissionDifficulty.toString(16).toUpperCase())
 
-  const difficultyLookup = makeLookup('Difficulty', 'X', {
-    0: 'VERY EASY',
-    1: 'EASY',
-    2: 'NORMAL',
-    3: 'HARD',
-    4: 'EXPERT',
-    5: 'ACE',
+        return [
+          [
+            $(
+              c.regionCheck,
+              c.missionTypeIsFree,
+              c.isInFreeFlight,
+              c.inBriefing
+            ),
+            `Free Flight | 📍 ${atMissionFF} | Preparations`
+          ],
+
+          [
+            $(
+              c.regionCheck,
+              c.missionTypeIsFree,
+              c.isInFreeFlight,
+              c.inMission
+            ),
+            `Free Flight | 📍 ${atMissionFF} | ✈️ ${atCraftF}`
+          ],
+
+          [
+
+            $(
+              c.regionCheck,
+              c.missionTypeIsCampaign,
+              orNext(
+                c.inMission,
+                c.inDebriefing
+              )
+            ),
+            `Campaign (${atDifficultyC}) | 📍 ${atMissionC} | ✈️ ${atCraftC}`
+          ],
+
+          [
+            $(
+              c.regionCheck,
+              c.missionTypeIsCampaign,
+              c.inBriefing
+            ),
+            `Campaign (${atDifficultyC}) | 📍 ${atMissionC} | Briefing and Preparations`
+          ],
+
+          [
+            $(
+              c.regionCheck,
+              c.missionTypeIsFree,
+              orNext(
+                c.inMission,
+                c.inDebriefing
+              )
+            ),
+            `Free Mission (${atDifficultyF}) | 📍 ${atMissionF} | ✈️ ${atCraftF}`
+          ],
+
+          [
+            $(
+              c.regionCheck,
+              c.missionTypeIsFree,
+              c.inBriefing
+            ),
+            `Free Mission (${atDifficultyF}) | 📍 ${atMissionF} | Briefing and Preparations`
+          ]
+        ]
+      }).concat('Playing Ace Combat Zero')
+
   })
-
-  const missionIdToTitle = Object.fromEntries(
-    Object.entries(missionMeta).filter(x => !x[1].isNotCampaign).map(([key, value]) => [key, value.title])
-  )
-  const missionC = makeLookup('MissionC', 'X', missionIdToTitle)
-  const missionF = makeLookup('MissionF', 'X', missionFree)
-  const missionFF = makeLookup('MissionFF', 'X', missionFreeFlight)
-  const craft = makeLookup('Craft', 'X', craftMap)
-
-  /** @type {Array<CodeForCallbackTemplate<[string, import('@cruncheevos/core').ConditionBuilder]>>} */
-  const displayCodes = [
-    c => [
-      [
-        `Free Flight`,
-        `📍 ${missionFF.point(c.address.freeMissionId)}`,
-        `Preparations`
-      ].join(' | '),
-
-      $(
-        c.regionCheck,
-        c.missionTypeIsFree,
-        c.isInFreeFlight,
-        c.inBriefing
-      )
-    ],
-
-    c => [
-      [
-        `Free Flight`,
-        `📍 ${missionFF.point(c.address.freeMissionId)}`,
-        `✈️ ${craft.point(c.address.freeCraftId)}`
-      ].join(' | '),
-
-      $(
-        c.regionCheck,
-        c.missionTypeIsFree,
-        c.isInFreeFlight,
-        c.inMission
-      )
-    ],
-
-    c => [
-
-      [
-        `Campaign (${difficultyLookup.point(c.address.campaignMissionDifficulty)})`,
-        `📍 ${missionC.point(c.address.campaignMissionId)}`,
-        `✈️ ${craft.point(c.address.campaignCraftId)}`
-      ].join(' | '),
-
-      $(
-        c.regionCheck,
-        c.missionTypeIsCampaign,
-        orNext(
-          c.inMission,
-          c.inDebriefing
-        )
-      )
-    ],
-
-    c => [
-      [
-        `Campaign (${difficultyLookup.point(c.address.campaignMissionDifficulty)})`,
-        `📍 ${missionC.point(c.address.campaignMissionId)}`,
-        `Briefing and Preparations`
-      ].join(' | '),
-
-      $(
-        c.regionCheck,
-        c.missionTypeIsCampaign,
-        c.inBriefing
-      )
-    ],
-
-    c => [
-      [
-        `Free Mission (${difficultyLookup.point(c.address.freeMissionDifficulty)})`,
-        `📍 ${missionF.point(c.address.freeMissionId)}`,
-        `✈️ ${craft.point(c.address.freeCraftId)}`
-      ].join(' | '),
-
-      $(
-        c.regionCheck,
-        c.missionTypeIsFree,
-        orNext(
-          c.inMission,
-          c.inDebriefing
-        )
-      )
-    ],
-
-    c => [
-      [
-        `Free Mission (${difficultyLookup.point(c.address.freeMissionDifficulty)})`,
-        `📍 ${missionF.point(c.address.freeMissionId)}`,
-        `Briefing and Preparations`
-      ].join(' | '),
-
-      $(
-        c.regionCheck,
-        c.missionTypeIsFree,
-        c.inBriefing
-      )
-    ]
-  ]
-
-  let result = [
-    difficultyLookup.rich,
-    missionC.rich,
-    missionF.rich,
-    missionFF.rich,
-    craft.rich
-  ].join('\n')
-
-  result += `\n`
-  result += `Display:\n`
-  for (const region of regions) {
-    const c = codeFor(region)
-
-    for (const cb of displayCodes) {
-      const [message, codes] = cb(c)
-      result += `?${[...codes].join('_')}?${message}\n`
-    }
-  }
-  result += `Playing Ace Combat Zero`
-  console.log(result)
-}
+})()
 
 export default set
