@@ -1,9 +1,8 @@
 // @ts-check
 
-import { AchievementSet, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, once, measuredIf } from '@cruncheevos/core'
+import { AchievementSet, ConditionBuilder, RichPresence, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, once, measuredIf } from '@cruncheevos/core'
 
 import * as lists from './lists.js'
-import { makeLookup } from '../../common.js'
 
 const gameType = {
   mission: 0,
@@ -1316,107 +1315,107 @@ set.addAchievement({
   })
 })
 
-// This feels messy, I don't like it
-if (process.argv.includes('rich')) {
-  /** @type {Region[]} */
-  const regions = ['us', 'eu', 'fr', 'de', 'it', 'sp']
-
-  const city = makeLookup('City', 'X', {
-    0: 'Chicago',
-    1: 'Havana',
-    2: 'Las Vegas',
-    3: 'Rio'
-  })
-
-  const drivingGame = makeLookup('DrivingGame', 'H', {
-    0x03: 'Quick Chase',
-    0x04: 'Quick Getaway',
-    0x05: 'Gate Race',
-    0x06: 'Checkpoint',
-    0x07: 'Trailblazer',
-    0x08: 'Survival',
-    0x0D: 'Secret Track',
-  })
-
-  const mission = makeLookup('Mission', 'X', missionTitles)
-
-  const policeEmoji = makeLookup('PoliceEmoji', 'X', {
-    1: '🚨'
-  })
-
-  /** @type {Array<CodeForCallbackTemplate<[string, import('@cruncheevos/core').ConditionBuilder]>>} */
-  const displayCodes = [
-    c => [`Directing a movie in ${city.point(c.address.city)}`, $(
-      c.regionCheck,
-      c.gameStateIs(gameState.director)
-    )],
-
-    c => [`Watching replay in ${city.point(c.address.city)}`, $(
-      c.regionCheck,
-      c.gameStateIs(gameState.replay)
-    )],
-
-    c => [
-      policeEmoji.point(c.address.chased) +
-      `Cruising in ${mission.point(c.address.mission)}`
-      + policeEmoji.point(c.address.chased),
-      $(
-        c.regionCheck,
-        c.playingTheGame,
-        c.frameCountGreaterThan(2),
-        c.gameTypeIdIs(gameType.takeADrive)
-      )],
-
-    c => [
-      `Playing Driving Games: ${drivingGame.point(c.address.gameType)} - ${mission.point(c.address.mission)}`,
-      $(
-        c.regionCheck,
-        c.playingTheGame,
-        c.frameCountGreaterThan(2),
-        orNext(
-          c.gameTypeIdIs(gameType.pursuit),
-          c.gameTypeIdIs(gameType.getaway),
-          c.gameTypeIdIs(gameType.gateRace),
-          c.gameTypeIdIs(gameType.checkpoint),
-          c.gameTypeIdIs(gameType.trailblazer),
-          c.gameTypeIdIs(gameType.survival),
-          c.gameTypeIdIs(gameType.secret),
-        )
-      )],
-
-    c => [
-      policeEmoji.point(c.address.chased) +
-      `Undercover in ${city.point(c.address.city)} and dealing with... `
-      + mission.point(c.address.mission)
-      + policeEmoji.point(c.address.chased),
-      $(
-        c.regionCheck,
-        c.playingTheGame,
-        c.gameTypeIdIs(gameType.mission)
-      )]
-  ]
-
-  let result = [
-    city.rich,
-    mission.rich,
-    drivingGame.rich,
-    policeEmoji.rich,
-  ].join('\n')
-
-  result += '\n'
-
-  result += `Display:\n`
-  for (const region of regions) {
-    const c = codeFor(region)
-
-    for (const cb of displayCodes) {
-      const [message, codes] = cb(c)
-      result += `?${[...codes].join('_')}?${message}\n`
+/** @type {Region[]} */
+const regions = ['us', 'eu', 'fr', 'de', 'it', 'sp']
+export const rich = RichPresence({
+  lookupDefaultParameters: {
+    compressRanges: false,
+    keyFormat: 'hex'
+  },
+  lookup: {
+    City: {
+      values: {
+        0: 'Chicago',
+        1: 'Havana',
+        2: 'Las Vegas',
+        3: 'Rio'
+      }
+    },
+    Mission: {
+      values: missionTitles
+    },
+    DrivingGame: {
+      values: {
+        0x03: 'Quick Chase',
+        0x04: 'Quick Getaway',
+        0x05: 'Gate Race',
+        0x06: 'Checkpoint',
+        0x07: 'Trailblazer',
+        0x08: 'Survival',
+        0x0D: 'Secret Track',
+      }
+    },
+    PoliceEmoji: {
+      values: { 1: '🚨' }
     }
-  }
+  },
 
-  result += `Playing Driver 2`
-  console.log(result)
-}
+  displays: ({ lookup }) => regions.flatMap(region => {
+    const c = codeFor(region)
+    const atCity = lookup.City.at(`0xX` + c.address.city.toString(16).toUpperCase())
+    const atDrivingGame = lookup.DrivingGame.at(`0xH` + c.address.gameType.toString(16).toUpperCase())
+    const atMission = lookup.Mission.at(`0xX` + c.address.mission.toString(16).toUpperCase())
+    const atPoliceEmoji = lookup.PoliceEmoji.at(`0xX` + c.address.chased.toString(16).toUpperCase())
+
+    return /** @type Array<string | [ConditionBuilder, string]> */ ([
+      [
+        $(
+          c.regionCheck,
+          c.gameStateIs(gameState.director)
+        ),
+        `Directing a movie in ${atCity}`
+      ],
+
+      [
+        $(
+          c.regionCheck,
+          c.gameStateIs(gameState.replay)
+        ),
+        `Watching replay in ${atCity}`
+      ],
+
+      [
+        $(
+          c.regionCheck,
+          c.playingTheGame,
+          c.frameCountGreaterThan(2),
+          c.gameTypeIdIs(gameType.takeADrive)
+        ),
+        atPoliceEmoji +
+        `Cruising in ${atMission}`
+        + atPoliceEmoji
+      ],
+
+      [
+        $(
+          c.regionCheck,
+          c.playingTheGame,
+          c.frameCountGreaterThan(2),
+          orNext(
+            c.gameTypeIdIs(gameType.pursuit),
+            c.gameTypeIdIs(gameType.getaway),
+            c.gameTypeIdIs(gameType.gateRace),
+            c.gameTypeIdIs(gameType.checkpoint),
+            c.gameTypeIdIs(gameType.trailblazer),
+            c.gameTypeIdIs(gameType.survival),
+            c.gameTypeIdIs(gameType.secret),
+          ),
+        ),
+        `Playing Driving Games: ${atDrivingGame} - ${atMission}`
+      ],
+
+      [
+        $(
+          c.regionCheck,
+          c.playingTheGame,
+          c.gameTypeIdIs(gameType.mission)
+        ),
+        atPoliceEmoji +
+        `Undercover in ${atCity} and dealing with... ${atMission}`
+        + atPoliceEmoji
+      ]
+    ])
+  }).concat(`Playing Driver 2`)
+})
 
 export default set
