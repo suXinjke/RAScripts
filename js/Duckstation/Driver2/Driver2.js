@@ -616,8 +616,7 @@ function missionAchievement(
 
 const set = new AchievementSet({ gameId: 11588, title: 'Driver 2: The Wheelman Is Back' })
 
-// TODO: Does time need correction for other region?
-missionAchievement(0x01, 5, {
+missionAchievement(0x01, 10, {
   title: "The Wheelman is Back",
   description: "drive through Chicago traffic without crashing into anything, and get into Jones' car with 1 minute 20 seconds to spare",
   startConditions: c => $(c.target.flagsChanged(0, 0x40000201, 0x2)),
@@ -638,7 +637,7 @@ missionAchievement(0x02, 2, {
     c.carData.forTarget.gotSeriousDamage
   )
 })
-missionAchievement(0x03, 3, { title: "Follow That Train, Tanner!", type: 'progression' })
+missionAchievement(0x03, 5, { title: "Follow That Train, Tanner!", type: 'progression' })
 missionAchievement(0x04, 3, {
   title: 'Totally Not Suspicious',
   description: 'keep the reasonable distance to the target at all times',
@@ -650,7 +649,7 @@ missionAchievement(0x04, 3, {
     c.proximityBar.isGreaterThan(10000 + 3500),
   )
 })
-missionAchievement(0x05, 10, {
+missionAchievement(0x05, 25, {
   title: 'Warehouse Retreat',
   description: 'on Hard cop difficulty, get to your apartment without leaving your car',
   startConditions: c => $(
@@ -681,7 +680,8 @@ set.addLeaderboard({
 
       return c.hasCompletedMissionInGame({
         missionId: 0x07,
-        gameTypeId: gameType.mission
+        gameTypeId: gameType.mission,
+        deltaFix: false
       })
     }),
     submit: '1=1',
@@ -701,9 +701,9 @@ missionAchievement(0x0a, 3, {
 })
 missionAchievement(0x0b, 10, { title: "Hard Truck", type: 'progression' })
 missionAchievement(0x0d, 10, { title: "Bombing Run", type: 'progression' })
-missionAchievement(0x0e, 10, { title: "Quantum Clue", type: 'progression' })
+missionAchievement(0x0e, 25, { title: "Quantum Clue", type: 'progression' })
 missionAchievement(0x0f, 5, { title: 'Ferry Impressive Jump', type: 'progression' })
-missionAchievement(0x10, 5, {
+missionAchievement(0x10, 10, {
   title: 'To the Docks',
   description: 'on Hard cop difficulty, get to the docks without leaving your car',
   startConditions: c => $(
@@ -718,7 +718,7 @@ missionAchievement(0x11, 5, {
   startConditions: c => $(c.target.flagsChanged(2, 0x0, 0x201)),
   resetConditions: c => $(c.hasAlertedCops)
 })
-missionAchievement(0x12, 10, {
+missionAchievement(0x12, 5, {
   title: 'Stay Back From Alcohol',
   description: "Tanner, you're breaking the car. Tail Jericho while leaving a trail of accidents and getting your car damaged. Trigger icon will appear when you've damaged your car enough.",
   startConditions: c => $(
@@ -738,7 +738,7 @@ missionAchievement(0x16, 3, {
   resetConditions: c => $(c.carData.byIndex(1).gotDamage)
 })
 missionAchievement(0x17, 5, { title: 'Boomerang', type: 'progression' })
-missionAchievement(0x18, 3, {
+missionAchievement(0x18, 5, {
   title: 'Limo Getaway',
   description: "escape to safehouse in style: on a Limo!",
   triggerDecor: true,
@@ -783,7 +783,7 @@ missionAchievement(0x1e, 5, {
   resetConditions: c => $(c.hasAlertedCops)
 })
 
-missionAchievement(0x1f, 3, {
+missionAchievement(0x1f, 5, {
   title: 'Crazy Bus',
   description: 'Finish the mission in exact same bus you used to crash the cars with',
   additionalConditions: c => $(
@@ -794,8 +794,8 @@ missionAchievement(0x1f, 3, {
     ])
   )
 })
-missionAchievement(0x20, 3, { title: 'Underundercover', type: 'progression' })
-missionAchievement(0x21, 3, {
+missionAchievement(0x20, 5, { title: 'Underundercover', type: 'progression' })
+missionAchievement(0x21, 5, {
   title: 'Slippery Business',
   description: 'Bring the limo to the mansion undamaged',
   customConditions: c => $(
@@ -824,7 +824,7 @@ missionAchievement(0x22, 5, {
 missionAchievement(0x23, 5, { title: 'Drive, Bomb, Jump', type: 'progression' })
 missionAchievement(0x25, 25, { title: "Worst Day for Jones", type: 'progression' })
 missionAchievement(0x26, 25, { title: 'Deadly Camber', type: 'progression' })
-missionAchievement(0x27, 5, {
+missionAchievement(0x27, 10, {
   title: 'Take Some Backup',
   description: 'complete the mission on Hard Cop difficulty',
   additionalConditions: c => $(c.isHardCopDifficulty),
@@ -833,12 +833,12 @@ missionAchievement(0x27, 5, {
 missionAchievement(0x28, 10, { title: 'In Which Lenny Finally Gets Caught', type: 'win_condition' })
 
 lists.pursuits.forEach((x, i) => {
-  const [missionId, title] = x
+  const [missionId, points, title] = x
 
   set.addAchievement({
     title: `Quick Chase: ${title}`,
     description: `Takedown the escaping car in Quick Chase - ${title} driving game`,
-    points: 5,
+    points,
     badge: b(`Chase${i + 1}`),
     conditions: multiRegionalConditions(region => {
       const c = codeFor(region)
@@ -929,7 +929,7 @@ lists.gateRaces.forEach((x, i) => {
 set.addAchievement({
   title: `The Perfect Gate`,
   description: `Get through all 100 gates clean in any of Gate Race driving games`,
-  points: 10,
+  points: 25,
   badge: b('Gate100'),
   conditions: multiRegionalConditions(region => {
     const c = codeFor(region)
@@ -1006,13 +1006,13 @@ set.addAchievement({
 })
 
 lists.checkpointRaces.forEach((x, i) => {
-  const [missionId, timeTarget, title] = x
+  const [missionId, timeTarget, points, title] = x
 
 
   set.addAchievement({
     title: `Checkpoint Race: ${title}`,
     description: `Finish ${title} Checkpoint Race driving game in ${timeTarget} or less`,
-    points: 5,
+    points,
     badge: b(`Check${i + 1}`),
     conditions: multiRegionalConditions(region => {
       const c = codeFor(region)
@@ -1104,7 +1104,7 @@ lists.survivalRaces.forEach((x, i) => {
 })
 
 lists.secretRaces.forEach((x, i) => {
-  const [missionId, targetTime, title, checkLapTime] = x
+  const [missionId, targetTime, points, title, checkLapTime] = x
 
   const checkingLapTime = Boolean(checkLapTime)
   const checkingTotalTime = !checkingLapTime
@@ -1114,7 +1114,7 @@ lists.secretRaces.forEach((x, i) => {
     description: checkLapTime ?
       `Set a lap time of ${targetTime} or less on ${title}` :
       `Set a total time time of ${targetTime} or less on ${title}`,
-    points: 5,
+    points,
     badge: b(`Secret${i + 1}`),
     conditions: multiRegionalConditions(region => {
       const c = codeFor(region)

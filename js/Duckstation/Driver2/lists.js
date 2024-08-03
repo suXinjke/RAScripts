@@ -1,8 +1,8 @@
 export const pursuits = /** @type {const} */ ([
-    [0x46, 'Chicago'],
-    [0x4e, 'Havana'],
-    [0x56, 'Las Vegas'],
-    [0x5e, 'Rio'],
+    [0x46, 10, 'Chicago'],
+    [0x4e, 5, 'Havana'],
+    [0x56, 10, 'Las Vegas'],
+    [0x5e, 10, 'Rio'],
 ])
 
 export const getaways = /** @type {const} */ ([
@@ -39,14 +39,14 @@ export const trailblzers = /** @type {const} */ ([
 ])
 
 export const checkpointRaces = /** @type {const} */ ([
-    [0xc4, '01:29.00', 'Chicago - Downtown'],
-    [0xc5, '00:59.50', 'Chicago - Meigs Field'],
-    [0xcc, '00:58.20', 'Havana - The Docks'],
-    [0xcd, '01:57.00', 'Havana - Old Havana'],
-    [0xd4, '01:17.77', 'Las Vegas - North Vegas'],
-    [0xd5, '01:09.99', 'Las Vegas - Lakeside'],
-    [0xdc, '01:46.50', 'Rio - Lagoa Rodrigo de Freitas'],
-    [0xdd, '01:28.00', 'Rio - Praca da Bandeira'],
+    [0xc4, '01:29.00', 10, 'Chicago - Downtown'],
+    [0xc5, '00:59.50', 5, 'Chicago - Meigs Field'],
+    [0xcc, '00:58.20', 10, 'Havana - The Docks'],
+    [0xcd, '01:57.00', 5, 'Havana - Old Havana'],
+    [0xd4, '01:17.77', 5, 'Las Vegas - North Vegas'],
+    [0xd5, '01:09.99', 5, 'Las Vegas - Lakeside'],
+    [0xdc, '01:46.50', 5, 'Rio - Lagoa Rodrigo de Freitas'],
+    [0xdd, '01:28.00', 5, 'Rio - Praca da Bandeira'],
 ])
 
 export const survivalRaces = /** @type {const} */ ([
@@ -57,8 +57,8 @@ export const survivalRaces = /** @type {const} */ ([
 ])
 
 export const secretRaces = /** @type {const} */ ([
-    [[0x1e0, 0x1e1], '01:30.00', 'Secret Mountain Pass', 'lapTime'],
-    [[0x1e2, 0x1e3], '02:15.00', 'Secret Race Track'],
+    [[0x1e0, 0x1e1], '01:30.00', 10, 'Secret Mountain Pass', 'lapTime'],
+    [[0x1e2, 0x1e3], '02:15.00', 5, 'Secret Race Track'],
 ])
 
 export const secretCars = /** @type {const} */ ([
