@@ -1,4 +1,4 @@
-import '../../common.js'
+import { getParsedSheet as _getSheet } from '../../common.js'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -7,35 +7,9 @@ import * as path from 'path'
  * @typedef {T extends (infer U)[] ? Record<string, U> : T} ArrayToObject
  * **/
 
-const links = JSON.parse(fs.readFileSync(path.join(import.meta.dirname, './links.json')).toString())
 const tmpDir = path.join(import.meta.dirname, 'tmp')
-const forceRefetch = process.argv.includes('refetch')
 
-async function fetchTSV(id) {
-  const shouldRefetch = forceRefetch &&
-    (process.argv.includes(id) || process.argv.includes('all'))
-
-  const filePath = path.join(tmpDir, `${id}.tsv`)
-  if (fs.existsSync(filePath) && shouldRefetch === false) {
-    return fs.readFileSync(filePath).toString()
-  }
-
-  const link = links[id]
-  if (!link) {
-    throw new ReferenceError(`no link ${id} defined`)
-  }
-
-  console.log(`fetching and caching ${id}`)
-  const res = await fetch(link).then(x => x.text())
-
-  fs.writeFileSync(filePath, res)
-  return res
-}
-
-async function getParsedSheet(id) {
-  const tsv = await fetchTSV(id)
-  return tsv.split('\r\n').map(x => x.split('\t')).slice(1)
-}
+const getParsedSheet = (id) => _getSheet(import.meta.dirname, id)
 
 /** @returns {Promise<Record<number, string>} */
 async function makeCars() {

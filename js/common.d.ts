@@ -14,3 +14,5 @@ declare global {
 export function asciiToNumberLE(str: string): number
 
 export function givenRangeOf(start?: number, end?: number): number[]
+
+export function getParsedSheet(rootDir: string, id: string): Promise<string[][]>
