@@ -1,0 +1,10 @@
+{
+  "cars": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR22rAoxEEjVyQBkeVEJYO4C__eOKU3oNDf-Q65teqw3EmRr_NtGyIJlrqKmyaCIX6qah2Y_1WOtHUY/pub?gid=0&single=true&output=tsv",
+  "tracks": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR22rAoxEEjVyQBkeVEJYO4C__eOKU3oNDf-Q65teqw3EmRr_NtGyIJlrqKmyaCIX6qah2Y_1WOtHUY/pub?gid=327910895&single=true&output=tsv",
+  "license": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR22rAoxEEjVyQBkeVEJYO4C__eOKU3oNDf-Q65teqw3EmRr_NtGyIJlrqKmyaCIX6qah2Y_1WOtHUY/pub?gid=1604339521&single=true&output=tsv",
+  "polyphony": "https://docs.google.com/spreadsheets/d/1TkrwIKqCSiTopj4Sg7wg4eyZQUYBCyQDzx9Wvuc2E2I/pub?gid=1391998453&single=true&output=tsv",
+  "events": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR22rAoxEEjVyQBkeVEJYO4C__eOKU3oNDf-Q65teqw3EmRr_NtGyIJlrqKmyaCIX6qah2Y_1WOtHUY/pub?gid=225087029&single=true&output=tsv",
+  "subEvents": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR22rAoxEEjVyQBkeVEJYO4C__eOKU3oNDf-Q65teqw3EmRr_NtGyIJlrqKmyaCIX6qah2Y_1WOtHUY/pub?gid=1820369611&single=true&output=tsv",
+  "timeTrial": "https://docs.google.com/spreadsheets/d/1TkrwIKqCSiTopj4Sg7wg4eyZQUYBCyQDzx9Wvuc2E2I/pub?gid=2115121900&single=true&output=tsv",
+  "eventWin": "https://docs.google.com/spreadsheets/d/1TkrwIKqCSiTopj4Sg7wg4eyZQUYBCyQDzx9Wvuc2E2I/pub?gid=136843890&single=true&output=tsv"
+}
