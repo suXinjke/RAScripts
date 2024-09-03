@@ -249,7 +249,7 @@ const codeFor = (region) => {
 
         completedLap: $(
           base_c888,
-          ['', 'Mem', '32bit', base_c888_offset(0xC0), '>', 'Delta', '32bit', base_c888_offset(0xC0)],
+          ['', 'Mem', '32bit', base_c888_offset(0x78), '>', 'Delta', '32bit', base_c888_offset(0x78)],
         ),
 
         finishedPolyphonyTimeTrial: $(
