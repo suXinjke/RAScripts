@@ -106,15 +106,6 @@ function stringTimeToDriverTime(str = '') {
   return totalMilliseconds * 3
 }
 
-const asciiTo32Bit = (ascii = '') => {
-  if (ascii.length !== 4) {
-    throw new Error('length must be 4')
-  }
-
-  const res = ascii.split('').map(x => x.charCodeAt(0).toString(16)).reverse().join('')
-  return parseInt(res, 16)
-}
-
 const b = (fileName = '') => process.argv.includes('badge') ? `local\\\\driver\\\\${fileName}.png` : undefined
 
 /** @typedef {'us' | 'eu' | 'fr' | 'de' | 'it' | 'sp'} Region */
@@ -235,12 +226,12 @@ const codeFor = (region) => {
   }
 
   const regionIs = {
-    us: $.one(['', 'Mem', '32bit', 0x10848, '=', 'Value', '', asciiTo32Bit('1.61')]),
-    eu: $.one(['', 'Mem', '32bit', 0x10848, '=', 'Value', '', asciiTo32Bit('9.93')]),
-    fr: $.one(['', 'Mem', '32bit', 0x108fc, '=', 'Value', '', asciiTo32Bit('9.94')]),
-    de: $.one(['', 'Mem', '32bit', 0x108f8, '=', 'Value', '', asciiTo32Bit('9.95')]),
-    it: $.one(['', 'Mem', '32bit', 0x10884, '=', 'Value', '', asciiTo32Bit('9.96')]),
-    sp: $.one(['', 'Mem', '32bit', 0x108c4, '=', 'Value', '', asciiTo32Bit('9.97')]),
+    us: $.str('1.61', (s, v) => $(['', 'Mem', s, 0x10848, '=', ...v])),
+    eu: $.str('9.93', (s, v) => $(['', 'Mem', s, 0x10848, '=', ...v])),
+    fr: $.str('9.94', (s, v) => $(['', 'Mem', s, 0x108fc, '=', ...v])),
+    de: $.str('9.95', (s, v) => $(['', 'Mem', s, 0x108f8, '=', ...v])),
+    it: $.str('9.96', (s, v) => $(['', 'Mem', s, 0x10884, '=', ...v])),
+    sp: $.str('9.97', (s, v) => $(['', 'Mem', s, 0x108c4, '=', ...v])),
   }
 
   const regionCheck = $(

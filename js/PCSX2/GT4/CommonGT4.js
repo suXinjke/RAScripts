@@ -5,7 +5,6 @@ import {
   AchievementSet, Condition, ConditionBuilder, define as $,
   andNext, orNext, resetIf, trigger, pauseIf
 } from '@cruncheevos/core'
-import { asciiToNumberLE } from '../../common.js'
 import codegen from './codegen.js'
 
 /**
@@ -120,10 +119,10 @@ export const stat = (() => {
   return {
     root,
 
-    inGTModeProject: $(
+    inGTModeProject: $.str('gtmo', (s, v) => $(
       root,
-      ['', 'Mem', '32bit', 0x3A3BC, '=', 'Value', '', asciiToNumberLE('gtmo')]
-    ),
+      ['', 'Mem', s, 0x3A3BC, '=', ...v]
+    )),
 
     gameFlagIs,
     abandonedChampionship: andNext(
@@ -466,8 +465,10 @@ export const main = (() => {
             ['AddAddress', 'Mem', '32bit', 0x622f4c],
             ['', 'Mem', '8bit', 0x38cc0, '=', 'Value', '', unitValue],
 
-            speedBase,
-            ['', 'Mem', '32bit', 0x60, hudIsMini ? '=' : '!=', 'Value', '', asciiToNumberLE('GT4m')],
+            $.str('GT4m', (s, v) => $(
+              speedBase,
+              ['', 'Mem', s, 0x60, hudIsMini ? '=' : '!=', ...v]
+            )),
 
             valueCheck
           )

@@ -3,10 +3,9 @@ import '../../common.js'
 import {
   AchievementSet, define as $, ConditionBuilder,
   addHits, andNext, orNext, resetIf, trigger, pauseIf,
-  RichPresence
+  RichPresence, stringToNumberLE
 } from '@cruncheevos/core'
 import { stat, main, generalProtections, pointerNullCheck, meta, defineIndividualRace } from './CommonGT4.js'
-import { asciiToNumberLE } from '../../common.js'
 import { dumpAll } from './icongen.js'
 
 /**
@@ -690,11 +689,11 @@ export const rich = (() => {
   )
 
   const licenses = {
-    B: { emoji: '🟩', idKey: asciiToNumberLE('l0b0'), },
-    A: { emoji: '🟨', idKey: asciiToNumberLE('l0a0'), },
-    IB: { emoji: '🟦', idKey: asciiToNumberLE('lib0'), },
-    IA: { emoji: '🟥', idKey: asciiToNumberLE('lia0'), },
-    S: { emoji: '🟪', idKey: asciiToNumberLE('l0s0'), },
+    B: { emoji: '🟩', idKey: stringToNumberLE('l0b0')[0], },
+    A: { emoji: '🟨', idKey: stringToNumberLE('l0a0')[0], },
+    IB: { emoji: '🟦', idKey: stringToNumberLE('lib0')[0], },
+    IA: { emoji: '🟥', idKey: stringToNumberLE('lia0')[0], },
+    S: { emoji: '🟪', idKey: stringToNumberLE('l0s0')[0], },
   }
 
   const lapTracker = $(
@@ -782,7 +781,7 @@ export const rich = (() => {
         [
           $(
             stat.gameFlagIs.license,
-            substringEventString.withLast({ flag: '', lvalue: { size: '32bit' }, cmp: '=', rvalue: { type: 'Value', value: asciiToNumberLE('l0c0') } }),
+            substringEventString.withLast({ flag: '', lvalue: { size: '32bit' }, cmp: '=', rvalue: { type: 'Value', value: stringToNumberLE('l0c0')[0] } }),
           ),
           tag`[☕ Coffee Break] ${licenseLetters} ${lookup.Event} 🚗 ${carLookupInGame}`
         ],

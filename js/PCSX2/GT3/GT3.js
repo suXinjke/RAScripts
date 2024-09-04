@@ -1,5 +1,4 @@
 // @ts-check
-import { asciiToNumberLE } from '../../common.js'
 import codegen, { getHash } from './codegen.js'
 import {
   AchievementSet, define as $, ConditionBuilder,
@@ -112,9 +111,9 @@ const codeFor = (region) => {
   }
 
   const regionCheck = $(
-    region === 'ntsc' && ['', 'Mem', '32bit', 0x2a2167, '=', 'Value', '', asciiToNumberLE('9710')],
-    region === 'pal' && ['', 'Mem', '32bit', 0x2a3667, '=', 'Value', '', asciiToNumberLE('5029')],
-    region === 'ntsc_j' && ['', 'Mem', '32bit', 0x29f82f, '=', 'Value', '', asciiToNumberLE('1500')],
+    region === 'ntsc' && $.str('9710', (s, v) => $(['', 'Mem', s, 0x2a2167, '=', ...v])),
+    region === 'pal' && $.str('5029', (s, v) => $(['', 'Mem', s, 0x2a3667, '=', ...v])),
+    region === 'ntsc_j' && $.str('1500', (s, v) => $(['', 'Mem', s, 0x29f82f, '=', ...v])),
   )
 
   return {
@@ -204,10 +203,10 @@ const codeFor = (region) => {
       }
 
       return {
-        inGTModeMenu: $(
+        inGTModeMenu: $.str('gt_m', (s, v) => $(
           base,
-          ['', 'Mem', '32bit', 0x6D, '=', 'Value', '', asciiToNumberLE('gt_m')]
-        ),
+          ['', 'Mem', s, 0x6D, '=', ...v]
+        )),
 
         _8_pauseIfNull: base_8.withLast({ flag: 'PauseIf', cmp: '=', rvalue: { type: 'Value', value: 0 } }),
 
@@ -305,9 +304,11 @@ const codeFor = (region) => {
         },
 
         race: {
-          finished: $(
-            base_c888,
-            ['AndNext', 'Mem', '32bit', base_c888_offset(0xA334), '=', 'Value', '', asciiToNumberLE('@fin')],
+          finished: andNext(
+            $.str('@fin', (s, v,) => $(
+              base_c888,
+              ['', 'Mem', s, base_c888_offset(0xA334), '=', ...v]
+            )),
             base_c888,
             ['', 'Mem', 'Float', base_c888_offset(0xA304), '<', 'Float', '', 0.3],
           ),
@@ -482,35 +483,31 @@ const codeFor = (region) => {
         ),
 
         eventStringFirstLettersAre(letter = '') {
-          const size =
-            letter.length === 1 ? '8bit' :
-              letter.length === 2 ? '16bit' :
-                '32bit'
-
-          return $(
+          return $.str(letter, (s, v) => $(
             base,
-            ['', 'Mem', size, 0x3080C, '=', 'Value', '', asciiToNumberLE(letter)]
-          )
+            ['', 'Mem', s, 0x3080C, '=', ...v]
+          ))
         },
-        pauseIfNotAtleastArcadeHard: $(
-          base,
-          ['AndNext', 'Mem', '16bit', 0x3080C, '!=', 'Value', '', asciiToNumberLE('AH')],
-          base,
-          ['PauseIf', 'Mem', '16bit', 0x3080C, '!=', 'Value', '', asciiToNumberLE('AP')],
+        pauseIfNotAtleastArcadeHard: pauseIf(
+          andNext(
+            ...['AH', 'AP'].map(letters => $.str(letters, (s, v) => $(
+              base,
+              ['', 'Mem', s, 0x3080C, '!=', ...v],
+            )))
+          )
         ),
-        pauseIfNotAtleastArcadeNormal: $(
-          base,
-          ['AndNext', 'Mem', '16bit', 0x3080C, '!=', 'Value', '', asciiToNumberLE('AN')],
-          base,
-          ['AndNext', 'Mem', '16bit', 0x3080C, '!=', 'Value', '', asciiToNumberLE('AH')],
-          base,
-          ['PauseIf', 'Mem', '16bit', 0x3080C, '!=', 'Value', '', asciiToNumberLE('AP')],
+        pauseIfNotAtleastArcadeNormal: pauseIf(
+          andNext(
+            ...['AN', 'AH', 'AP'].map(letters => $.str(letters, (s, v) => $(
+              base,
+              ['', 'Mem', s, 0x3080C, '!=', ...v],
+            )))
+          )
         ),
-
-        arcadeRaceClassIs: (carClass = '') => $(
+        arcadeRaceClassIs: (carClass = '') => $.str(carClass, (s, v) => $(
           base,
-          ['', 'Mem', '16bit', 0x3080C + 2, '=', 'Value', '', asciiToNumberLE(carClass)],
-        )
+          ['', 'Mem', s, 0x3080C + 2, '=', ...v],
+        ))
       }
     })(),
 
