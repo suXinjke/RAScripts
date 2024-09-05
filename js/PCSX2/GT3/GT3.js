@@ -16,6 +16,21 @@ import {
  * @typedef {T extends (infer U)[] ? U : never} ArrayValue
  * **/
 
+function overflow(num = 0) {
+  num = Number(num)
+
+  while (num > 0xFFFFFFFF) {
+    num -= (0xFFFFFFFF + 1)
+  }
+
+  return num
+}
+
+function getHashSum(str = '') {
+  const [half1, half2] = getHash(str)
+  return overflow(half1 + half2)
+}
+
 const set = new AchievementSet({ gameId: 2830, title: 'Gran Turismo 3: A-Spec' })
 
 export const meta = await codegen()
@@ -394,22 +409,22 @@ const codeFor = (region) => {
             ['', 'Mem', '32bit', 0x20 + 0x4, '=', 'Value', '', left],
           )
         },
-        eventHashIsNot(str = '') {
-          const [left, right] = getHash(str)
-
-          return $(
-            base,
-            ['AndNext', 'Mem', '32bit', 0x20, '!=', 'Value', '', right],
-            base,
-            ['', 'Mem', '32bit', 0x20 + 0x4, '!=', 'Value', '', left],
-          )
-        },
         eventHashSumMeasured: $(
           base,
           ['AddSource', 'Mem', '32bit', 0x20],
           base,
           ['Measured', 'Mem', '32bit', 0x20 + 0x4],
         ),
+        eventHashSumIs(str = '') {
+          const sum32bit = getHashSum(str)
+
+          return $(
+            base,
+            ['AddSource', 'Mem', '32bit', 0x20],
+            base,
+            ['', 'Mem', '32bit', 0x20 + 0x4, '=', 'Value', '', sum32bit],
+          )
+        },
         eventHashHalfMeasured: $(
           base,
           ['Measured', 'Mem', '32bit', 0x20]
@@ -1219,16 +1234,14 @@ function makeSet() {
         c.regionCheckPause,
         c.main1.c888_pauseIfNull,
 
-        pauseIf(
-          andNext(
-            c.event.eventHashIsNot('Ggtworld_h_1006'),
-            c.event.eventHashIsNot('Gturbo_h_0002'),
-            c.event.eventHashIsNot('Ggtallstar_h_1004'),
-            c.event.eventHashIsNot('Gjgtc_h_1003'),
-            c.event.eventHashIsNot('Gdream_h_0701'),
-            c.event.eventHashIsNot('Gwind_h_0001'),
-            c.event.eventHashIsNot('Gf1_h_1006'),
-          )
+        orNext(
+          c.event.eventHashSumIs('Ggtworld_h_1006'),
+          c.event.eventHashSumIs('Gturbo_h_0002'),
+          c.event.eventHashSumIs('Ggtallstar_h_1004'),
+          c.event.eventHashSumIs('Gjgtc_h_1003'),
+          c.event.eventHashSumIs('Gdream_h_0701'),
+          c.event.eventHashSumIs('Gwind_h_0001'),
+          c.event.eventHashSumIs('Gf1_h_1006'),
         ),
 
         c.main1.race.firstPlace,
@@ -1248,23 +1261,12 @@ function makeSet() {
 export default makeSet
 
 export const rich = (() => {
-  function overflow(num = 0) {
-    num = Number(num)
-
-    while (num > 0xFFFFFFFF) {
-      num -= (0xFFFFFFFF + 1)
-    }
-
-    return num
-  }
-
   return RichPresence({
     lookupDefaultParameters: { keyFormat: 'hex' },
     lookup: {
       Car: {
         values: Object.values(meta.carLookup).reduce((prev, car) => {
-          const [half1, half2] = getHash(car.id)
-          const sum32bit = overflow(half1 + half2)
+          const sum32bit = getHashSum(car.id)
 
           if (prev[sum32bit]) {
             throw new Error('collision: ' + car.name)
@@ -1283,8 +1285,7 @@ export const rich = (() => {
       Event: {
         values: meta.events.reduce((prev, cur) => {
           cur.races.forEach((s) => {
-            const [half1, half2] = getHash(s.id)
-            const sum32bit = overflow(half1 + half2)
+            const sum32bit = getHashSum(s.id)
 
             if (prev[sum32bit]) {
               throw new Error('collision: ' + s.id)
@@ -1298,8 +1299,7 @@ export const rich = (() => {
       },
       License: {
         values: meta.licenses.reduce((prev, cur) => {
-          const [half1, half2] = getHash(cur.id)
-          const sum32bit = overflow(half1 + half2)
+          const sum32bit = getHashSum(cur.id)
 
           if (prev[sum32bit]) {
             throw new Error('collision: ' + cur.name)
