@@ -1359,7 +1359,7 @@ export const rich = (() => {
           )
             .map(c => c.with({
               flag: 'AddSource',
-              lvalue: { size: '8bit', },
+              lvalue: { size: '8bit', value: c.lvalue.value + 3 },
               cmp: '',
               rvalue: { type: '', size: '', value: 0 }
             }))
@@ -1367,7 +1367,7 @@ export const rich = (() => {
         ) + lookup.License_R.at($(
           c.licenseIsPassed(7 + 8 * 5).with({
             flag: 'Measured',
-            lvalue: { size: '8bit', },
+            lvalue: { size: '8bit', value: c.licenseIsPassed(7 + 8 * 5).lvalue.value + 3 },
             cmp: '',
             rvalue: { type: '', size: '', value: 0 }
           }),
