@@ -92,6 +92,8 @@ function getCarRestrictions(eventName = '') {
   }
 }
 
+const universalReset = $.one(['ResetIf', 'Mem', '32bit', 0x10000c, '=', 'Value', '', 0])
+
 /** @param {Region} region */
 const codeFor = (region) => {
   const offset = (a = 0) => {
@@ -708,28 +710,31 @@ function defineChampionshipWin(e) {
       inputFileName: e.idWithoutDifficulty
     }),
     type: e.id.match(/_[en]$/) ? 'progression' : undefined,
-    conditions: multiRegionalConditions(c => $(
-      c.regionCheckPause,
+    conditions: {
+      ...multiRegionalConditions(c => $(
+        c.regionCheckPause,
 
-      andNext(
-        'once',
-        c.event.eventHashIs(e.races[0].id),
-        c.event.inGame,
-        c.stat.inChampionship
-      ),
+        andNext(
+          'once',
+          c.event.eventHashIs(e.races[0].id),
+          c.event.inGame,
+          c.stat.inChampionship
+        ),
 
-      trigger(
-        c.stat.gotPrizeCar,
-      ),
+        trigger(
+          c.stat.gotPrizeCar,
+        ),
 
-      resetIf(
-        c.main1.inGTModeMenu
-      ),
+        resetIf(
+          c.main1.inGTModeMenu
+        ),
 
-      pauseIf(
-        c.event.applyCarRestrictons(getCarRestrictions(e.id), true)
-      )
-    ))
+        pauseIf(
+          c.event.applyCarRestrictons(getCarRestrictions(e.id), true)
+        )
+      )),
+      core: [universalReset]
+    },
   })
 }
 
@@ -1052,8 +1057,8 @@ function defineTimeTrial(e) {
       task: 'copy',
       inputFileName: `car_${e.carId}`
     }),
-    conditions: multiRegionalConditions((c) => {
-      return $(
+    conditions: {
+      ...multiRegionalConditions((c) => $(
         c.regionCheckPause,
         c.main1.c888_pauseIfNull,
         c.main1.c888_pauseIfChange,
@@ -1074,8 +1079,9 @@ function defineTimeTrial(e) {
           c.main1.completedLap,
           c.main1.lastLapTimeIsLt(e.time)
         ),
-      )
-    }),
+      )),
+      core: [universalReset]
+    },
   }).addLeaderboard({
     title: e.title,
     description: `Arcade Free Run, ${carName}, ${trackName}${restrictions}.`,
@@ -1110,6 +1116,10 @@ function defineTimeTrial(e) {
             ...code.ntsc_j.main1.playerCar.wentOut().arrayOfAlts.map(x => $(code.ntsc_j.regionCheck, x))
           )
         }
+
+        handsShakingFromHowBadThisIs.push(
+          [universalReset.with({ flag: '' })]
+        )
 
         return {
           core: '1=1',
