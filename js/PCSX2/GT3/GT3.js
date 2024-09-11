@@ -538,7 +538,13 @@ const codeFor = (region) => {
     licenseIsPassed(idx = 0) {
       const addr = offset(0x978430) + 0x154 * idx
       return $.one(['', 'Mem', '32bit', addr, '<=', 'Value', '', 2])
-    }
+    },
+
+    // check substring 'menu/qm_gt_event_champ.mbl'
+    inChampionshipRaceStartScreen: $.str('t_ch', (s, v) => $(
+      ['AddAddress', 'Mem', '32bit', offset(0x01fcbf90)],
+      ['', 'Mem', s, 0xF, '=', ...v]
+    )),
   }
 }
 
@@ -718,7 +724,8 @@ function defineChampionshipWin(e) {
           'once',
           c.event.eventHashIs(e.races[0].id),
           c.event.inGame,
-          c.stat.inChampionship
+          c.stat.inChampionship,
+          c.inChampionshipRaceStartScreen
         ),
 
         trigger(
