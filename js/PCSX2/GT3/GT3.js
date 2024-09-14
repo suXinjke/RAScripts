@@ -1070,6 +1070,7 @@ function defineTimeTrial(e) {
         c.main1.c888_pauseIfNull,
         c.main1.c888_pauseIfChange,
         c.main1._8_pauseIfNull,
+        e.noGarage && c.stat.arcadeGaragePause,
 
         andNext(
           'once',
@@ -1100,6 +1101,7 @@ function defineTimeTrial(e) {
         c.main1.c888_pauseIfNull,
         c.main1.c888_pauseIfChange,
         c.main1._8_pauseIfNull,
+        e.noGarage && c.stat.arcadeGaragePause,
 
         startingConditions(c)
       )),
