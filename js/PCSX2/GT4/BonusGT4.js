@@ -49,7 +49,9 @@ function define24HourEvent(e) {
     const subtitle = hours === 24 ? 'Finish!' : `${hours} hour mark!`
     let description = `Win the ${e.name} event in A-Spec mode and earn atleast ${e.aSpecPoints} A-Spec points.`
     if (hours !== 24) {
-      description = `In ${e.name} event in A-Spec mode, cross the finish line in the 1st place, after ${hours} hours have passed.`
+      description =
+        `In ${e.name} event in A-Spec mode, cross the finish line in the 1st place, after ${hours} hours have passed. ` +
+        `Remember to earn atleast ${e.aSpecPoints} A-Spec points on finish!`
     }
 
     const timeInMsec = hours * 60 * 60 * 3000
