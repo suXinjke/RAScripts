@@ -252,7 +252,6 @@ for (const m of Object.values(meta.missions).slice(0, 10)) {
           main.eventIdIs(m.eventId.pal),
           main.eventIdIs(m.eventId.ntsc),
         ),
-        main.inASpecMode,
         trigger(
           main.earnedASpecPoints,
           main.hud.showingRaceResults
@@ -302,7 +301,6 @@ for (const r of meta.arcadeRace) {
     points: r.points,
     conditions: $(
       stat.gameFlagIs.arcadeRace,
-      main.inASpecMode,
       main.trackIdIs(r.trackId),
       main.lapCountIs(r.laps),
 
