@@ -1246,22 +1246,14 @@ function makeSet() {
 
   set.addAchievement({
     title: 'Downforce Violations',
-    description: 'With help from the Wheelie Glitch, win any Professional League event on Test Course while lapping all of your opponents at least three times.',
+    description: 'With help from the Wheelie Glitch, win race #2 of Race of Turbo Sports (Professional League), on Test Course, while lapping all of your opponents at least three times.',
     points: 5,
     conditions: multiRegionalConditions(c => {
       return $(
         c.regionCheckPause,
         c.main1.c888_pauseIfNull,
 
-        orNext(
-          c.event.eventHashSumIs('Ggtworld_h_1006'),
-          c.event.eventHashSumIs('Gturbo_h_0002'),
-          c.event.eventHashSumIs('Ggtallstar_h_1004'),
-          c.event.eventHashSumIs('Gjgtc_h_1003'),
-          c.event.eventHashSumIs('Gdream_h_0701'),
-          c.event.eventHashSumIs('Gwind_h_0001'),
-          c.event.eventHashSumIs('Gf1_h_1006'),
-        ),
+        c.event.eventHashSumIs('Gturbo_h_0002'),
 
         c.main1.race.firstPlace,
         c.main1.race.finished,
