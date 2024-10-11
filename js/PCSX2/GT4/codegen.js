@@ -9,7 +9,10 @@ import * as path from 'path'
 
 const tmpDir = path.join(import.meta.dirname, 'tmp')
 
-const getParsedSheet = (id) => _getSheet(import.meta.dirname, id)
+let linksFileName = 'links'
+let gameType = 'retail'
+
+const getParsedSheet = (id) => _getSheet(import.meta.dirname, id, linksFileName, gameType)
 
 /** @returns {Promise<Record<number, string>} */
 async function makeCars() {
@@ -45,7 +48,7 @@ function arrayToObject(prev, cur) {
 }
 
 async function makeEvents() {
-  const [eventRows, subEventRows] = await Promise.all([
+  let [eventRows, subEventRows] = await Promise.all([
     getParsedSheet('events'),
     getParsedSheet('subEvents')
   ])
@@ -127,13 +130,18 @@ async function makeEvents() {
       return prev
     }, {})
 
+
+  subEventRows = subEventRows.filter(col => {
+    const readableName = col[3]
+    return readableName != '#N/A'
+  })
+
   subEventRows
     .filter((col) => {
       const isLicense = col[3].startsWith('l')
-      const readableName = col[4]
       const isDefinedEvent = Boolean(events[col[3]])
 
-      return readableName != '#N/A' && isLicense === false && isDefinedEvent
+      return isLicense === false && isDefinedEvent
     })
     .forEach((col) => {
       const eventId = col[3] // pr_tuning
@@ -405,7 +413,12 @@ async function makeArcadeRace() {
   })
 }
 
-export default async function main() {
+export default async function main(r = 'retail') {
+  if (r === 'online') {
+    linksFileName = 'links2'
+    gameType = 'online'
+  }
+
   if (fs.existsSync(tmpDir) === false) {
     fs.mkdirSync(tmpDir)
   }
@@ -422,7 +435,7 @@ export default async function main() {
   ] = await Promise.all([
     makeCars(),
     makeTracks(),
-    makeCarChallenges(),
+    r === 'online' ? [] : makeCarChallenges(),
     makeEvents(),
     makeAnySubEvents(),
     makeCarEventWin(),

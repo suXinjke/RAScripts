@@ -4,7 +4,8 @@ import {
   AchievementSet, define as $,
   orNext, andNext, resetIf, trigger, once
 } from '@cruncheevos/core'
-import { stat, main, meta, generalProtections, defineIndividualRace } from './CommonGT4.js'
+import { code } from './CommonGT4.js'
+const { meta, stat, main, generalProtections, defineIndividualRace } = await code('retail')
 
 import * as path from 'path'
 import { makeBadge } from './icongen.js'
