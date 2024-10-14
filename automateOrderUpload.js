@@ -99,3 +99,13 @@ async function uploadLeaderboardOrder(leaderboardsAndOrder, fillOnly = true) {
 
   console.log('done')
 }
+
+function shortAchievementInfo() {
+  return Array.from(
+    document.querySelectorAll('#set-achievements-list li')
+  ).map(e => ({
+    title: e.querySelector('.inline.mr-1').innerText.trim(),
+    description: e.querySelector('p.leading-4').innerText.trim(),
+    badge: Number(e.querySelector('img').src.match(/\d+/))
+  }))
+}
