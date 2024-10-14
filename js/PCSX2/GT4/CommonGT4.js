@@ -39,14 +39,15 @@ const tireTypes = {
 
 export async function code(r = 'retail') {
   const meta = await codegen(r)
+  const o = r === 'online'
 
   const stat = (() => {
-    const root = $.one(['AddAddress', 'Mem', '32bit', 0x622f4c])
+    const root = $.one(['AddAddress', 'Mem', '32bit', o ? 0x664edc : 0x622f4c])
 
     const gameFlagIs = (() => {
       const gameFlagIs = (flag) => $(
         root,
-        ['', 'Mem', '32bit', 0x3a370, '=', 'Value', '', flag]
+        ['', 'Mem', '32bit', o ? 0x1DA8 : 0x3a370, '=', 'Value', '', flag]
       )
       return {
         inGameMenus: gameFlagIs(1),
@@ -58,15 +59,15 @@ export async function code(r = 'retail') {
         license: gameFlagIs(7),
         mission: gameFlagIs(8),
         photoDrive: gameFlagIs(9),
-        arcadeRace: gameFlagIs(0xA),
-        arcadeTimeTrial: gameFlagIs(0xB),
-        photoScene: gameFlagIs(0x15),
+        arcadeRace: gameFlagIs(o ? 0xB : 0xA),
+        arcadeTimeTrial: gameFlagIs(o ? 0xC : 0xB),
+        photoScene: gameFlagIs(o ? 0x18 : 0x15),
       }
     })()
 
     const gtModeCarValue = $(
       root,
-      ['Measured', 'Mem', '32bit', 0x13940]
+      ['Measured', 'Mem', '32bit', o ? 0xAAF8 : 0x13940]
     )
 
     const gtModeCarIsNot = id => gtModeCarValue.withLast({
@@ -75,13 +76,13 @@ export async function code(r = 'retail') {
 
     const selectedSetupSlotIs = slot => $(
       root,
-      ['', 'Mem', '8bit', 0x13dc8, '=', 'Value', '', slot]
+      ['', 'Mem', '8bit', o ? 0xAFC8 : 0x13dc8, '=', 'Value', '', slot]
     )
 
     const forSetupSlot = slot => {
       const base = selectedSetupSlotIs(slot)
 
-      const partOffset = slot * 0x178
+      const partOffset = slot * (o ? 0x190 : 0x178)
 
       return {
         /** @param {number[]} ids */
@@ -90,35 +91,35 @@ export async function code(r = 'retail') {
           andNext(
             ...ids.map(id => $(
               root,
-              ['', 'Mem', '32bit', 0x13988 + partOffset, '!=', 'Value', '', id]
+              ['', 'Mem', '32bit', (o ? 0xAB40 : 0x13988) + partOffset, '!=', 'Value', '', id]
             ))
           )
         ),
         wrongAdverseCamberReigns: orNext(
           root,
-          ['', 'Mem', '8bit', 0x13a79 + partOffset, '<', 'Value', '', 100],
+          ['', 'Mem', '8bit', (o ? 0xAC31 : 0x13a79) + partOffset, '<', 'Value', '', 100],
         ).andNext(
           root,
-          ['', 'Mem', '8bit', 0x13a7a + partOffset, '<', 'Value', '', 100],
+          ['', 'Mem', '8bit', (o ? 0xAC32 : 0x13a7a) + partOffset, '<', 'Value', '', 100],
           base
         ),
         wrongAutoUnionParts: orNext(
           root,
-          ['', 'Mem', '32bit', 0x139f0 + partOffset, '!=', 'Value', '', 0x91d],
+          ['', 'Mem', '32bit', (o ? 0xABA8 : 0x139f0) + partOffset, '!=', 'Value', '', 0x91d],
           root,
-          ['', 'Mem', '32bit', 0x139a0 + partOffset, '!=', 'Value', '', 0xde1b],
+          ['', 'Mem', '32bit', (o ? 0xAB58 : 0x139a0) + partOffset, '!=', 'Value', '', 0xde1b],
           root,
-          ['', 'Mem', '32bit', 0x139a8 + partOffset, '!=', 'Value', '', 0xde15],
+          ['', 'Mem', '32bit', (o ? 0xAB60 : 0x139a8) + partOffset, '!=', 'Value', '', 0xde15],
         ).andNext(
           root,
-          ['', 'Mem', '8bit', 0x13a9b + partOffset, '!=', 'Value', '', 0],
+          ['', 'Mem', '8bit', (o ? 0xAC53 : 0x13a9b) + partOffset, '!=', 'Value', '', 0],
           base
         ),
 
         hasNitrous: andNext(
           base,
           root,
-          ['', 'Mem', '32bit', 0x13a38 + partOffset, '!=', 'Value', '', -1]
+          ['', 'Mem', '32bit', (o ? 0xABF0 : 0x13a38) + partOffset, '!=', 'Value', '', -1]
         )
       }
     }
@@ -128,7 +129,7 @@ export async function code(r = 'retail') {
 
       inGTModeProject: $.str('gtmo', (s, v) => $(
         root,
-        ['', 'Mem', s, 0x3A3BC, '=', ...v]
+        ['', 'Mem', s, o ? 0x1E1C : 0x3A3BC, '=', ...v]
       )),
 
       gameFlagIs,
@@ -136,7 +137,7 @@ export async function code(r = 'retail') {
         gameFlagIs.inGameMenus,
 
         root,
-        ['', 'Mem', '8bit', 0x38c20, '=', 'Value', '', 0]
+        ['', 'Mem', '8bit', o ? 0x20800 : 0x38c20, '=', 'Value', '', 0]
       ),
 
       gtModeCarValue,
@@ -149,7 +150,7 @@ export async function code(r = 'retail') {
 
       gearboxSettingIs: gearbox => $(
         root,
-        ['', 'Mem', '32bit', 0x39d78, '=', 'Value', '', gearbox === 'manual' ? 0 : 1]
+        ['', 'Mem', '32bit', o ? 0x1748 : 0x39d78, '=', 'Value', '', gearbox === 'manual' ? 0 : 1]
       ),
 
       /** @param {(setupSlot: ReturnType<typeof forSetupSlot>) => ConditionBuilder} cb */
@@ -165,7 +166,7 @@ export async function code(r = 'retail') {
 
   const main = (() => {
     const p = (() => {
-      const root = $.one(['AddAddress', 'Mem', '32bit', 0x621cb4])
+      const root = $.one(['AddAddress', 'Mem', '32bit', o ? 0x66335c : 0x621cb4])
       const root60 = $(
         root,
         ['AddAddress', 'Mem', '32bit', 0x60]
@@ -175,10 +176,13 @@ export async function code(r = 'retail') {
         ['AddAddress', 'Mem', '32bit', 0x84]
       )
 
+      const rootAux = $.one(['AddAddress', 'Mem', '32bit', o ? 0x660624 : 0x6187a8])
+
       return {
         root,
         root60,
         root84,
+        rootAux,
         aSpecMode: $(
           root84,
           ['AddAddress', 'Mem', '32bit', 0x58],
@@ -232,7 +236,7 @@ export async function code(r = 'retail') {
 
     const inBSpecMode = $(
       p.root84,
-      ['', 'Mem', '32bit', 0xCCC, '=', 'Value', '', 1]
+      ['', 'Mem', '32bit', o ? 0xD90 : 0xCCC, '=', 'Value', '', 1]
     )
 
     const notInASpecMode = $(
@@ -271,12 +275,12 @@ export async function code(r = 'retail') {
 
       const idValue = $(
         carBase,
-        ['Measured', 'Mem', '32bit', 0x20]
+        ['Measured', 'Mem', '32bit', o ? 0xFD8 : 0x20]
       )
 
       const completedLap = $(
         carBase,
-        ['', 'Mem', '32bit', 0x1AC, '>', 'Delta', '32bit', 0x1AC]
+        ['', 'Mem', '32bit', o ? 0x2C : 0x1AC, '>', 'Delta', '32bit', o ? 0x2C : 0x1AC]
       )
 
       return {
@@ -290,13 +294,13 @@ export async function code(r = 'retail') {
         ),
         colorIdIs: (id) => $(
           carBase,
-          ['', 'Mem', '8bit', 0x38, '=', 'Value', '', id]
+          ['', 'Mem', '8bit', o ? 0xFF0 : 0x38, '=', 'Value', '', id]
         ),
         tiresAre: (tires) => andNext(
           carBase,
-          ['', 'Mem', '8bit', 0x180, '=', 'Value', '', tireTypes[tires]],
+          ['', 'Mem', '8bit', o ? 0x1138 : 0x180, '=', 'Value', '', tireTypes[tires]],
           carBase,
-          ['', 'Mem', '8bit', 0x181, '=', 'Value', '', tireTypes[tires]]
+          ['', 'Mem', '8bit', o ? 0x1139 : 0x181, '=', 'Value', '', tireTypes[tires]]
         ),
 
         completedLap,
@@ -319,26 +323,26 @@ export async function code(r = 'retail') {
 
         measuredLastLapTime: $(
           carBase,
-          ['Measured', 'Mem', '32bit', 0x11dc]
+          ['Measured', 'Mem', '32bit', o ? 0x12A4 : 0x11dc]
         ),
 
         lastLapTimeWasLte: target => $(
           carBase,
-          ['', 'Mem', '32bit', 0x11dc, '<=', 'Value', '', target]
+          ['', 'Mem', '32bit', o ? 0x12A4 : 0x11dc, '<=', 'Value', '', target]
         ),
 
         lastLapTimeWasLt: target => $(
           carBase,
-          ['', 'Mem', '32bit', 0x11dc, '<', 'Value', '', target]
+          ['', 'Mem', '32bit', o ? 0x12A4 : 0x11dc, '<', 'Value', '', target]
         ),
 
         isNotControlledByAI: $(
           carBase18,
-          ['', 'Mem', '8bit', 0x56a, '=', 'Value', '', 0]
+          ['', 'Mem', '8bit', o ? 0x58A : 0x56A, '=', 'Value', '', 0]
         ),
         isNotControlledByAIRollingStart: $(
           carBase18,
-          ['', 'Mem', '8bit', 0x56b, '=', 'Value', '', 0]
+          ['', 'Mem', '8bit', o ? 0x58B : 0x56B, '=', 'Value', '', 0]
         ),
 
         isWithinCoordinates: (x1, y1, x2, y2) => andNext(
@@ -357,12 +361,19 @@ export async function code(r = 'retail') {
     const inGamePlayerCar = inGameCar(0)
 
     const playerWentOut = (crashSensitivity = 0.05) => {
-      const tireCombos = [
-        [0x6E81, 0x6EB5, 0x6EE9],
-        [0x6E81, 0x6EB5, 0x6F1D],
-        [0x6E81, 0x6EE9, 0x6F1D],
-        [0x6EB5, 0x6EE9, 0x6F1D],
-      ]
+      const tireCombos = o ?
+        [
+          [0x6B0D, 0x6C01, 0x6CF5],
+          [0x6B0D, 0x6C01, 0x6DE9],
+          [0x6B0D, 0x6CF5, 0x6DE9],
+          [0x6C01, 0x6CF5, 0x6DE9],
+        ] :
+        [
+          [0x6E81, 0x6EB5, 0x6EE9],
+          [0x6E81, 0x6EB5, 0x6F1D],
+          [0x6E81, 0x6EE9, 0x6F1D],
+          [0x6EB5, 0x6EE9, 0x6F1D],
+        ]
 
       /** @type {ConditionBuilder[]} */
       const offTrackLimits = []
@@ -383,10 +394,10 @@ export async function code(r = 'retail') {
       const bigBump = $(
         p.root84,
         ['AddAddress', 'Mem', '32bit', 0x70],
-        ['', 'Mem', 'Float', 0x6dac, '>', 'Float', '', crashSensitivity],
+        ['', 'Mem', 'Float', o ? 0x7050 : 0x6dac, '>', 'Float', '', crashSensitivity],
       )
       const bumped = bigBump.withLast({
-        rvalue: { type: 'Delta', size: 'Float', value: 0x6dac }
+        rvalue: { type: 'Delta', size: 'Float', value: o ? 0x7050 : 0x6dac }
       })
 
       return {
@@ -411,7 +422,7 @@ export async function code(r = 'retail') {
     const hud = (() => {
       const base = $(
         p.root84,
-        ['AddAddress', 'Mem', '32bit', 0xe420],
+        ['AddAddress', 'Mem', '32bit', o ? 0xE4E0 : 0xE420],
       )
       const speedBase = $(
         base,
@@ -420,7 +431,7 @@ export async function code(r = 'retail') {
 
       const lapTimeCurrent = $(
         base,
-        ['', 'Delta', '32bit', 0x1664, '<=', 'Value', '', 0x3F]
+        ['', 'Delta', '32bit', o ? 0x1624 : 0x1664, '<=', 'Value', '', 0x3F]
       )
       const lapTimeNewLap = andNext(
         lapTimeCurrent.withLast({
@@ -434,7 +445,7 @@ export async function code(r = 'retail') {
       return {
         positionIs: position => $(
           base,
-          ['', 'Mem', '32bit', 0x13b0, '=', 'Value', '', position]
+          ['', 'Mem', '32bit', o ? 0x1370 : 0x13b0, '=', 'Value', '', position]
         ),
         lapTime: {
           current: lapTimeCurrent,
@@ -444,13 +455,10 @@ export async function code(r = 'retail') {
             inGamePlayerCar.lapsCompletedAre(0)
           )
         },
-        inBSpecMode: $(
-          p.root84,
-          ['', 'Mem', '32bit', 0xCCC, '=', 'Value', '', 1]
-        ),
+        inBSpecMode,
         showingRaceResults: $(
           p.root84,
-          ['AddAddress', 'Mem', '32bit', 0xe41c],
+          ['AddAddress', 'Mem', '32bit', o ? 0xE4DC : 0xE41C],
           ['', 'Mem', '32bit', 0x0, '=', 'Value', '', 1]
         ),
         speed: {
@@ -459,6 +467,10 @@ export async function code(r = 'retail') {
             ['', 'Mem', '8bit', 0, '=', 'Value', '', 1],
           ),
           wentPastSpeed: (units, hudIsMini, speed) => {
+            if (o) {
+              throw new Error('wentPastSpeed not implemented for online')
+            }
+
             const unitValue = units === 'kph' ? 0 : 1
 
             const valueCheck = $(
@@ -484,29 +496,27 @@ export async function code(r = 'retail') {
       }
     })()
 
-    const arcade = (() => {
-      const root = $(
-        ['AddAddress', 'Mem', '32bit', 0x6187a8]
-      )
 
+
+    const arcade = (() => {
       return {
         tiresAre: tires => $(
-          root,
+          p.rootAux,
           ['', 'Mem', '32bit', 0x3b8, '=', 'Value', '', tireTypes[tires]],
-          root,
+          p.rootAux,
           ['', 'Mem', '32bit', 0x3bc, '=', 'Value', '', tireTypes[tires]]
         ),
 
         powerTuneIs: tune => $(
-          root,
+          p.rootAux,
           ['', 'Mem', '32bit', 0x3b0, '=', 'Value', '', tune]
         ),
         weightAdjustIs: adjust => $(
-          root,
+          p.rootAux,
           ['', 'Mem', '32bit', 0x3ac, '=', 'Value', '', adjust]
         ),
         topSpeedAdjustIs: adjust => $(
-          root,
+          p.rootAux,
           ['', 'Mem', '8bit', 0x3b4, '=', 'Value', '', adjust]
         )
 
@@ -517,7 +527,7 @@ export async function code(r = 'retail') {
       const isGteThanZero = $(
         p.root84,
         ['AddAddress', 'Mem', '32bit', 0x70],
-        ['', 'Mem', '32bit', 0xF898, '>=', 'Value', '', 0],
+        ['', 'Mem', '32bit', o ? 0x23960 : 0xF898, '>=', 'Value', '', 0],
       )
 
       return {
@@ -563,7 +573,7 @@ export async function code(r = 'retail') {
       gotPenalty: $(
         p.root84,
         ['AddAddress', 'Mem', '32bit', 0x70],
-        ['', 'Mem', '16bit', 0x6daa, '>', 'Delta', '16bit', 0x6Daa],
+        ['', 'Mem', '16bit', o ? 0x704E : 0x6DAA, '>', 'Delta', '16bit', o ? 0x704E : 0x6DAA],
       ),
 
       license: (() => {
@@ -642,8 +652,8 @@ export async function code(r = 'retail') {
       ),
 
       earnedChampionshipMoney: $(
-        ['AddAddress', 'Mem', '32bit', 0x6187a8],
-        ['', 'Mem', '32bit', 0x4a8, '>', 'Delta', '32bit', 0x4a8]
+        p.rootAux,
+        ['', 'Mem', '32bit', o ? 0x4AC : 0x4a8, '>', 'Delta', '32bit', o ? 0x4AC : 0x4a8]
       ),
 
       hud,
@@ -1070,8 +1080,8 @@ export async function code(r = 'retail') {
 
   function rich() {
     const substringEventString = $(
-      ['AddAddress', 'Mem', '32bit', 0x6187a8],
-      ['Measured', 'Mem', '8bit', 0x3c8]
+      main.p.rootAux,
+      ['Measured', 'Mem', '8bit', o ? 0x3CC : 0x3c8]
     )
 
     const licenses = {
@@ -1139,8 +1149,8 @@ export async function code(r = 'retail') {
       displays: ({ lookup, macro, tag }) => {
         const carLookupInGame = lookup.Car.at(main.inGamePlayerCar.idValue)
         const licenseLetters = [
-          substringEventString.withLast({ lvalue: { value: 0x3cd } }),
-          substringEventString.withLast({ lvalue: { value: 0x3ce } }),
+          substringEventString.withLast({ lvalue: { value: o ? 0x3D1 : 0x3CD } }),
+          substringEventString.withLast({ lvalue: { value: o ? 0x3D2 : 0x3CE } }),
         ].map(x => macro.ASCIIChar.at(x)).join('')
 
         return [
@@ -1158,7 +1168,7 @@ export async function code(r = 'retail') {
           ],
           [
             stat.gameFlagIs.raceMeeting,
-            tag`[🏁 Race Meeting] 📍 ${lookup.Track} 🚗 ${lookup.Car}`
+            tag`[🏁 ${o ? 'Track Meet' : 'Race Meeting'}] 📍 ${lookup.Track} 🚗 ${lookup.Car}`
           ],
           [
             stat.gameFlagIs.arcadeTimeTrial,
@@ -1181,7 +1191,7 @@ export async function code(r = 'retail') {
           ],
           [
             stat.gameFlagIs.freeRun,
-            tag`[⏱ Free Run] 📍 ${lookup.Track} 🚗 ${lookup.Car}`
+            tag`[⏱ ${o ? 'Practice' : 'Free Run'}] 📍 ${lookup.Track} 🚗 ${lookup.Car}`
           ],
           [
             stat.gameFlagIs.powerAndSpeed,
@@ -1223,7 +1233,9 @@ export async function code(r = 'retail') {
             tag`[🏁 ${lookup.Event}] 📍 ${lookup.Track} 🚗 ${lookup.Car}`
           ],
 
-          ...['pal', 'ntsc'].map(region => {
+          ...(
+            o ? ['ntsc'] : ['pal', 'ntsc']
+          ).map(region => {
             const licenseBadges = Object.entries(licenses).map(([key, l]) => {
               const tests = Object.values(meta.licenses)
                 .filter(license => license.license === key && license.isCoffee === false)
@@ -1231,7 +1243,7 @@ export async function code(r = 'retail') {
               const amountOfTestsPassed = $(...tests.map(test => region === 'pal' ?
                 $(['AddSource', 'Mem', 'Bit0', test.palFlagAddress]) :
                 $(
-                  ['AddAddress', 'Mem', '32bit', 0x622f4c],
+                  stat.root,
                   ['AddSource', 'Mem', 'Bit0', test.ntscFlagOffset]
                 )
               ))
@@ -1242,25 +1254,25 @@ export async function code(r = 'retail') {
             const date = $(
               ['SubSource', 'Value', '', 2453461],
               stat.root,
-              ['Measured', 'Mem', '32bit', 0xBC28]
+              ['Measured', 'Mem', '32bit', o ? 0x20894 : 0xBC28]
             )
 
             const mileage = $(
               stat.root,
-              ['Measured', 'Mem', '32bit', 0x3b8, '*', 'Float', '', 0.001]
+              ['Measured', 'Mem', '32bit', o ? 0x2BF8 : 0x3b8, '*', 'Float', '', 0.001]
             )
 
 
             return /** @type [ConditionBuilder, string] */ ([
               $(
-                main.regionIs[region],
+                !o && main.regionIs[region],
                 stat.gameFlagIs.inGameMenus,
                 stat.inGTModeProject
               ),
               tag`[🏠 Home${licenseBadges}] 🚗 ${lookup.Car.at(stat.gtModeCarValue)} 📅 Day ${macro.Number.at(date)} | ${macro.Number.at(mileage)} km`
             ])
           }),
-          'Playing Gran Turismo 4'
+          'Playing Gran Turismo 4' + (o ? ': Spec II' : '')
         ]
       }
     })
