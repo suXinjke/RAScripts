@@ -129,26 +129,26 @@ async function makeEvents() {
 
   subEventRows
     .filter((col) => {
-      const isLicense = col[2].startsWith('l')
-      const readableName = col[3]
-      const isDefinedEvent = Boolean(events[col[2]])
+      const isLicense = col[3].startsWith('l')
+      const readableName = col[4]
+      const isDefinedEvent = Boolean(events[col[3]])
 
       return readableName != '#N/A' && isLicense === false && isDefinedEvent
     })
     .forEach((col) => {
-      const eventId = col[2] // pr_tuning
-      const raceId = col[1] // pr_tuning_0500
+      const eventId = col[3] // pr_tuning
+      const raceId = col[2] // pr_tuning_0500
 
       const subEventIsNotChampionship = raceId.endsWith('00') === false
 
       if (subEventIsNotChampionship) {
         events[eventId].races.push({
-          trackId: Number(col[4]),
+          trackId: Number(col[5]),
           raceId: Number(col[0]),
-          aSpec200: col[8] ? {
-            requirement: col[9] ? Number(col[9]) : 200,
-            achPoints: Number(col[8]),
-            descriptionSuffix: col[10]
+          aSpec200: col[9] ? {
+            requirement: col[10] ? Number(col[10]) : 200,
+            achPoints: Number(col[9]),
+            descriptionSuffix: col[11]
           } : null
         })
       }
@@ -158,22 +158,22 @@ async function makeEvents() {
   const coffeeRegex = /^l0c/
 
   const licensesAndCoffee = subEventRows
-    .filter((col) => col[2].match(licenseRegex) || col[2].match(coffeeRegex))
+    .filter((col) => col[3].match(licenseRegex) || col[3].match(coffeeRegex))
     .map((col) => {
-      const id = col[2] // coffee: l0c0001 , license: lib0016
+      const id = col[3] // coffee: l0c0001 , license: lib0016
       const licenses = { 1: 'b', 2: 'a', 3: 'ib', 4: 'ia', 5: 's' }
-      const isCoffee = col[2].match(coffeeRegex) !== null
+      const isCoffee = col[3].match(coffeeRegex) !== null
 
       /** @type {string} */
       const license = isCoffee ? licenses[id.slice(-1)] : id.slice(1, 3).replace('0', '')
 
-      const [pal, ntsc] = col[0].split(', ').map(Number)
+      const [pal, ntsc] = [col[0], col[1]].map(Number)
 
       return {
         id,
-        name: col[3],
-        palFlagAddress: Number(col[5]),
-        ntscFlagOffset: Number(col[6]),
+        name: col[4],
+        palFlagAddress: Number(col[6]),
+        ntscFlagOffset: Number(col[7]),
         license: license.toUpperCase(),
         index: Number(id.slice(-2)),
         isCoffee,
@@ -183,15 +183,15 @@ async function makeEvents() {
     })
 
   const missionArray = subEventRows
-    .filter((col) => col[2].match(/^l0m/))
+    .filter((col) => col[3].match(/^l0m/))
     .map((col) => {
-      const id = col[2] // l0m0017
-      const [pal, ntsc] = col[0].split(', ').map(Number)
+      const id = col[3] // l0m0017
+      const [pal, ntsc] = [col[0], col[1]].map(Number)
 
       return {
         id,
-        name: col[3].replace(/ old and new!$/, '!'),
-        nameFull: col[3],
+        name: col[4].replace(/ old and new!$/, '!'),
+        nameFull: col[4],
         index: Number(id.slice(-2)),
         points: licenseMissionPoints[id],
         eventId: { pal, ntsc },
@@ -201,8 +201,8 @@ async function makeEvents() {
   /** @type {Record<number, string> */
   const eventLookup = subEventRows
     .reduce((prev, col) => {
-      const name = col[3]
-      const eventIds = col[0].split(', ').map(Number)
+      const name = col[4]
+      const eventIds = [col[0], col[1]].map(Number)
       for (const id of eventIds) {
         prev[id] = name
       }
