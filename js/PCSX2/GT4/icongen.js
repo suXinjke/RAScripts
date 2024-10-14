@@ -172,9 +172,9 @@ const licenses = [
 const eventMeta = {
   pr_supercar: { range: 5, x: 4, y: 60, align: 'left' },
   pr_gtworld: { range: 10, x: 60, y: 60, align: 'right' },
-  ex_gtallstar: { range: 10, x: 60, y: 60, align: 'right' },
-  ex_dream: { range: 10, y: 54 },
-  ex_polyphony: { range: 10, y: 54 },
+  ex_gtallstar: { range: 10, x: 60, y: 14, align: 'right' },
+  ex_dream: { range: 10, x: 2, y: 16, align: 'left' },
+  ex_polyphony: { range: 10, x: 60, y: 60, align: 'right' },
   ex_formula: { range: ['1-5', '6-10', '11-15'], y: 54 },
   ex_real_circuit: { range: 8, x: 60, y: 14, align: 'right' },
   ex_premium: { range: 5, x: 60, y: 16, align: 'right' },
