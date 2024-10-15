@@ -121,6 +121,11 @@ const codeFor = (region) => {
       0x978430: {
         pal: 0x972f30,
         ntsc_j: 0x960330
+      },
+
+      0x01fcbf90: {
+        pal: 0x01fcbf90,
+        ntsc_j: 0x1fcef90
       }
     }
 
