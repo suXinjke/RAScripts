@@ -1,0 +1,10 @@
+{
+  "events": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4_QKO06iu4W0Y3_bhl4JopH_zluePG66Kq3e1ITA-bj32CUIf-1-ylknVuiXcKQO0dGjQXVc7fC5o/pub?gid=867583429&single=true&output=tsv",
+  "subEvents": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4_QKO06iu4W0Y3_bhl4JopH_zluePG66Kq3e1ITA-bj32CUIf-1-ylknVuiXcKQO0dGjQXVc7fC5o/pub?gid=528819874&single=true&output=tsv",
+  "anySubEvent": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4_QKO06iu4W0Y3_bhl4JopH_zluePG66Kq3e1ITA-bj32CUIf-1-ylknVuiXcKQO0dGjQXVc7fC5o/pub?gid=1049859775&single=true&output=tsv",
+  "carEventWin": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4_QKO06iu4W0Y3_bhl4JopH_zluePG66Kq3e1ITA-bj32CUIf-1-ylknVuiXcKQO0dGjQXVc7fC5o/pub?gid=708051257&single=true&output=tsv",
+  "arcadeTimeTrial": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4_QKO06iu4W0Y3_bhl4JopH_zluePG66Kq3e1ITA-bj32CUIf-1-ylknVuiXcKQO0dGjQXVc7fC5o/pub?gid=349015145&single=true&output=tsv",
+  "arcadeRace": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4_QKO06iu4W0Y3_bhl4JopH_zluePG66Kq3e1ITA-bj32CUIf-1-ylknVuiXcKQO0dGjQXVc7fC5o/pub?gid=1597468802&single=true&output=tsv",
+  "tracks": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4_QKO06iu4W0Y3_bhl4JopH_zluePG66Kq3e1ITA-bj32CUIf-1-ylknVuiXcKQO0dGjQXVc7fC5o/pub?gid=0&single=true&output=tsv",
+  "cars": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ4_QKO06iu4W0Y3_bhl4JopH_zluePG66Kq3e1ITA-bj32CUIf-1-ylknVuiXcKQO0dGjQXVc7fC5o/pub?gid=104858816&single=true&output=tsv"
+}

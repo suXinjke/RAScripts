@@ -79,7 +79,10 @@ async function makeEvents() {
         nameWithSuffix: eventNameSuffix ? name + ' ' + eventNameSuffix : name,
 
         /** @type {'progression' || ''} */
-        achType: (id.startsWith('am_') || id.startsWith('pr_')) ? 'progression' : '',
+        achType:
+          gameType === 'retail' && (id.startsWith('am_') || id.startsWith('pr_')) ?
+            'progression' :
+            '',
 
         descriptionSuffix: descriptionSuffix ? ' ' + descriptionSuffix : '',
         points: multiPoints[0],

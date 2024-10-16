@@ -153,6 +153,16 @@ export async function code(r = 'retail') {
         ['', 'Mem', '32bit', o ? 0x1748 : 0x39d78, '=', 'Value', '', gearbox === 'manual' ? 0 : 1]
       ),
 
+      spec2RandomCars: $.str('r=1;', (s, v) => $(
+        root,
+        ['', 'Mem', s, 0x182C, '=', ...v]
+      )),
+
+      prizeCarCountIncreased: $(
+        root,
+        ['', 'Mem', '32bit', o ? 0x2BD8 : 0x398, '>', 'Delta', '32bit', o ? 0x2BD8 : 0x398]
+      ),
+
       /** @param {(setupSlot: ReturnType<typeof forSetupSlot>) => ConditionBuilder} cb */
       forEachSetupSlot: cb => {
         return $(
