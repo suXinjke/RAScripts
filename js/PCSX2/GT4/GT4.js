@@ -613,7 +613,6 @@ export default function () {
       main.trackIdIs(0x41),
 
       stat.gameFlagIs.freeRun,
-      pauseIf(stat.forEachSetupSlot(s => s.wrongAutoUnionParts)),
       main.inASpecMode,
 
       main.hud.lapTime.newLap
@@ -627,6 +626,8 @@ export default function () {
           'once',
           startConditions
         ),
+
+        pauseIf(stat.forEachSetupSlot(s => s.wrongAutoUnionParts)),
 
         resetIf(
           main.playerWentOut().singleChainOfConditions,
