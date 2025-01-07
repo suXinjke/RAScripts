@@ -7,7 +7,7 @@ This repository holds code for [RetroAchievement sets I worked on](https://retro
 * [Driver 2: The Wheelman is Back](https://retroachievements.org/game/11588), PSX
 * [Gran Turismo 2000 Demo](https://retroachievements.org/game/22999), PS2
 * [Gran Turismo 3: A-Spec](https://retroachievements.org/game/2830), PS2
-* [Gran Turismo 4](https://retroachievements.org/game/20580), PS2 - including [bonus set](https://retroachievements.org/game/29854)
+* [Gran Turismo 4](https://retroachievements.org/game/20580), PS2 - including [bonus set](https://retroachievements.org/game/29854) and [Spec II](https://retroachievements.org/game/30930)
 * [Wipeout](https://retroachievements.org/game/11378), PSX - Time Trials only
 
 
