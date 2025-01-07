@@ -9,7 +9,10 @@ import * as path from 'path'
 
 const tmpDir = path.join(import.meta.dirname, 'tmp')
 
-const getParsedSheet = (id) => _getSheet(import.meta.dirname, id)
+let linksFileName = 'links'
+let gameType = 'retail'
+
+const getParsedSheet = (id) => _getSheet(import.meta.dirname, id, linksFileName, gameType)
 
 /** @returns {Promise<Record<number, string>} */
 async function makeCars() {
@@ -45,7 +48,7 @@ function arrayToObject(prev, cur) {
 }
 
 async function makeEvents() {
-  const [eventRows, subEventRows] = await Promise.all([
+  let [eventRows, subEventRows] = await Promise.all([
     getParsedSheet('events'),
     getParsedSheet('subEvents')
   ])
@@ -76,7 +79,7 @@ async function makeEvents() {
         nameWithSuffix: eventNameSuffix ? name + ' ' + eventNameSuffix : name,
 
         /** @type {'progression' || ''} */
-        achType: (id.startsWith('am_') || id.startsWith('pr_')) ? 'progression' : '',
+        achType: id.startsWith('am_') || id.startsWith('pr_') ? 'progression' : '',
 
         descriptionSuffix: descriptionSuffix ? ' ' + descriptionSuffix : '',
         points: multiPoints[0],
@@ -127,19 +130,35 @@ async function makeEvents() {
       return prev
     }, {})
 
+
+  const subEventCount = {}
+
+  subEventRows = subEventRows.filter(col => {
+    const readableName = col[4]
+    return readableName != '#N/A'
+  })
+
+  subEventRows.forEach(col => {
+    const eventId = col[3]
+
+    subEventCount[eventId] ??= 0
+    subEventCount[eventId]++;
+  })
+
   subEventRows
     .filter((col) => {
       const isLicense = col[3].startsWith('l')
-      const readableName = col[4]
       const isDefinedEvent = Boolean(events[col[3]])
 
-      return readableName != '#N/A' && isLicense === false && isDefinedEvent
+      return isLicense === false && isDefinedEvent
     })
     .forEach((col) => {
       const eventId = col[3] // pr_tuning
       const raceId = col[2] // pr_tuning_0500
 
-      const subEventIsNotChampionship = raceId.endsWith('00') === false
+      const subEventIsNotChampionship =
+        raceId.endsWith('00') === false ||
+        subEventCount[eventId] === 1
 
       if (subEventIsNotChampionship) {
         events[eventId].races.push({
@@ -294,14 +313,34 @@ async function makeAnySubEvents() {
 async function makeCarEventWin() {
   const rows = await getParsedSheet('carEventWin')
 
-  return rows.map(col => ({
-    achName: col[0],
-    points: Number(col[1]),
-    carIdsRequired: col[2].split(',').map(Number),
-    eventId: col[4],
-    raceIndex: col[5] ? Number(col[5]) : -1,
-    achDescription: col[6]
-  }))
+  return rows.map(col => {
+    const achDescription = col[6]
+    let crashSensitivity
+    if (achDescription.includes('stay on the road')) {
+      crashSensitivity = 0.0
+    }
+
+    return {
+      achName: col[0],
+      points: Number(col[1]),
+      carIdsRequired: col[2].split(',').map(Number),
+      eventId: col[4],
+      raceIndex: col[5] ? Number(col[5]) : -1,
+      achDescription,
+      tiresId: col[8] ? [Number(col[8]), Number(col[9])] : [],
+      gearbox: achDescription.includes('manual transmission') ? 'manual' : '',
+      gearboxId: Number(col[10]),
+      suspensionId: Number(col[11]),
+      aid: achDescription.includes('no driving aids') ? 'none' : '',
+      crashSensitivity,
+      aSpecPoints: col[7] ? Number(col[7]) : 0,
+      noNitrous:
+        achDescription.includes('itrous is not allowed') ||
+        achDescription.includes('o nitrous'),
+
+      singleRace: achDescription.includes('ingle race')
+    }
+  })
 }
 
 function extractTires(str = '') {
@@ -314,6 +353,7 @@ function extractTires(str = '') {
   if (str.includes('Racing Medium')) return 'rm'
   if (str.includes('Racing Soft')) return 'rs'
   if (str.includes('Racing Super Soft')) return 'rss'
+  if (str.includes('Racing Super Hard')) return 'rsh'
 
   throw new Error('expected tires, got nothing: ' + str)
 }
@@ -325,6 +365,7 @@ async function makeArcadeTimeTrial() {
   // expected output in msec: 485123
   function extractTime(str = '') {
     const timeString = str.match(/(\d+):(\d{2})'(\d{3})/)
+
     return (
       Number(timeString[1]) * 60 * 1000 +
       Number(timeString[2]) * 1000 +
@@ -344,11 +385,11 @@ async function makeArcadeTimeTrial() {
       description,
       points: Number(col[4]),
       lapTimeTargetMsec: extractTime(description),
-      carId: Number(col[0]),
+      carIds: col[0].split(',').map(Number),
       trackId: Number(col[2]),
 
-      /** @type { ReturnType<typeof extractTires> } */
-      tires: extractTires(description),
+      /** @type { ReturnType<typeof extractTires> | 'dr' | 'sn' } */
+      tires: col[10] || extractTires(description),
 
       /** @type {'' | 'manual'} */
       gearbox: description.includes('manual transmission') ? 'manual' : '',
@@ -356,6 +397,9 @@ async function makeArcadeTimeTrial() {
       aid: description.includes('no driving aids') ? 'none' : '',
       powerTune: Number(powerTuneMatch[1]),
       topSpeedTune: Number(col[7]),
+      crashSensitivity: col[8] ? Number(col[8]) : 0.05,
+      laps: Number(col[9]),
+      interiorCamera: description.includes('interior camera')
     }
   })
 }
@@ -366,16 +410,13 @@ async function makeArcadeRace() {
   return rows.map(col => {
     const description = col[8]
     const powerTuneMatch = description.match(/power.+?(\d+)%/)
-    if (!powerTuneMatch) {
-      throw new Error('expected power/weight tune, got nothing: ' + description)
-    }
 
-    const lapsMatch = description.match(/(\d+) Laps/)
+    const lapsMatch = description.match(/(\d+) Laps?/)
     if (!lapsMatch) {
       throw new Error('expected laps, got nothing: ' + description)
     }
 
-    const opponentCarIds = col[2].split(', ').map(Number)
+    const opponentCarIds = col[2] ? col[2].split(', ').map(Number) : []
     const playerCarIds = col[0] ? col[0].split(', ').map(Number) : opponentCarIds
 
     return {
@@ -392,7 +433,7 @@ async function makeArcadeRace() {
       /** @type { ReturnType<typeof extractTires> } */
       tires: extractTires(description),
 
-      powerTune: Number(powerTuneMatch[1]),
+      powerTune: powerTuneMatch ? Number(powerTuneMatch[1]) : null,
       topSpeedTune: col[9] ? Number(col[9]) : null,
       stayOnTheRoad: description.includes('stay on the road'),
       crashSensitivity:
@@ -400,12 +441,20 @@ async function makeArcadeRace() {
           description.includes('not crash') ? 0.05 :
             0,
       maxCars: col[10] ? Number(col[10]) : null,
-      distinctOpponents: Boolean(col[12])
+      distinctOpponents: Boolean(col[12]),
+      penalties: description.includes('Speed Limiter'),
+      forceRandomOpponents: description.includes('opponents random'),
+      aSpecPoints: Number(col[13]),
     }
   })
 }
 
-export default async function main() {
+export default async function main(r = 'retail') {
+  if (r === 'online') {
+    linksFileName = 'links2'
+    gameType = 'online'
+  }
+
   if (fs.existsSync(tmpDir) === false) {
     fs.mkdirSync(tmpDir)
   }
@@ -422,7 +471,7 @@ export default async function main() {
   ] = await Promise.all([
     makeCars(),
     makeTracks(),
-    makeCarChallenges(),
+    r === 'online' ? [] : makeCarChallenges(),
     makeEvents(),
     makeAnySubEvents(),
     makeCarEventWin(),

@@ -1,11 +1,16 @@
 // @ts-check
 import '../../common.js'
 import {
-  AchievementSet, define as $, ConditionBuilder,
-  addHits, andNext, orNext, resetIf, trigger, pauseIf,
-  RichPresence, stringToNumberLE
+  AchievementSet, define as $,
+  addHits, andNext, orNext, resetIf, trigger, pauseIf
 } from '@cruncheevos/core'
-import { stat, main, generalProtections, pointerNullCheck, meta, defineIndividualRace } from './CommonGT4.js'
+import { code, pointerNullCheck } from './CommonGT4.js'
+const {
+  meta, stat, main, generalProtections, rich: makeRichPresence,
+  defineIndividualRace, defineAllRacesInOneSitting, defineAnySubEventWin,
+  defineArcadeTimeTrial, defineCarEventWin, defineChampionship,
+  defineLicenseAchievements, defineCarChallenge
+} = await code('retail')
 import { dumpAll } from './icongen.js'
 
 /**
@@ -19,301 +24,6 @@ import { dumpAll } from './icongen.js'
  * **/
 
 const set = new AchievementSet({ gameId: 20580, title: 'Gran Turismo 4' })
-
-/** @param {ObjectValue<typeof meta["events"]>} e */
-function defineChampionship(e) {
-  set.addAchievement({
-    title: e.name,
-    description: `Win ${e.name} in A-Spec championship mode in one sitting.` + e.descriptionSuffix,
-    points: e.points,
-    type: e.achType,
-    conditions: $(
-      andNext(
-        'once',
-        main.inFirstChampionshipRace(e.raceIds[0]),
-        generalProtections.forbiddenCarIds(...e.carIdsForbidden),
-        main.hud.lapTime.newLap,
-        main.inGamePlayerCar.lapsCompletedAre(0)
-      ),
-
-      resetIf(
-        stat.abandonedChampionship,
-        main.hud.inBSpecMode
-      ),
-
-      trigger(main.earnedChampionshipMoney)
-    )
-  })
-}
-
-/** @param {ObjectValue<typeof meta["events"]>} e */
-function defineAllRacesInOneSitting(e) {
-  let description = `Win all events of ${e.nameWithSuffix} in A-Spec mode in one sitting.`
-  if (e.aSpecPoints) {
-    const nitrousSuffix = e.nitrousAllowed ? '' : ' Nitrous is not allowed.'
-    description =
-      `Win all ${e.name} events in one sitting in A-Spec mode, earning ` +
-      `atleast ${e.aSpecPoints} A-Spec points in each.` + nitrousSuffix
-  }
-
-  set.addAchievement({
-    title: e.name,
-    description: description + e.descriptionSuffix,
-    points: e.points,
-    type: e.achType,
-    conditions: $(
-      ...e.raceIds.map(id => addHits(
-        'once',
-        andNext(
-          main.wonRace({ aSpecPoints: e.aSpecPoints }),
-          main.eventIdIs(id),
-          stat.gameFlagIs.eventRace,
-          generalProtections.forbiddenCarIds(...e.carIdsForbidden),
-          e.aSpecPoints > 0 && $(
-            e.noCheese && generalProtections.noCheese,
-          )
-        )
-      )),
-      `M:0=1.${e.raceIds.length}.`,
-      e.aSpecPoints > 0 && generalProtections.pauseIfHasNitrous
-    )
-  })
-}
-
-/** @param {ArrayValue<typeof meta["anySubEvent"]>} c */
-function defineAnySubEventWin(c) {
-  const events = c.multiEventId.map(eventId => meta.events[eventId])
-  const raceIds = c.specificRaceIds.length > 0 ? c.specificRaceIds : events[0].raceIds
-  const eventName = events[0]?.name || ''
-  const eventNameWithSuffix = events[0]?.nameWithSuffix || ''
-
-  const noCheese = events.some(e => e.noCheese)
-  const championshipPossible = events.some(e => e.isChampionship)
-
-  const nitrousSuffix = c.nitrousAllowed ? '' : ` Nitrous is not allowed.`
-  let subTitle = 'Challenge'
-  let description = ''
-
-  if (c.carIdsRequired.length > 0) {
-    subTitle = 'Car ' + subTitle
-    description = [
-      'Win ',
-      c.eventDescriptionOverride || ('any ' + eventNameWithSuffix + ' event'),
-      (c.aSpecPoints <= 0 ? '' : ` and earn atleast ${c.aSpecPoints} A-Spec points`),
-      ` while driving ${c.descriptionSuffix}`
-    ].join('')
-  } else if (c.specificRaceIds.length > 0) {
-    description = `Win ${c.eventDescriptionOverride} in A-Spec mode and earn atleast ${c.aSpecPoints} A-Spec points.`
-  } else {
-    description = `Earn ${c.aSpecPoints} A-Spec points or more in any of the ${eventNameWithSuffix} events.`
-  }
-
-  if (c.aSpecPoints > 0) {
-    subTitle = `A-Spec ` + subTitle
-  }
-
-  set.addAchievement({
-    title: c.achievementNameOverride || (eventName + ` - ` + subTitle),
-    description: description + nitrousSuffix,
-    points: c.points,
-    conditions: $(
-      main.wonRace({ aSpecPoints: c.aSpecPoints }),
-      main.eventIdIs(...raceIds),
-      orNext(
-        stat.gameFlagIs.eventRace,
-        championshipPossible && stat.gameFlagIs.eventChampionship,
-      ),
-      stat.gtModeCarIs(...c.carIdsRequired),
-      noCheese && generalProtections.noCheese,
-      !c.nitrousAllowed && generalProtections.pauseIfHasNitrous
-    )
-  })
-}
-
-/** @param {ArrayValue<typeof meta["carEventWin"]>} c */
-function defineCarEventWin(c) {
-  const { raceIds, isChampionship } = meta.events[c.eventId]
-  set.addAchievement({
-    title: c.achName,
-    description: c.achDescription,
-    points: c.points,
-    conditions: $(
-      main.inGamePlayerCar.idIs(...c.carIdsRequired),
-      c.raceIndex === -1 && main.eventIdIs(...raceIds),
-      main.wonRace(),
-      c.raceIndex >= 0 && main.eventIdIs(raceIds[c.raceIndex]),
-      orNext(
-        stat.gameFlagIs.eventRace,
-        isChampionship && stat.gameFlagIs.eventChampionship,
-      ),
-      stat.gtModeCarIs(...c.carIdsRequired)
-    )
-  })
-}
-
-/** @param {ArrayValue<typeof meta["arcadeTimeTrial"]>} c */
-function defineArcadeTimeTrial(c) {
-  const arcadeRoot = $(
-    ['AddAddress', 'Mem', '32bit', 0x6187a8]
-  )
-
-  const arcadeTimeTrialConditions = $(
-    c.gearbox === 'manual' && $(
-      arcadeRoot,
-      ['', 'Mem', '32bit', 0x3c0, '=', 'Value', '', 1]
-    ),
-    c.aid === 'none' && $(
-      arcadeRoot,
-      ['', 'Mem', '32bit', 0x3c4, '=', 'Value', '', 0]
-    ),
-    stat.gameFlagIs.arcadeTimeTrial,
-    main.arcade.tiresAre(c.tires),
-    main.arcade.powerTuneIs(c.powerTune),
-    main.arcade.weightAdjustIs(0),
-    main.arcade.topSpeedAdjustIs(c.topSpeedTune)
-  )
-
-  const startConditions = $(
-    main.inGamePlayerCar.idIs(c.carId),
-    main.trackIdIs(c.trackId),
-
-    arcadeTimeTrialConditions,
-    main.inASpecMode,
-
-    main.hud.lapTime.newLap
-  )
-
-  const conditions = $(
-    andNext(
-      'once',
-      startConditions
-    ),
-
-    resetIf(
-      main.playerWentOut().singleChainOfConditions,
-      main.notInASpecMode
-    ),
-
-    trigger(
-      main.inGamePlayerCar.completedLap,
-      main.inGamePlayerCar.lastLapTimeWasLte(c.lapTimeTargetMsec)
-    )
-  )
-
-  set.addAchievement({
-    title: c.achName,
-    description: c.description,
-    points: c.points,
-    conditions
-  }).addLeaderboard({
-    title: c.achName,
-    description: 'Fastest time in msec to complete this achievement',
-    lowerIsBetter: true,
-    type: 'FIXED3',
-    conditions: {
-      start: startConditions,
-      cancel: {
-        core: '1=1',
-        ...([
-          ...main.playerWentOut().arrayOfAlts,
-          orNext(main.notInASpecMode)
-        ]).reduce((prev, cur, idx) => {
-          prev[`alt${idx + 1}`] = cur
-          return prev
-        }, {})
-      },
-      submit: main.inGamePlayerCar.completedLap,
-      value: main.inGamePlayerCar.measuredLastLapTime
-    }
-  })
-}
-
-const coffeeNames = {
-  "B": ["Caffè Latte", "Coffee Break"],
-  "A": ["Mocha", "Coffee Break"],
-  "IB": ["Flat White", "Coffee Broken"],
-  "IA": ["Cappuccino", "Coffee Break (the car)"],
-  "S": ["Americano", "Coffee Break (your day)"],
-}
-/** @param {ObjectValue<typeof meta["licenses"]>} l */
-function defineLicenseAchievements(l) {
-  const leaderboardConditions = {
-    start: $(
-      main.license.finished(l.eventId),
-      main.license.timeSubmitted
-    ),
-    cancel: '0=1',
-    submit: '1=1',
-    value: $(main.license.measuredTime)
-  }
-
-  const [coffeeTitle, funnyCoffee] = coffeeNames[l.license]
-  const shortName = `${l.license}-${l.index}`
-  set.addAchievement({
-    title: l.isCoffee ? coffeeTitle : `License ${shortName} - Gold`,
-    description: l.isCoffee ?
-      `Earn the golden coffee in ${funnyCoffee} for ${l.license} License.` :
-      `Earn the gold reward in license test ${shortName} - ${l.name}`,
-    points: l.points,
-    conditions: main.license.finished(l.eventId, 2)
-  }).addLeaderboard({
-    title: l.isCoffee ?
-      `Coffee Break ${l.license}: ${l.name}` :
-      `License ${shortName}: ${l.name}`,
-    description: `Fastest time to complete in msec`,
-    type: 'FIXED3',
-    lowerIsBetter: true,
-    conditions: leaderboardConditions
-  })
-}
-
-/** @param {ArrayValue<typeof meta["carChallenges"]>} c */
-function defineCarChallenge(c) {
-  const { aSpecPoints } = c
-  const carName = meta.carLookup[c.carIds[0]]
-
-  const carDescription = c.description || carName
-  const description = `Earn ${aSpecPoints} A-Spec points or more in ${carDescription}.`
-  const arcadeOnly = c.fullDescription.includes('Arcade')
-
-  const raceIds = c.eventStringIds.flatMap(stringId => meta.events[stringId].raceIds)
-
-  const specificParts = c.forbiddenGearboxId.length > 0
-
-  set.addAchievement({
-    title: c.name,
-    description: c.fullDescription || description,
-
-    points: c.points,
-    conditions: {
-      core: $(
-        main.inGamePlayerCar.idIs(...c.carIds),
-        main.trackIdIs(...c.trackIds),
-        c.colorId !== -1 && main.inGamePlayerCar.colorIdIs(c.colorId),
-        main.eventIdIs(...raceIds),
-        main.wonRace({ aSpecPoints }),
-        specificParts === false && orNext(
-          stat.gameFlagIs.arcadeRace,
-          arcadeOnly === false && stat.gameFlagIs.eventRace,
-          arcadeOnly === false && stat.gameFlagIs.eventChampionship,
-        ),
-        c.laps > 0 && main.lapCountIsGte(c.laps)
-      ),
-      ...(specificParts ? {
-        alt1: stat.gameFlagIs.arcadeRace,
-        alt2: $(
-          orNext(
-            stat.gameFlagIs.eventRace,
-            stat.gameFlagIs.eventChampionship,
-          ),
-          pauseIf(
-            stat.forEachSetupSlot(s => s.gearboxIdIsNotOneOf(c.forbiddenGearboxId))
-          )
-        )
-      } : {})
-    }
-  })
-}
 
 /**
  * @param {Object} params
@@ -331,13 +41,13 @@ function defineSpeedAchievement(params) {
       core: $(
         main.inASpecMode,
         main.inGamePlayerCar.isNotControlledByAI,
-        main.inGamePlayerCar.isNotControlledByAIRollingStart,
-        main.hud.speed.isRendered
+        main.inGamePlayerCar.isNotControlledByAIAlt,
+        main.hud.dashboard.isRendered
       ),
-      alt1: main.hud.speed.wentPastSpeed('kph', true, speedKPH),
-      alt2: main.hud.speed.wentPastSpeed('kph', false, speedKPH),
-      alt3: main.hud.speed.wentPastSpeed('mph', true, speedMPH),
-      alt4: main.hud.speed.wentPastSpeed('mph', false, speedMPH),
+      alt1: main.hud.dashboard.wentPastSpeed('kph', true, speedKPH),
+      alt2: main.hud.dashboard.wentPastSpeed('kph', false, speedKPH),
+      alt3: main.hud.dashboard.wentPastSpeed('mph', true, speedMPH),
+      alt4: main.hud.dashboard.wentPastSpeed('mph', false, speedMPH),
     }
   })
 }
@@ -350,17 +60,19 @@ export default function () {
   const individualRaces = events.filter(e => !e.inOneSitting || e.races.length === 1)
 
   for (const e of championshipsInOneSitting) {
-    defineChampionship(e)
+    defineChampionship({ set, e })
   }
   for (const e of oneSittingRaces) {
-    defineAllRacesInOneSitting(e)
+    defineAllRacesInOneSitting({ set, e })
   }
   for (const e of individualRaces) {
     if (e.races.length > 1) {
       e.races.forEach(({ raceId, trackId }, i) => {
         const trackName = meta.trackLookup[trackId]
 
-        defineIndividualRace(set, e, {
+        defineIndividualRace({
+          set,
+          e,
           title: `${e.name} - Race #${i + 1}`,
           description: `Win race #${i + 1} of ${e.name} on ${trackName} in A-Spec mode`,
           raceIds: [raceId],
@@ -368,24 +80,24 @@ export default function () {
         })
       })
     } else {
-      defineIndividualRace(set, e)
+      defineIndividualRace({ set, e })
     }
   }
 
   for (const c of meta.anySubEvent) {
-    defineAnySubEventWin(c)
+    defineAnySubEventWin({ set, c })
   }
 
   for (const c of meta.carEventWin) {
-    defineCarEventWin(c)
+    defineCarEventWin({ set, c })
   }
 
   for (const c of meta.arcadeTimeTrial) {
-    defineArcadeTimeTrial(c)
+    defineArcadeTimeTrial({ set, c })
   }
 
   for (const c of meta.carChallenges) {
-    defineCarChallenge(c)
+    defineCarChallenge({ set, c })
   }
 
   for (const m of Object.values(meta.missions)) {
@@ -407,7 +119,7 @@ export default function () {
   }
 
   for (const l of Object.values(meta.licenses)) {
-    defineLicenseAchievements(l)
+    defineLicenseAchievements({ set, l })
   }
 
   for (const [letter, points, title] of /** @type const */ ([
@@ -465,10 +177,10 @@ export default function () {
           pointerNullCheck(main.p.root),
           main.regionIs.ntsc,
           ...tests.map((test, idx) => $(
-            ['AddAddress', 'Mem', '32bit', 0x622f4c],
+            stat.root,
             ['', 'Mem', 'Upper4', test.ntscFlagOffset, '<=', 'Value', '', 0xB],
             idx === tests.length - 1 && $(
-              ['AddAddress', 'Mem', '32bit', 0x622f4c],
+              stat.root,
               ['', 'Delta', 'Upper4', test.ntscFlagOffset, '>', 'Value', '', 0xB],
             )
           ))
@@ -683,203 +395,7 @@ export default function () {
   return set
 }
 
-export const rich = (() => {
-  const substringEventString = $(
-    ['AddAddress', 'Mem', '32bit', 0x6187a8],
-    ['Measured', 'Mem', '8bit', 0x3c8]
-  )
-
-  const licenses = {
-    B: { emoji: '🟩', idKey: stringToNumberLE('l0b0')[0], },
-    A: { emoji: '🟨', idKey: stringToNumberLE('l0a0')[0], },
-    IB: { emoji: '🟦', idKey: stringToNumberLE('lib0')[0], },
-    IA: { emoji: '🟥', idKey: stringToNumberLE('lia0')[0], },
-    S: { emoji: '🟪', idKey: stringToNumberLE('l0s0')[0], },
-  }
-
-  const lapTracker = $(
-    ['AddSource', 'Value', '', 1],
-    main.inGamePlayerCar.lapsCompletedMeasured
-  )
-
-  const totalTimeTracker = main.totalTimeInMsec.measured.withLast({
-    cmp: '/',
-    rvalue: { type: 'Value', value: 3000 }
-  })
-
-  return RichPresence({
-    lookupDefaultParameters: { compressRanges: false },
-    lookup: {
-      Car: {
-        defaultAt: stat.gtModeCarValue,
-        values: {
-          ...meta.carLookup,
-          '*': '- -'
-        }
-      },
-      Event: {
-        defaultAt: main.eventIdValue,
-        values: meta.eventLookup
-      },
-      License_B: { values: { 16: ' ' + licenses.B.emoji } },
-      License_A: { values: { 16: licenses.A.emoji } },
-      License_IB: { values: { 16: licenses.IB.emoji } },
-      License_IA: { values: { 16: licenses.IA.emoji } },
-      License_S: { values: { 16: licenses.S.emoji } },
-
-      LicenseColor: {
-        defaultAt: substringEventString.withLast({ lvalue: { size: '32bit' } }),
-        values: Object.values(licenses).reduce((prev, cur) => {
-          prev[cur.idKey] = cur.emoji
-          return prev
-        }, {})
-      },
-      LicenseLetter: {
-        defaultAt: substringEventString.withLast({ lvalue: { size: '32bit' } }),
-        values: Object.entries(licenses).reduce((prev, [letter, cur]) => {
-          prev[cur.idKey] = letter
-          return prev
-        }, {})
-      },
-
-      Track: {
-        defaultAt: main.trackIdValue,
-        values: {
-          ...meta.trackLookup,
-          174: 'Gymkhana Course'
-        }
-      },
-    },
-
-    displays: ({ lookup, macro, tag }) => {
-      const carLookupInGame = lookup.Car.at(main.inGamePlayerCar.idValue)
-      const licenseLetters = [
-        substringEventString.withLast({ lvalue: { value: 0x3cd } }),
-        substringEventString.withLast({ lvalue: { value: 0x3ce } }),
-      ].map(x => macro.ASCIIChar.at(x)).join('')
-
-      return [
-        [
-          andNext(
-            stat.gameFlagIs.arcadeRace,
-            main.totalTimeInMsec.isGtThanZero,
-            main.hud.showingRaceResults.withLast({ rvalue: { value: 0 } })
-          ),
-          tag`[🏁 Arcade Race] 📍 ${lookup.Track} 🚗 ${carLookupInGame} | Lap ${macro.Number.at(lapTracker)}/${macro.Number.at(main.lapCountMeasured)}`
-        ],
-        [
-          stat.gameFlagIs.arcadeRace,
-          tag`[🏁 Arcade Race] 📍 ${lookup.Track} 🚗 ${carLookupInGame}`
-        ],
-        [
-          stat.gameFlagIs.raceMeeting,
-          tag`[🏁 Race Meeting] 📍 ${lookup.Track} 🚗 ${lookup.Car}`
-        ],
-        [
-          stat.gameFlagIs.arcadeTimeTrial,
-          tag`[🏁 Arcade Time Trial] 📍 ${lookup.Track} 🚗 ${carLookupInGame}`
-        ],
-        [
-          $(
-            stat.gameFlagIs.license,
-            substringEventString.withLast({ flag: '', lvalue: { size: '32bit' }, cmp: '=', rvalue: { type: 'Value', value: stringToNumberLE('l0c0')[0] } }),
-          ),
-          tag`[☕ Coffee Break] ${licenseLetters} ${lookup.Event} 🚗 ${carLookupInGame}`
-        ],
-        [
-          stat.gameFlagIs.license,
-          tag`[🔰 License Center] ${lookup.LicenseColor} ${lookup.LicenseLetter}-${licenseLetters} ${lookup.Event} 🚗 ${carLookupInGame}`
-        ],
-        [
-          stat.gameFlagIs.mission,
-          tag`[🎯 ${lookup.Event}] 🚗 ${carLookupInGame}`
-        ],
-        [
-          stat.gameFlagIs.freeRun,
-          tag`[⏱ Free Run] 📍 ${lookup.Track} 🚗 ${lookup.Car}`
-        ],
-        [
-          stat.gameFlagIs.powerAndSpeed,
-          tag`[⏱ ${lookup.Event}] 🚗 ${lookup.Car}`
-        ],
-        [
-          stat.gameFlagIs.photoDrive,
-          tag`[📸 ${lookup.Track}] 🚗 ${lookup.Car}`
-        ],
-        [
-          stat.gameFlagIs.photoScene,
-          tag`[📸 Photo Travel] 🚗 ${lookup.Car}`
-        ],
-
-        [
-          orNext(
-            stat.gameFlagIs.eventRace,
-          ).andNext(
-            stat.gameFlagIs.eventChampionship,
-            main.totalTimeInMsec.isGtThanZero,
-            main.lapCountIsGte(0).withLast({ cmp: '=' }),
-            main.hud.showingRaceResults.withLast({ rvalue: { value: 0 } })
-          ),
-          tag`[🏁 ${lookup.Event}] 📍 ${lookup.Track} 🚗 ${lookup.Car} ⏱ ${macro.Seconds.at(totalTimeTracker)}`
-        ],
-        [
-          orNext(
-            stat.gameFlagIs.eventRace,
-          ).andNext(
-            stat.gameFlagIs.eventChampionship,
-            main.totalTimeInMsec.isGtThanZero,
-            main.lapCountIsGte(0),
-            main.hud.showingRaceResults.withLast({ rvalue: { value: 0 } })
-          ),
-          tag`[🏁 ${lookup.Event}] 📍 ${lookup.Track} 🚗 ${lookup.Car} | Lap ${macro.Number.at(lapTracker)}/${macro.Number.at(main.lapCountMeasured)}`
-        ],
-        [
-          orNext(stat.gameFlagIs.eventRace, stat.gameFlagIs.eventChampionship),
-          tag`[🏁 ${lookup.Event}] 📍 ${lookup.Track} 🚗 ${lookup.Car}`
-        ],
-
-        ...['pal', 'ntsc'].map(region => {
-          const licenseBadges = Object.entries(licenses).map(([key, l]) => {
-            const tests = Object.values(meta.licenses)
-              .filter(license => license.license === key && license.isCoffee === false)
-
-            const amountOfTestsPassed = $(...tests.map(test => region === 'pal' ?
-              $(['AddSource', 'Mem', 'Bit0', test.palFlagAddress]) :
-              $(
-                ['AddAddress', 'Mem', '32bit', 0x622f4c],
-                ['AddSource', 'Mem', 'Bit0', test.ntscFlagOffset]
-              )
-            ))
-
-            return lookup['License_' + key].at($(amountOfTestsPassed, ['Measured', 'Value', '', 0]))
-          }).join('')
-
-          const date = $(
-            ['SubSource', 'Value', '', 2453461],
-            stat.root,
-            ['Measured', 'Mem', '32bit', 0xBC28]
-          )
-
-          const mileage = $(
-            stat.root,
-            ['Measured', 'Mem', '32bit', 0x3b8, '*', 'Float', '', 0.001]
-          )
-
-
-          return /** @type [ConditionBuilder, string] */ ([
-            $(
-              main.regionIs[region],
-              stat.gameFlagIs.inGameMenus,
-              stat.inGTModeProject
-            ),
-            tag`[🏠 Home${licenseBadges}] 🚗 ${lookup.Car.at(stat.gtModeCarValue)} 📅 Day ${macro.Number.at(date)} | ${macro.Number.at(mileage)} km`
-          ])
-        }),
-        'Playing Gran Turismo 4'
-      ]
-    }
-  })
-})()
+export const rich = makeRichPresence()
 
 if (process.argv.includes('icons')) {
   dumpAll()

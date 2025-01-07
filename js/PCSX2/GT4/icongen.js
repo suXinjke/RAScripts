@@ -191,13 +191,17 @@ const chiliMeta = {
   am_mr: { y: 52 },
   am_kcar: { y: 26 },
   am_spider: { times: 1, alpha: 1, x: 28, y: 33 },
+  am_sixcyl: { times: 1, x: 14, y: 14 },
   pr_clubman: { y: 54 },
+  pr_clubman_race: { y: 54 },
   pr_tuning: {},
   pr_na: { y: 50 },
   pr_turbo: { y: 48 },
   pr_boxer: { y: 50 },
   pr_compact: { y: 16 },
-  pr_supercar: { y: 52 }
+  pr_supercar: { y: 52 },
+  pr_city: { y: 52 },
+  pr_homologation: { times: 1, y: 34 },
 }
 
 const nationMeta = {
@@ -213,18 +217,22 @@ const nationMeta = {
     eur1000mile: { text: { value: '1000\nmiglia!' } },
     eurschvartz_a: { text: { value: 'Liga A', y: 38 }, chili: { offset: 9 } },
     eurschvartz_b: { text: { value: 'Liga B', y: 38 }, chili: { offset: 9 } },
+    grandtour: { text: { value: 'Grand\nTour', y: 26 }, chili: { y: 40, offset: 8 } },
   },
 
   us: {
     usrusa: { text: { value: 'US Cup', size: 15, y: 38 }, chili: { offset: 9 } },
     usrstar: { text: { value: 'Stars\n&\nStripes', size: 15, y: 22 }, chili: { textOverride: 'Stars\n\nStripes' } },
     usrmuscle: { text: { value: 'US\nMuscle', size: 15 }, chili: { offset: 12 } },
+    usrmuscle_hotrod: { text: { value: 'Hot\nRod', size: 15, y: 28 }, chili: { textOverride: 'Hot\n\nRod', y: 22, offset: 7 } },
     usrmuscle_old: { text: { value: 'US Old\nMuscle', size: 15 }, chili: { offset: 12 } },
   },
 
   jp: {
     jprjapan: { text: { value: 'JP Cup', y: 38, size: 15 }, chili: { offset: 9 } },
     jprjgtc: { text: { value: 'JGTC', y: 38 }, range: 10 },
+    jprjgtc_300: { text: { value: 'GT300', y: 38 }, range: 5 },
+    jprjgtc_500: { text: { value: 'GT500', y: 38 }, range: 8 },
     jprjp_70: { text: { value: 'JP 70s', y: 38 }, chili: { offset: 9 } },
     jprjp_80: { text: { value: 'JP 80s', y: 38 }, chili: { offset: 9 } },
     jprjp_90: { text: { value: 'JP 90s', y: 38 }, chili: { offset: 9 } },

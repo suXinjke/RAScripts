@@ -4,7 +4,8 @@ import {
   AchievementSet, define as $,
   orNext, andNext, resetIf, trigger, once
 } from '@cruncheevos/core'
-import { stat, main, meta, generalProtections, defineIndividualRace } from './CommonGT4.js'
+import { code } from './CommonGT4.js'
+const { meta, stat, main, generalProtections, defineIndividualRace, defineArcadeRace } = await code('retail')
 
 import * as path from 'path'
 import { makeBadge } from './icongen.js'
@@ -102,7 +103,9 @@ for (const e of subsetOnlyEvents) {
   if (e.races.length > 1) {
     e.races.forEach(({ raceId, trackId }, i) => {
       const trackName = meta.trackLookup[trackId]
-      defineIndividualRace(set, e, {
+      defineIndividualRace({
+        set,
+        e,
         title: `${e.name} - Race #${i + 1}`,
         description: `Win race #${i + 1} of ${e.name} on ${trackName} in A-Spec mode`,
         raceIds: [raceId],
@@ -131,7 +134,9 @@ for (const e of subsetOnlyEvents) {
   } else if (e.multiPoints) {
     define24HourEvent(e)
   } else {
-    defineIndividualRace(set, e, {
+    defineIndividualRace({
+      set,
+      e,
       triggerIcon: true,
       badge: b(`${e.id}.png`, b => b
         .bg({ input: `_events/${e.id}.png` })
@@ -295,54 +300,7 @@ for (const r of mediumRallyEvents) {
 }
 
 for (const r of meta.arcadeRace) {
-  set.addAchievement({
-    title: r.achName,
-    description: r.description,
-    points: r.points,
-    conditions: $(
-      stat.gameFlagIs.arcadeRace,
-      main.trackIdIs(r.trackId),
-      main.lapCountIs(r.laps),
-
-      main.arcade.powerTuneIs(r.powerTune),
-      main.arcade.weightAdjustIs(0),
-      r.topSpeedTune !== null && main.arcade.topSpeedAdjustIs(r.topSpeedTune),
-
-      ...Array.from({ length: r.maxCars ? r.maxCars : 6 }, (_, i) => {
-        const car = main.inGameCar(i)
-
-        return $(
-          car.idIs(...(i === 0 ? r.playerCarIds : r.opponentCarIds)),
-          car.tiresAre(r.tires),
-        )
-      }),
-
-      r.distinctOpponents && $(
-        ...r.opponentCarIds.map(id => {
-          return orNext(
-            ...Array.from({ length: 5 }, (_, i) => {
-              const car = main.inGameCar(i + 1)
-
-              return car.idIs(id)
-            })
-          )
-        })
-      ),
-
-      trigger(
-        main.wonRace(),
-      ),
-
-      (r.stayOnTheRoad || r.crashSensitivity > 0) && $(
-        once(main.hud.lapTime.beganFirstLap),
-        resetIf(
-          main.notInASpecMode,
-          main.playerWentOut(r.crashSensitivity).singleChainOfConditions,
-          main.cuttingOnTrack[r.trackId]
-        )
-      )
-    )
-  })
+  defineArcadeRace({ set, r })
 }
 
 export default set
