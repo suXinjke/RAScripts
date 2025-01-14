@@ -106,6 +106,7 @@ function shortAchievementInfo() {
   ).map(e => ({
     title: e.querySelector('.inline.mr-1').innerText.trim(),
     description: e.querySelector('p.leading-4').innerText.trim(),
+    points: Number(e.querySelector('p.inline.text-xs.whitespace-nowrap').innerText.trim().match(/\d+/)),
     badge: Number(e.querySelector('img').src.match(/\d+/))
   }))
 }
