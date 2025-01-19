@@ -110,3 +110,16 @@ function shortAchievementInfo() {
     badge: Number(e.querySelector('img').src.match(/\d+/))
   }))
 }
+
+function shortLeaderboardInfo() {
+  const root = Array.from(
+    document.querySelectorAll('.component .text-h3')
+  )
+    .find(x => x.textContent === 'Leaderboards')
+    .closest('.component')
+
+  return Array.from(root.querySelectorAll('.flex.flex-col.gap-y-1')).map(x => ({
+    title: x.querySelector('a').textContent.trim(),
+    description: x.querySelector('p').textContent.trim(),
+  }))
+}
