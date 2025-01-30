@@ -448,10 +448,10 @@ function defineLeaderboard(title, expectedTrackId, expectedCarIds = []) {
 const set = new AchievementSet({ gameId: 19283, title: 'WRC Rally Evolved' })
 
 for (const [points, carClass, difficultyValue, title, championshipDescription] of /** @type const */ ([
-  [10, 's1600', difficulty.novice, "Junior Champion", "Super 1600 Championship"],
-  [10, 'wrc', difficulty.novice, "WRC Novice Champion", "World Rally Championship on Novice difficulty or higher"],
+  [25, 's1600', difficulty.novice, "Junior Champion", "Super 1600 Championship"],
+  [25, 'wrc', difficulty.novice, "WRC Novice Champion", "World Rally Championship on Novice difficulty or higher"],
   [25, 'wrc', difficulty.professional, "WRC Professional Champion", "World Rally Championship on Professional difficulty or higher"],
-  [50, 'wrc', difficulty.expert, "WRC Expert Champion", "World Rally Championship on Expert difficulty"],
+  [25, 'wrc', difficulty.expert, "WRC Expert Champion", "World Rally Championship on Expert difficulty"],
 ])) {
   set.addAchievement({
     title,
@@ -493,7 +493,7 @@ for (const [countryId, title] of /** @type const */ ([
     title,
     description: `Win the ${trophyIds[countryId]} on WRC Professional or Expert difficulty`,
     type: 'progression',
-    points: 5,
+    points: 2,
     conditions: $(
       orNext(
         c.gameModeIs('singleRally'),
@@ -511,26 +511,26 @@ for (const [countryId, title] of /** @type const */ ([
   })
 }
 
-for (const [points, expectedCarIds] of /** @type const */ ([
-  [2, ['FPS_']],
-  [2, ['P2S_']],
-  [2, ['FFS_']],
-  [2, ['RCS_']],
-  [2, ['SIS_']],
-  [2, ['SSS_']],
-  [3, ['CXW_']],
-  [3, ['FCW_', 'FBW_']],
-  [3, ['SIW_']],
-  [3, ['P3W_']],
-  [3, ['MLW_']],
-  [3, ['SFW_']],
+for (const [expectedCarIds] of /** @type const */ ([
+  [['FPS_']],
+  [['P2S_']],
+  [['FFS_']],
+  [['RCS_']],
+  [['SIS_']],
+  [['SSS_']],
+  [['CXW_']],
+  [['FCW_', 'FBW_']],
+  [['SIW_']],
+  [['P3W_']],
+  [['MLW_']],
+  [['SFW_']],
 ])) {
   const carName = carIds[expectedCarIds[0]]
 
   set.addAchievement({
     title: carName + ' Enthusiast',
     description: 'Win any rally event in ' + carName,
-    points,
+    points: 2,
     conditions: $(
       orNext(
         c.gameModeIs('singleRally'),
@@ -562,7 +562,7 @@ for (const expectedCarId of [
   set.addAchievement({
     title: carName + ' Enthusiast',
     description: 'Win any rallycross event in ' + carName,
-    points: 2,
+    points: 1,
     conditions: $(
       c.carIs(expectedCarId),
       c.hasWonRallycrossEvent,
@@ -583,9 +583,9 @@ set.addAchievement({
 })
 
 for (const [goldString, points, carClassFormatted, carClass] of /** @type const */ ([
-  ['SG', 10, "S1600", 's1600'],
-  ['WG', 10, "WRC", 'wrc'],
-  ['PG', 10, "Independents", 'independents'],
+  ['SG', 25, "S1600", 's1600'],
+  ['WG', 25, "WRC", 'wrc'],
+  ['PG', 25, "Independents", 'independents'],
   ['EG', 25, "Extreme", 'extreme'],
   ['HG', 25, "Historic", 'historic'],
 ])) {
@@ -616,32 +616,32 @@ for (const [goldString, points, carClassFormatted, carClass] of /** @type const 
   })
 }
 
-for (const [expectedTrackId, carId, timeLimit, medalName] of /** @type const */ ([
-  ['HAQ1', 'AQH_', 39000, "Bronze"],
-  ['HAQ2', 'AQH_', 53750, "Silver"],
-  ['HAQ3', 'AQH_', 62000, "Gold"],
-  ['HLD1', 'LDH_', 42000, "Bronze"],
-  ['HLD2', 'LDH_', 48750, "Silver"],
-  ['HLD3', 'LDH_', 56500, "Gold"],
-  ['HFR1', 'FRH_', 65000, "Bronze"],
-  ['HFR2', 'FRH_', 49000, "Silver"],
-  ['HFR3', 'FRH_', 44000, "Gold"],
-  ['HL01', 'LRH_', 51000, "Bronze"],
-  ['HL02', 'LRH_', 43000, "Silver"],
-  ['HL03', 'LRH_', 45250, "Gold"],
-  ['HPT1', 'P2H_', 48000, "Bronze"],
-  ['HPT2', 'P2H_', 46250, "Silver"],
-  ['HPT3', 'P2H_', 53250, "Gold"],
-  ['HR51', 'RMH_', 39000, "Bronze"],
-  ['HR52', 'RMH_', 43250, "Silver"],
-  ['HR53', 'RMH_', 60000, "Gold"]
+for (const [expectedTrackId, carId, points, timeLimit, medalName] of /** @type const */ ([
+  ['HAQ1', 'AQH_', 3, 39000, "Bronze"],
+  ['HAQ2', 'AQH_', 3, 53750, "Silver"],
+  ['HAQ3', 'AQH_', 3, 62000, "Gold"],
+  ['HLD1', 'LDH_', 3, 42000, "Bronze"],
+  ['HLD2', 'LDH_', 3, 48750, "Silver"],
+  ['HLD3', 'LDH_', 5, 56500, "Gold"],
+  ['HFR1', 'FRH_', 3, 65000, "Bronze"],
+  ['HFR2', 'FRH_', 3, 49000, "Silver"],
+  ['HFR3', 'FRH_', 3, 44000, "Gold"],
+  ['HL01', 'LRH_', 3, 51000, "Bronze"],
+  ['HL02', 'LRH_', 3, 43000, "Silver"],
+  ['HL03', 'LRH_', 3, 45250, "Gold"],
+  ['HPT1', 'P2H_', 3, 48000, "Bronze"],
+  ['HPT2', 'P2H_', 3, 46250, "Silver"],
+  ['HPT3', 'P2H_', 3, 53250, "Gold"],
+  ['HR51', 'RMH_', 3, 39000, "Bronze"],
+  ['HR52', 'RMH_', 3, 43250, "Silver"],
+  ['HR53', 'RMH_', 4, 60000, "Gold"]
 ])) {
   const carName = carIds[carId]
 
   set.addAchievement({
     title: `${carName} Historic Challenge ${medalName}`,
     description: `Complete ${medalName} Historic Challenge for ${carName}`,
-    points: 3,
+    points,
     type: 'progression',
     conditions: $(
       c.trackIs(expectedTrackId),
@@ -659,89 +659,89 @@ for (const [expectedTrackId, carId, timeLimit, medalName] of /** @type const */ 
 
 Object.entries({
   P2P_: [
-    { trackId: 'SE2', timeLimit: '02:09.00' },
-    { trackId: 'AR2', timeLimit: '02:27.50' },
-    { trackId: 'FR1', timeLimit: '02:21.50' }
+    { trackId: 'SE2', timeLimit: '02:09.00', points: 3 },
+    { trackId: 'AR2', timeLimit: '02:27.50', points: 5 },
+    { trackId: 'FR1', timeLimit: '02:21.50', points: 3 }
   ],
   SBC_: [
-    { trackId: 'FI2', timeLimit: '02:46.50' },
-    { trackId: 'DE1', timeLimit: '02:21.90' },
-    { trackId: 'AU2', timeLimit: '02:15.10' }
+    { trackId: 'FI2', timeLimit: '02:46.50', points: 5 },
+    { trackId: 'DE1', timeLimit: '02:21.90', points: 5 },
+    { trackId: 'AU2', timeLimit: '02:15.10', points: 5 }
   ],
   P3C_: [
-    { trackId: 'IT2', timeLimit: '02:14.30' },
-    { trackId: 'FR2', timeLimit: '02:54.35' },
-    { trackId: 'AR3', timeLimit: '02:14.00' }
+    { trackId: 'IT2', timeLimit: '02:14.30', points: 3 },
+    { trackId: 'FR2', timeLimit: '02:54.35', points: 3 },
+    { trackId: 'AR3', timeLimit: '02:14.00', points: 5 }
   ],
   MCE_: [
-    { trackId: 'CY3', timeLimit: '02:50.50' },
-    { trackId: 'TR3', timeLimit: '03:01.00' },
-    { trackId: 'ES2', timeLimit: '02:25.20' }
+    { trackId: 'CY3', timeLimit: '02:50.50', points: 5 },
+    { trackId: 'TR3', timeLimit: '03:01.00', points: 5 },
+    { trackId: 'ES2', timeLimit: '02:25.20', points: 5 }
   ],
   CXE_: [
-    { trackId: 'MC1', timeLimit: '02:31.20' },
-    { trackId: 'NZ1', timeLimit: '02:09.60' },
-    { trackId: 'TR1', timeLimit: '02:18.40' }
+    { trackId: 'MC1', timeLimit: '02:31.20', points: 5 },
+    { trackId: 'NZ1', timeLimit: '02:09.60', points: 5 },
+    { trackId: 'TR1', timeLimit: '02:18.40', points: 5 }
   ],
   FFE_: [
-    { trackId: 'GR2', timeLimit: '02:53.90' },
-    { trackId: 'JA1', timeLimit: '01:48.80' },
-    { trackId: 'FR3', timeLimit: '02:27.80' }
+    { trackId: 'GR2', timeLimit: '02:53.90', points: 10 },
+    { trackId: 'JA1', timeLimit: '01:48.80', points: 10 },
+    { trackId: 'FR3', timeLimit: '02:27.80', points: 5 }
   ],
   SIE_: [
-    { trackId: 'SE1', timeLimit: '02:06.00' },
-    { trackId: 'ME2', timeLimit: '01:51.20' },
-    { trackId: 'GB3', timeLimit: '02:27.80' }
+    { trackId: 'SE1', timeLimit: '02:06.00', points: 5 },
+    { trackId: 'ME2', timeLimit: '01:51.20', points: 10 },
+    { trackId: 'GB3', timeLimit: '02:27.80', points: 10 }
   ],
   P3E_: [
-    { trackId: 'FI3', timeLimit: '02:28.00' },
-    { trackId: 'DE2', timeLimit: '02:17.20' },
-    { trackId: 'JA3', timeLimit: '01:54.00' }
+    { trackId: 'FI3', timeLimit: '02:28.00', points: 10 },
+    { trackId: 'DE2', timeLimit: '02:17.20', points: 10 },
+    { trackId: 'JA3', timeLimit: '01:54.00', points: 5 }
   ],
   MLE_: [
-    { trackId: 'NZ2', timeLimit: '02:30.00' },
-    { trackId: 'CY1', timeLimit: '02:22.10' },
-    { trackId: 'AU3', timeLimit: '02:07.50' }
+    { trackId: 'NZ2', timeLimit: '02:30.00', points: 5 },
+    { trackId: 'CY1', timeLimit: '02:22.10', points: 10 },
+    { trackId: 'AU3', timeLimit: '02:07.50', points: 5 }
   ],
   SFE_: [
-    { trackId: 'ME3', timeLimit: '03:09.50' },
-    { trackId: 'GB1', timeLimit: '03:04.60' },
-    { trackId: 'ES1', timeLimit: '02:12.50' }
+    { trackId: 'ME3', timeLimit: '03:09.50', points: 10 },
+    { trackId: 'GB1', timeLimit: '03:04.60', points: 10 },
+    { trackId: 'ES1', timeLimit: '02:12.50', points: 5 }
   ],
   AQH_: [
-    { trackId: 'ME1', timeLimit: '03:15.00' },
-    { trackId: 'GR3', timeLimit: '02:58.60' },
-    { trackId: 'ES3', timeLimit: '02:41.10' }
+    { trackId: 'ME1', timeLimit: '03:15.00', points: 10 },
+    { trackId: 'GR3', timeLimit: '02:58.60', points: 10 },
+    { trackId: 'ES3', timeLimit: '02:41.10', points: 10 }
   ],
   LDH_: [
-    { trackId: 'IT1', timeLimit: '02:41.30' },
-    { trackId: 'FI1', timeLimit: '02:03.00' },
-    { trackId: 'JA2', timeLimit: '01:52.50' }
+    { trackId: 'IT1', timeLimit: '02:41.30', points: 10 },
+    { trackId: 'FI1', timeLimit: '02:03.00', points: 5 },
+    { trackId: 'JA2', timeLimit: '01:52.50', points: 5 }
   ],
   FRH_: [
-    { trackId: 'NZ3', timeLimit: '02:07.40' },
-    { trackId: 'TR2', timeLimit: '02:25.80' },
-    { trackId: 'DE3', timeLimit: '02:28.00' }
+    { trackId: 'NZ3', timeLimit: '02:07.40', points: 5 },
+    { trackId: 'TR2', timeLimit: '02:25.80', points: 5 },
+    { trackId: 'DE3', timeLimit: '02:28.00', points: 10 }
   ],
   LRH_: [
-    { trackId: 'MC3', timeLimit: '02:50.00' },
-    { trackId: 'SE3', timeLimit: '03:45.00' },
-    { trackId: 'IT3', timeLimit: '03:00.00' }
+    { trackId: 'MC3', timeLimit: '02:50.00', points: 5 },
+    { trackId: 'SE3', timeLimit: '03:45.00', points: 5 },
+    { trackId: 'IT3', timeLimit: '03:00.00', points: 5 }
   ],
   P2H_: [
-    { trackId: 'MC2', timeLimit: '04:00.40' },
-    { trackId: 'GR1', timeLimit: '02:49.00' },
-    { trackId: 'AR1', timeLimit: '02:01.50' }
+    { trackId: 'MC2', timeLimit: '04:00.40', points: 10 },
+    { trackId: 'GR1', timeLimit: '02:49.00', points: 5 },
+    { trackId: 'AR1', timeLimit: '02:01.50', points: 10 }
   ],
   RMH_: [
-    { trackId: 'CY2', timeLimit: '02:54.00' },
-    { trackId: 'GB2', timeLimit: '02:29.00' },
-    { trackId: 'AU1', timeLimit: '01:35.20' }
+    { trackId: 'CY2', timeLimit: '02:54.00', points: 5 },
+    { trackId: 'GB2', timeLimit: '02:29.00', points: 5 },
+    { trackId: 'AU1', timeLimit: '01:35.20', points: 5 }
   ]
 }).forEach(([expectedCarId, challenges]) => {
   const carName = carIds[expectedCarId]
 
-  challenges.forEach(({ trackId, timeLimit }, index) => {
+  challenges.forEach(({ trackId, timeLimit, points }, index) => {
     const timePieces = timeLimit.split(/[:\.]/).map(Number)
     const timeLimitMsec = timePieces[0] * 60000 + timePieces[1] * 1000 + timePieces[2] * 10
 
@@ -751,7 +751,7 @@ Object.entries({
     set.addAchievement({
       title: `${carName} Challenge #${index + 1}`,
       description: `Rally ${countryName} ${trackName}, beat time of ${timeLimit} in ${carName}`,
-      points: 3,
+      points,
       conditions: $(
         c.trackIs(trackId),
         c.carIs(expectedCarId),
@@ -829,7 +829,7 @@ set.addAchievement({
 set.addAchievement({
   title: 'Sweet Rally',
   description: 'Win any rally event with Psychedelic sky cheat active, in one sitting',
-  points: 5,
+  points: 2,
   conditions: $(
     once(
       orNext(
@@ -850,7 +850,7 @@ set.addAchievement({
 set.addAchievement({
   title: 'Shattered Pacenotes',
   description: 'Win any rally event with Cross-eyed co-driver cheat active, in one sitting',
-  points: 5,
+  points: 2,
   conditions: $(
     once(
       orNext(
