@@ -104,6 +104,7 @@ function shortAchievementInfo() {
   return Array.from(
     document.querySelectorAll('#set-achievements-list li')
   ).map(e => ({
+    id: Number(e.querySelector('.inline.mr-1').href.match(/\d+$/)[0]),
     title: e.querySelector('.inline.mr-1').innerText.trim(),
     description: e.querySelector('p.leading-4').innerText.trim(),
     points: Number(e.querySelector('p.inline.text-xs.whitespace-nowrap').innerText.trim().match(/\d+/)),
