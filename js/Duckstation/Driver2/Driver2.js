@@ -293,52 +293,57 @@ const codeFor = (region) => {
     }
   }
 
-  const makeCarDataCode = (baseCondition) => {
+  const makeCarDataCode = (baseAddress) => {
+    const validId = baseAddress.with({ flag: 'AndNext', cmp: '!=', rvalue: ['Value', '', 0xFF] })
+
     return {
       get hasNoDamage() {
         return $(
-          baseCondition,
+          validId,
+          baseAddress,
           ['', 'Mem', '16bit', offset(0x0d160e), '<=', 'Value', '', 1]
         )
       },
 
       get gotDamage() {
         return $(
-          baseCondition,
+          validId,
+          baseAddress,
           ['', 'Mem', '16bit', offset(0x0d160e), '>', 'Delta', '16bit', offset(0x0d160e)]
         )
       },
 
       get gotSeriousDamage() {
         return $(
-          baseCondition,
+          validId,
+          baseAddress,
           ['AddSource', 'Mem', '16bit', offset(0x0d160e)],
-          baseCondition,
+          baseAddress,
           ['SubSource', 'Delta', '16bit', offset(0x0d160e)],
           ['', 'Value', '', 0, '>', 'Value', '', 10]
         )
       },
 
       carPos: (coords) => $(
-        andNext(
-          baseCondition,
-          ['', 'Mem', '32bit', offset(0x0d1394), '<=', 'Value', '', coords.top],
-        ).andNext(
-          baseCondition,
+        validId,
 
-          ['', 'Mem', '32bit', offset(0x0d1394), '>=', 'Value', '', coords.bottom]
-        ).andNext(
-          baseCondition,
-          ['', 'Mem', '32bit', offset(0x0d138c), '>=', 'Value', '', coords.left],
-        ).also(
-          baseCondition,
-          ['', 'Mem', '32bit', offset(0x0d138c), '<=', 'Value', '', coords.right],
-        )
+        baseAddress,
+        ['AndNext', 'Mem', '32bit', offset(0x0d1394), '<=', 'Value', '', coords.top],
+
+        baseAddress,
+        ['AndNext', 'Mem', '32bit', offset(0x0d1394), '>=', 'Value', '', coords.bottom],
+
+        baseAddress,
+        ['AndNext', 'Mem', '32bit', offset(0x0d138c), '>=', 'Value', '', coords.left],
+
+        baseAddress,
+        ['', 'Mem', '32bit', offset(0x0d138c), '<=', 'Value', '', coords.right],
       ),
 
       hasSpecificStats(stats) {
         const checkStat = (valueOffset, type, value) => $(
-          baseCondition,
+          validId,
+          baseAddress,
           ['AddAddress', 'Mem', '32bit', offset(0xd14dc)],
           ['', 'Mem', type, 0x6a + valueOffset, '=', 'Value', '', value],
         )
@@ -406,12 +411,10 @@ const codeFor = (region) => {
     ),
 
     carData: {
-      forPlayer: makeCarDataCode($(
-        ['AndNext', 'Mem', '8bit', address.playerCarId, '!=', 'Value', '', 0xFF],
+      forPlayer: makeCarDataCode($.one(
         ['AddAddress', 'Mem', '8bit', address.playerCarId, '*', 'Value', '', 0x29c]
       )),
-      forTarget: makeCarDataCode($(
-        ['AndNext', 'Mem', '8bit', address.targetedCarId, '!=', 'Value', '', 0xFF],
+      forTarget: makeCarDataCode($.one(
         ['AddAddress', 'Mem', '8bit', address.targetedCarId, '*', 'Value', '', 0x29c]
       )),
       byIndex: idx => makeCarDataCode($.one(['AddAddress', 'Value', '', idx, '*', 'Value', '', 0x29c]))
