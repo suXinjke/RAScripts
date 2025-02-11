@@ -357,7 +357,10 @@ export default function () {
       lowerIsBetter: true,
       type: 'FIXED3',
       conditions: {
-        start: startConditions,
+        start: $(
+          startConditions,
+          pauseIf(stat.forEachSetupSlot(s => s.wrongAutoUnionParts)),
+        ),
         cancel: {
           core: '1=1',
           ...([
