@@ -191,8 +191,10 @@ function streetRaceChallengeAchievement(
 
     winningConditions = (
         isInGame() &&
-        inGameRacePosition() == 0 &&
-        hasFinished()
+        trigger_when(
+          inGameRacePosition() == 0 &&
+          hasFinished()
+        )
     )
 
     noPenaltyConditions = true
@@ -267,7 +269,9 @@ function championshipChallengeAchievement(
                 carIds,
                 carId => currentCarId() == carId
             ) &&
-            hasWonChampionship( racesAmount, expectedChampionshipPoints )
+            trigger_when(
+              hasWonChampionship( racesAmount, expectedChampionshipPoints )
+            )
         )
     )
 }
@@ -315,8 +319,6 @@ function hotlapChallengeAchievement(
             ) &&
             never(gotPenalty() || gotInMainMenu())
         )
-
-        winningConditions = trigger_when( winningConditions )
     }
 
     achievement(
@@ -328,7 +330,7 @@ function hotlapChallengeAchievement(
             currentEventId() == eventId &&
             currentCarId() == carId &&
             noPenaltyConditions &&
-            winningConditions
+            trigger_when(winningConditions)
         )
     )
 }
@@ -346,9 +348,11 @@ function timedRunChallengeAchievement( title, description, points, carId, eventI
             currentEventId() == eventId &&
             currentCarId() == carId &&
             isInGame() &&
-            hasFinished() &&
-            challengeMsecLeft > 0 &&
-            challengeTargetTimeMsec <= targetTimeMsec
+            trigger_when(
+              hasFinished() &&
+              challengeMsecLeft > 0 &&
+              challengeTargetTimeMsec <= targetTimeMsec
+            )
         )
     )
 }
@@ -369,8 +373,6 @@ function overtakeChallengeAchievement( title, description, points, carId, eventI
             once(gotInGame()) &&
             never(gotPenalty() || gotInMainMenu())
         )
-
-        winningConditions = trigger_when( winningConditions )
     }
 
     achievement(
@@ -382,7 +384,7 @@ function overtakeChallengeAchievement( title, description, points, carId, eventI
             currentEventId() == eventId &&
             currentCarId() == carId &&
             noPenaltyConditions &&
-            winningConditions
+            trigger_when(winningConditions)
         )
     )
 }
