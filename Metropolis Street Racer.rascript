@@ -738,7 +738,7 @@ streetRaceChallengeAchievement(
 )
 
 streetRaceChallengeAchievement(
-    title = "Speed to Match It's Looks",
+    title = "Speed to Match Its Looks",
     description = "Driving Fiat Coupe 20v turbo, win the Street Race in Chapter 16, Event 7",
     points = 5,
     carIds = [ 0x18 ],
