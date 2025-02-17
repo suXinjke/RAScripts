@@ -161,8 +161,14 @@ function hasWonChampionship( racesAmount, expectedChampionshipPoints = 0 ) {
 }
 
 function chapterCompletionAchievement( title, chapterIndex, showroomRowIndex, points ) {
+    type = "progression"
+    if (chapterIndex == 24) {
+      type = "win_condition"
+    }
+
     achievement(
         title = title,
+        type = type,
         description = format( "Complete all events in chapter {0}", chapterIndex + 1 ),
         points = points,
         trigger = (
@@ -389,6 +395,7 @@ achievement(
     title = "Welcome to Metropolis",
     description = "Get your first car by completing it's challenge",
     points = 1,
+    type = "progression",
     trigger = (
         byte(chapterEventFlagsAddress( 0, 0 )) == 0x01 &&
         byte(chapterEventFlagsAddress( 0, 1 )) == 0x01 &&
