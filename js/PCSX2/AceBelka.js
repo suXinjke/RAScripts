@@ -374,17 +374,7 @@ const codeFor = (region) => {
     postYellowAirTargetsDestroyed: offset(0x3c0f30),
     postYellowGroundTargetsDestroyed: offset(0x3c0f34),
 
-    inGameCutscene: offset(0x75cc8a),
-    inGameMode: offset(0x75cc8d),
-    inGameMissionId: offset(0x75cc96),
-    inGameMissionDifficulty: offset(0x75cc9b),
-
-    playerStuffPointer: offset(0x75c278),
-    entitiesPointer: offset(0x721c70),
-    missionProgressPointer: offset(0x721c28),
-
     missionTimer: offset(0x4076c0),
-    missionPhaseTimer: offset(0x75cc48)
   }
 
   const fpOffset = offset => region === 'ntsc' ? offset + 0x28 : offset
@@ -403,135 +393,6 @@ const codeFor = (region) => {
 
   const functionPointerChanged = $.one(['', 'Mem', '32bit', address.functionPointer, '!=', 'Delta', '32bit', address.functionPointer])
   const functionPointerIs = pointer => $.one(['', 'Mem', '32bit', address.functionPointer, '=', 'Value', '', pointer])
-
-  const inGameModeIs = mode => $.one(['', 'Mem', '8bit', address.inGameMode, '=', 'Value', '', mode])
-
-  const playerStuffPointer = $.one(['AddAddress', 'Mem', '32bit', address.playerStuffPointer])
-
-  const entityGroup = (group) => {
-    const basePointer = $(
-      ['AddAddress', 'Mem', '32bit', address.entitiesPointer],
-      ['AddAddress', 'Mem', '32bit', group * 0x4],
-      ['AddAddress', 'Mem', '32bit', 0x104],
-    )
-
-    return {
-      index(index) {
-        const offset = index * 0x4A0
-
-        return {
-          becameAlive: $(
-            basePointer,
-            ['AndNext', 'Delta', 'Bit1', offset + 0x1F8, '=', 'Value', '', 0],
-            basePointer,
-            ['', 'Mem', 'Bit1', offset + 0x1F8, '>', 'Value', '', 0]
-          ),
-
-          isAlive: $(
-            basePointer,
-            ['', 'Mem', 'Bit1', offset + 0x1F8, '=', 'Value', '', 1]
-          ),
-
-          gotDestroyed: $(
-            basePointer,
-            ['', 'Mem', 'Bit1', offset + 0x1F8, '<', 'Delta', 'Bit1', offset + 0x1F8]
-          ),
-
-          takenDamage: $(
-            basePointer,
-            ['SubSource', 'Delta', '32bit', offset + 0x398]
-          ).also(
-            basePointer,
-            ['', 'Mem', '32bit', offset + 0x398, '>', 'Value', '', 0]
-          ),
-
-          isGoingSouth: $(
-            basePointer,
-            ['', 'Mem', 'Float', 0x268, '>', 'Delta', 'Float', 0x268]
-          ),
-
-          inAvalon: (() => {
-            const pi2 = Math.PI / 2
-            const isUnderAndNext = $(
-              basePointer,
-              ['AndNext', 'Mem', 'Float', 0x264, '<=', 'Float', '', 1500],
-            )
-
-            const isInTheRightAreaAndNext = $(
-              basePointer,
-              ['AndNext', 'Mem', 'Float', 0x260, '>=', 'Float', '', 13000],
-              basePointer,
-              ['AndNext', 'Mem', 'Float', 0x260, '<=', 'Float', '', 25000],
-              basePointer,
-              ['AndNext', 'Mem', 'Float', 0x268, '>=', 'Float', '', -154000],
-              basePointer,
-              ['AndNext', 'Mem', 'Float', 0x268, '<=', 'Float', '', -100000],
-            )
-
-            return {
-              divedIn: $(
-                isInTheRightAreaAndNext,
-                basePointer,
-                ['AndNext', 'Delta', 'Float', 0x264, '>', 'Float', '', 1500],
-                basePointer,
-                ['', 'Mem', 'Float', 0x264, '<=', 'Float', '', 1500]
-              ),
-              turnedAroundUnder: $(
-                isInTheRightAreaAndNext,
-                isUnderAndNext,
-                basePointer,
-                ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', 0],
-                basePointer,
-                ['AndNext', 'Mem', 'Float', 0x274, '>', 'Float', '', 0],
-                basePointer,
-                ['AndNext', 'Delta', 'Float', 0x274, '<=', 'Float', '', pi2],
-                basePointer,
-                ['', 'Mem', 'Float', 0x274, '>', 'Float', '', pi2],
-
-                isInTheRightAreaAndNext,
-                isUnderAndNext,
-                basePointer,
-                ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', 0],
-                basePointer,
-                ['AndNext', 'Mem', 'Float', 0x274, '>', 'Float', '', 0],
-                basePointer,
-                ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', pi2],
-                basePointer,
-                ['', 'Mem', 'Float', 0x274, '<=', 'Float', '', pi2],
-
-                isInTheRightAreaAndNext,
-                isUnderAndNext,
-                basePointer,
-                ['AndNext', 'Delta', 'Float', 0x274, '<', 'Float', '', 0],
-                basePointer,
-                ['AndNext', 'Mem', 'Float', 0x274, '<', 'Float', '', 0],
-                basePointer,
-                ['AndNext', 'Delta', 'Float', 0x274, '<=', 'Float', '', -pi2],
-                basePointer,
-                ['', 'Mem', 'Float', 0x274, '>', 'Float', '', -pi2],
-
-                isInTheRightAreaAndNext,
-                isUnderAndNext,
-                basePointer,
-                ['AndNext', 'Delta', 'Float', 0x274, '<', 'Float', '', 0],
-                basePointer,
-                ['AndNext', 'Mem', 'Float', 0x274, '<', 'Float', '', 0],
-                basePointer,
-                ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', -pi2],
-                basePointer,
-                ['', 'Mem', 'Float', 0x274, '<=', 'Float', '', -pi2],
-              )
-            }
-          })(),
-
-          scoreIsEqualOrGreaterThan: score => $(
-            basePointer,
-            ['', 'Mem', '32bit', 0x390, '>=', 'Value', '', score]
-          )
-        }
-      }
-    }
-  }
 
   return {
     address,
@@ -559,29 +420,179 @@ const codeFor = (region) => {
     ),
 
     missionTimerAdvanced: $.one(['', 'Mem', '32bit', address.missionTimer, '>', 'Delta', '32bit', address.missionTimer]),
-    missionPhaseTimerAdvanced: $.one(['', 'Mem', '32bit', address.missionPhaseTimer, '>', 'Delta', '32bit', address.missionPhaseTimer]),
 
     missionTypeIsFree: $.one(['', 'Mem', '32bit', address.missionType, '=', 'Value', '', 8]),
     missionTypeIsCampaign: $.one(['', 'Mem', '32bit', address.missionType, '=', 'Value', '', 9]),
 
-    inGameModeIs,
     isInFreeFlight: $(
       ['', 'Mem', '32bit', address.freeMissionDifficulty, '=', 'Value', '', difficulty.freeFlight]
     ),
 
     inGame: (() => {
-      const minimalMissionDifficultyIs = difficulty => $.one(['', 'Mem', '8bit', address.inGameMissionDifficulty, '>=', 'Value', '', difficulty])
+      const base = $.one(['AddAddress', 'Mem', '32bit', offset(0x3b4904)])
+      const missionInfo = $(
+        base,
+        ['AddAddress', 'Mem', '32bit', 0x98B70],
+        ['AddAddress', 'Mem', '32bit', 0x8],
+      )
+      const playerStuffPointer = $(
+        base,
+        ['AddAddress', 'Mem', '32bit', 0x98B08],
+      )
+      const missionStatePointer = $(
+        base,
+        ['AddAddress', 'Mem', '32bit', 0x5E4B8],
+      )
+
+      const minimalMissionDifficultyIs = difficulty => $(
+        missionInfo,
+        ['', 'Mem', '8bit', 0x39B, '>=', 'Value', '', difficulty]
+      )
       const craftIdIs = craftId => $(
         playerStuffPointer,
         ['', 'Mem', '8bit', 0x1AB3, '=', 'Value', '', craftId]
       )
-      const missionIdIs = missionId => $.one(['', 'Mem', '8bit', address.inGameMissionId, '=', 'Value', '', missionId])
+      const missionIdIs = missionId => $(
+        missionInfo,
+        ['', 'Mem', '8bit', 0x396, '=', 'Value', '', missionId]
+      )
+
+      const modeIs = mode => $(
+        missionInfo,
+        ['', 'Mem', '8bit', 0x38D, '=', 'Value', '', mode]
+      )
+
+      const entityGroup = (group) => {
+        const basePointer = $(
+          base,
+          ['AddAddress', 'Mem', '32bit', 0x5E500],
+          ['AddAddress', 'Mem', '32bit', group * 0x4],
+          ['AddAddress', 'Mem', '32bit', 0x104],
+        )
+
+        return {
+          index(index) {
+            const offset = index * 0x4A0
+
+            return {
+              becameAlive: $(
+                basePointer,
+                ['AndNext', 'Delta', 'Bit1', offset + 0x1F8, '=', 'Value', '', 0],
+                basePointer,
+                ['', 'Mem', 'Bit1', offset + 0x1F8, '>', 'Value', '', 0]
+              ),
+
+              isAlive: $(
+                basePointer,
+                ['', 'Mem', 'Bit1', offset + 0x1F8, '=', 'Value', '', 1]
+              ),
+
+              gotDestroyed: $(
+                basePointer,
+                ['', 'Mem', 'Bit1', offset + 0x1F8, '<', 'Delta', 'Bit1', offset + 0x1F8]
+              ),
+
+              takenDamage: $(
+                basePointer,
+                ['SubSource', 'Delta', '32bit', offset + 0x398]
+              ).also(
+                basePointer,
+                ['', 'Mem', '32bit', offset + 0x398, '>', 'Value', '', 0]
+              ),
+
+              isGoingSouth: $(
+                basePointer,
+                ['', 'Mem', 'Float', 0x268, '>', 'Delta', 'Float', 0x268]
+              ),
+
+              inAvalon: (() => {
+                const pi2 = Math.PI / 2
+                const isUnderAndNext = $(
+                  basePointer,
+                  ['AndNext', 'Mem', 'Float', 0x264, '<=', 'Float', '', 1500],
+                )
+
+                const isInTheRightAreaAndNext = $(
+                  basePointer,
+                  ['AndNext', 'Mem', 'Float', 0x260, '>=', 'Float', '', 13000],
+                  basePointer,
+                  ['AndNext', 'Mem', 'Float', 0x260, '<=', 'Float', '', 25000],
+                  basePointer,
+                  ['AndNext', 'Mem', 'Float', 0x268, '>=', 'Float', '', -154000],
+                  basePointer,
+                  ['AndNext', 'Mem', 'Float', 0x268, '<=', 'Float', '', -100000],
+                )
+
+                return {
+                  divedIn: $(
+                    isInTheRightAreaAndNext,
+                    basePointer,
+                    ['AndNext', 'Delta', 'Float', 0x264, '>', 'Float', '', 1500],
+                    basePointer,
+                    ['', 'Mem', 'Float', 0x264, '<=', 'Float', '', 1500]
+                  ),
+                  turnedAroundUnder: $(
+                    isInTheRightAreaAndNext,
+                    isUnderAndNext,
+                    basePointer,
+                    ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', 0],
+                    basePointer,
+                    ['AndNext', 'Mem', 'Float', 0x274, '>', 'Float', '', 0],
+                    basePointer,
+                    ['AndNext', 'Delta', 'Float', 0x274, '<=', 'Float', '', pi2],
+                    basePointer,
+                    ['', 'Mem', 'Float', 0x274, '>', 'Float', '', pi2],
+
+                    isInTheRightAreaAndNext,
+                    isUnderAndNext,
+                    basePointer,
+                    ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', 0],
+                    basePointer,
+                    ['AndNext', 'Mem', 'Float', 0x274, '>', 'Float', '', 0],
+                    basePointer,
+                    ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', pi2],
+                    basePointer,
+                    ['', 'Mem', 'Float', 0x274, '<=', 'Float', '', pi2],
+
+                    isInTheRightAreaAndNext,
+                    isUnderAndNext,
+                    basePointer,
+                    ['AndNext', 'Delta', 'Float', 0x274, '<', 'Float', '', 0],
+                    basePointer,
+                    ['AndNext', 'Mem', 'Float', 0x274, '<', 'Float', '', 0],
+                    basePointer,
+                    ['AndNext', 'Delta', 'Float', 0x274, '<=', 'Float', '', -pi2],
+                    basePointer,
+                    ['', 'Mem', 'Float', 0x274, '>', 'Float', '', -pi2],
+
+                    isInTheRightAreaAndNext,
+                    isUnderAndNext,
+                    basePointer,
+                    ['AndNext', 'Delta', 'Float', 0x274, '<', 'Float', '', 0],
+                    basePointer,
+                    ['AndNext', 'Mem', 'Float', 0x274, '<', 'Float', '', 0],
+                    basePointer,
+                    ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', -pi2],
+                    basePointer,
+                    ['', 'Mem', 'Float', 0x274, '<=', 'Float', '', -pi2],
+                  )
+                }
+              })(),
+
+              scoreIsEqualOrGreaterThan: score => $(
+                basePointer,
+                ['', 'Mem', '32bit', 0x390, '>=', 'Value', '', score]
+              )
+            }
+          }
+        }
+      }
 
       return {
         minimalMissionDifficultyIs,
-        minimalMissionDifficultyIsNot: difficulty => minimalMissionDifficultyIs(difficulty).with({ cmp: '<' }),
+        minimalMissionDifficultyIsNot: difficulty => minimalMissionDifficultyIs(difficulty).withLast({ cmp: '<' }),
         missionIdIs,
-        missionIdIsNot: missionId => missionIdIs(missionId).with({ cmp: '!=' }),
+        missionIdIsNot: missionId => missionIdIs(missionId).withLast({ cmp: '!=' }),
         specialWeaponIdIsNot: weaponId => $(
           playerStuffPointer,
           ['', 'Mem', '8bit', 0x1624, '!=', 'Value', '', weaponId]
@@ -589,7 +600,146 @@ const codeFor = (region) => {
         craftIdIs,
         craftIdIsNot: craftId => craftIdIs(craftId).map(c => c.flag !== '' ? c : c.with({ cmp: '!=' })),
 
-        notInFreeFlight: $.one(['', 'Mem', '8bit', address.inGameMissionDifficulty, '!=', 'Value', '', difficulty.freeFlight])
+        notInFreeFlight: minimalMissionDifficultyIs(difficulty.freeFlight).withLast({ cmp: '!=' }),
+
+        missionStatePointer,
+        missionMedalAwarded: $(
+          missionStatePointer,
+          ['', 'Mem', '8bit', 0x0, '=', 'Value', '', 1],
+        ),
+
+        modeIs,
+        isLanding: modeIs(inGameMode.landingBegins),
+
+        missionPhaseTimer: {
+          advanced: $(
+            missionInfo,
+            ['', 'Mem', '32bit', 0x348, '>', 'Delta', '32bit', 0x348]
+          ),
+          wentPast: seconds => $(
+            missionInfo,
+            ['AndNext', 'Mem', '32bit', 0x348, '>', 'Delta', '32bit', 0x348],
+            missionInfo,
+            ['', 'Mem', '32bit', 0x348, '>', 'Value', '', seconds * (region === 'ntsc' ? 60 : 50)]
+          ),
+          refuelIsTakingLessThan: seconds => $(
+            missionInfo,
+            ['AndNext', 'Mem', '32bit', 0x348, '<', 'Delta', '32bit', 0x348],
+            missionInfo,
+            ['', 'Mem', '32bit', 0x348, '>', 'Value', '', seconds * (region === 'ntsc' ? 60 : 50)]
+          ),
+          wasLessThan: (seconds) => $(
+            missionInfo,
+            ['', 'Delta', '32bit', 0x348, '<', 'Value', '', seconds * (region === 'ntsc' ? 60 : 50)]
+          ),
+
+          measured: $(
+            missionInfo,
+            ['Measured', 'Mem', '32bit', 0x348]
+          )
+        },
+
+        entityGroup,
+        player: (() => {
+          const hasSysMessageBase = bit => $(
+            playerStuffPointer,
+            ['', 'Mem', 'Bit' + bit, 0x1600, '=', 'Value', '', 1]
+          )
+
+          const gotSysMessageBase = bit => $(
+            playerStuffPointer,
+            ['', 'Mem', 'Bit' + bit, 0x1600, '>', 'Delta', 'Bit' + bit, 0x1600]
+          )
+
+          return {
+            hasSysMessage: {
+              missionUpdate: hasSysMessageBase(5),
+              missionComplete: hasSysMessageBase(6)
+            },
+
+            gotSysMessage: {
+              missionUpdate: gotSysMessageBase(5)
+            },
+
+            gotForcedAutopilot: $(
+              playerStuffPointer,
+              ['', 'Mem', 'Bit0', 0x1303, '>', 'Delta', 'Bit0', 0x1303],
+            ),
+
+            shotMissile: $(
+              playerStuffPointer,
+              ['', 'Mem', '8bit', 0x1AA9, '<', 'Delta', '8bit', 0x1AA9],
+            ),
+            shotSpecial: $(
+              playerStuffPointer,
+              ['', 'Mem', '8bit', 0x1AAA, '<', 'Delta', '8bit', 0x1AAA],
+            ),
+
+            hasMoreOrEqualSpecialShots: (shots) => $(
+              playerStuffPointer,
+              ['', 'Mem', '8bit', 0x1AAA, '>=', 'Value', '', shots],
+            ),
+
+            specialCooldown(index) {
+              const offset = + 0x20 * index
+              return {
+                inProgress: $(
+                  playerStuffPointer,
+                  ['', 'Mem', '16bit', 0x1984 + offset, '>', 'Value', '', 0],
+                ),
+                isOver: $(
+                  playerStuffPointer,
+                  ['', 'Mem', '16bit', 0x1984 + offset, '=', 'Value', '', 0]
+                ),
+              }
+            },
+
+            gotEnoughAirKills(amount) {
+              return $(
+                playerStuffPointer,
+                ['', 'Mem', '16bit', 0x2150, '>=', 'Value', '', amount],
+              )
+            },
+
+            gotGunKill: $(
+              playerStuffPointer,
+              ['', 'Mem', '8bit', 0x2156, '>', 'Delta', '8bit', 0x2156],
+            ),
+            gotMissileKill: $(
+              playerStuffPointer,
+              ['', 'Mem', '8bit', 0x2154, '>', 'Delta', '8bit', 0x2154],
+            ),
+            gotSpecialWeaponKill: $(
+              playerStuffPointer,
+              ['', 'Mem', '8bit', 0x2155, '>', 'Delta', '8bit', 0x2155],
+            ),
+
+            gotAirKill: $(
+              playerStuffPointer,
+              ['', 'Mem', '16bit', 0x2150, '>', 'Delta', '16bit', 0x2150],
+            ),
+            gotGroundKill: $(
+              playerStuffPointer,
+              ['', 'Mem', '16bit', 0x2152, '>', 'Delta', '16bit', 0x2152],
+            ),
+
+            wingmanGotKill: $(
+              playerStuffPointer,
+              ['', 'Mem', '8bit', 0x228C, '>', 'Delta', '8bit', 0x228C],
+            ),
+
+            usingCockpitCamera: $(
+              playerStuffPointer,
+              ['', 'Mem', '8bit', 0x1AB5, '=', 'Value', '', 2],
+            ),
+            notUsingCockpitCamera: $(
+              playerStuffPointer,
+              ['', 'Mem', '8bit', 0x1AB5, '!=', 'Value', '', 2],
+            ),
+
+            ...entityGroup(0).index(0)
+          }
+        })(),
       }
     })(),
 
@@ -607,108 +757,6 @@ const codeFor = (region) => {
       ['AndNext', 'Delta', '32bit', address.missionTimer, '=', 'Value', '', 0],
       ['', 'Mem', '32bit', address.missionTimer, '>', 'Delta', '32bit', address.missionTimer]
     ),
-    isLanding: inGameModeIs(inGameMode.landingBegins),
-
-    player: (() => {
-      const hasSysMessageBase = bit => $(
-        playerStuffPointer,
-        ['', 'Mem', 'Bit' + bit, 0x1600, '=', 'Value', '', 1]
-      )
-
-      const gotSysMessageBase = bit => $(
-        playerStuffPointer,
-        ['', 'Mem', 'Bit' + bit, 0x1600, '>', 'Delta', 'Bit' + bit, 0x1600]
-      )
-
-      return {
-        hasSysMessage: {
-          missionUpdate: hasSysMessageBase(5),
-          missionComplete: hasSysMessageBase(6)
-        },
-
-        gotSysMessage: {
-          missionUpdate: gotSysMessageBase(5)
-        },
-
-        gotForcedAutopilot: $(
-          playerStuffPointer,
-          ['', 'Mem', 'Bit0', 0x1303, '>', 'Delta', 'Bit0', 0x1303],
-        ),
-
-        shotMissile: $(
-          playerStuffPointer,
-          ['', 'Mem', '8bit', 0x1AA9, '<', 'Delta', '8bit', 0x1AA9],
-        ),
-        shotSpecial: $(
-          playerStuffPointer,
-          ['', 'Mem', '8bit', 0x1AAA, '<', 'Delta', '8bit', 0x1AAA],
-        ),
-
-        hasMoreOrEqualSpecialShots: (shots) => $(
-          playerStuffPointer,
-          ['', 'Mem', '8bit', 0x1AAA, '>=', 'Value', '', shots],
-        ),
-
-        specialCooldown(index) {
-          const offset = + 0x20 * index
-          return {
-            inProgress: $(
-              playerStuffPointer,
-              ['', 'Mem', '16bit', 0x1984 + offset, '>', 'Value', '', 0],
-            ),
-            isOver: $(
-              playerStuffPointer,
-              ['', 'Mem', '16bit', 0x1984 + offset, '=', 'Value', '', 0]
-            ),
-          }
-        },
-
-        gotEnoughAirKills(amount) {
-          return $(
-            playerStuffPointer,
-            ['', 'Mem', '16bit', 0x2150, '>=', 'Value', '', amount],
-          )
-        },
-
-        gotGunKill: $(
-          playerStuffPointer,
-          ['', 'Mem', '8bit', 0x2156, '>', 'Delta', '8bit', 0x2156],
-        ),
-        gotMissileKill: $(
-          playerStuffPointer,
-          ['', 'Mem', '8bit', 0x2154, '>', 'Delta', '8bit', 0x2154],
-        ),
-        gotSpecialWeaponKill: $(
-          playerStuffPointer,
-          ['', 'Mem', '8bit', 0x2155, '>', 'Delta', '8bit', 0x2155],
-        ),
-
-        gotAirKill: $(
-          playerStuffPointer,
-          ['', 'Mem', '16bit', 0x2150, '>', 'Delta', '16bit', 0x2150],
-        ),
-        gotGroundKill: $(
-          playerStuffPointer,
-          ['', 'Mem', '16bit', 0x2152, '>', 'Delta', '16bit', 0x2152],
-        ),
-
-        wingmanGotKill: $(
-          playerStuffPointer,
-          ['', 'Mem', '8bit', 0x228C, '>', 'Delta', '8bit', 0x228C],
-        ),
-
-        usingCockpitCamera: $(
-          playerStuffPointer,
-          ['', 'Mem', '8bit', 0x1AB5, '=', 'Value', '', 2],
-        ),
-        notUsingCockpitCamera: $(
-          playerStuffPointer,
-          ['', 'Mem', '8bit', 0x1AB5, '!=', 'Value', '', 2],
-        ),
-
-        ...entityGroup(0).index(0)
-      }
-    })(),
 
     postRankIsAtleast: value => $(
       ['', 'Mem', '32bit', address.postRank, value === 0 ? '=' : '<=', 'Value', '', value]
@@ -725,20 +773,7 @@ const codeFor = (region) => {
       ['', 'Mem', '32bit', address.postYellowAirTargetsDestroyed, '=', 'Value', '', 0],
       ['', 'Mem', '32bit', address.postYellowGroundTargetsDestroyed, '=', 'Value', '', 0]
     ),
-    missionMedalAwarded: $(
-      ['AddAddress', 'Mem', '32bit', address.missionProgressPointer],
-      ['', 'Mem', '8bit', 0x0, '=', 'Value', '', 1],
-    ),
 
-    missionPhaseTimerWentPast: seconds => $(
-      ['AndNext', 'Mem', '32bit', address.missionPhaseTimer, '>', 'Delta', '32bit', address.missionPhaseTimer],
-      ['', 'Mem', '32bit', address.missionPhaseTimer, '>', 'Value', '', seconds * (region === 'ntsc' ? 60 : 50)]
-    ),
-    refuelIsTakingLessThan: seconds => $(
-      ['AndNext', 'Mem', '32bit', address.missionPhaseTimer, '<', 'Delta', '32bit', address.missionPhaseTimer],
-      ['', 'Mem', '32bit', address.missionPhaseTimer, '>', 'Value', '', seconds * (region === 'ntsc' ? 60 : 50)]
-    ),
-    missionPhaseTimerWasLessThan: (seconds) => $.one(['', 'Delta', '32bit', address.missionPhaseTimer, '<', 'Value', '', seconds * (region === 'ntsc' ? 60 : 50)]),
     completedMissionInLessThan(timeString) {
       const [min, sec] = timeString.split(':').map(Number)
       const totalSec = min * 60 + sec
@@ -750,8 +785,6 @@ const codeFor = (region) => {
 
     applyingBrakes: $.one(['', 'Mem', '8bit', offset(0x69952a), '>', 'Value', '', 0]),
     applyingThrottle: $.one(['', 'Mem', '8bit', offset(0x69952b), '>', 'Value', '', 0]),
-
-    entityGroup
   }
 }
 
@@ -786,11 +819,13 @@ function timeTrialDuringMissionConditions(conditions) {
     value: {
       core: $(
         measuredIf(code.pal.regionCheck),
-        ['Measured', 'Mem', '32bit', code.pal.address.missionPhaseTimer, '*', 'Float', '', 1.2]
+        code.pal.inGame.missionPhaseTimer.measured.withLast({
+          cmp: '*', rvalue: ['Float', '', 1.2]
+        }),
       ),
       alt1: $(
         measuredIf(code.ntsc.regionCheck),
-        ['Measured', 'Mem', '32bit', code.ntsc.address.missionPhaseTimer]
+        code.pal.inGame.missionPhaseTimer.measured,
       ),
     }
   }
@@ -875,7 +910,7 @@ function completedMissionInAnyMode({
           'once',
           additionalConditions?.(c),
           c.missionTimerAdvanced,
-          c.entityGroup(group).index(id).gotDestroyed
+          c.inGame.entityGroup(group).index(id).gotDestroyed
         )
       ),
 
@@ -1169,7 +1204,7 @@ function completedPermadeath({
       resetIf(
         andNext(
           c.inMission,
-          ['', 'Mem', '8bit', c.address.inGameMode, '>=', 'Value', '', inGameMode.gameplayOrCutscene],
+          c.inGame.modeIs(inGameMode.gameplayOrCutscene).withLast({ cmp: '>=' }),
           restartedPastGracePeriod
         )
       ),
@@ -1250,7 +1285,7 @@ for (let missionId in missionMeta) {
       points: 2,
       conditions: completedMissionInAnyMode({
         missionId,
-        additionalConditions: c => c.missionMedalAwarded
+        additionalConditions: c => c.inGame.missionMedalAwarded
       })
     }).addAchievement({
       title: 'On the Money',
@@ -1273,7 +1308,7 @@ for (let missionId in missionMeta) {
       conditions: completedMissionInAnyMode({
         missionId,
         startConditions: c => c.missionHasStarted,
-        resetConditions: c => c.isLanding
+        resetConditions: c => c.inGame.isLanding
       })
     })
   }
@@ -1286,12 +1321,12 @@ for (let missionId in missionMeta) {
       points: 1,
       conditions: completedMissionInAnyMode({
         missionId,
-        startConditions: c => c.player.hasSysMessage.missionUpdate,
+        startConditions: c => c.inGame.player.hasSysMessage.missionUpdate,
         resetConditions: c => $(
           c.missionHasStarted,
           andNext(
             c.missionTimerAdvanced,
-            c.player.takenDamage
+            c.inGame.player.takenDamage
           )
         )
       })
@@ -1330,7 +1365,7 @@ for (let missionId in missionMeta) {
       conditions: completedMissionInAnyMode({
         missionId,
         startConditions: c => c.missionHasStarted,
-        resetConditions: c => c.isLanding
+        resetConditions: c => c.inGame.isLanding
       })
     })
   }
@@ -1343,7 +1378,7 @@ for (let missionId in missionMeta) {
       points: 2,
       conditions: completedMissionInAnyMode({
         missionId,
-        additionalConditions: c => c.missionMedalAwarded
+        additionalConditions: c => c.inGame.missionMedalAwarded
       })
     })
   }
@@ -1357,9 +1392,9 @@ for (let missionId in missionMeta) {
       conditions: achievedDuringMission({
         missionId,
         additionalConditions: c => $(
-          c.refuelIsTakingLessThan(160),
-          c.player.gotForcedAutopilot,
-          c.player.hasSysMessage.missionComplete
+          c.inGame.missionPhaseTimer.refuelIsTakingLessThan(160),
+          c.inGame.player.gotForcedAutopilot,
+          c.inGame.player.hasSysMessage.missionComplete
         )
       })
     }).addAchievement({
@@ -1423,19 +1458,19 @@ for (let missionId in missionMeta) {
           noTLSandMPBM && orNext(
             c.inGame.craftIdIsNot(craft.morgan),
             c.inGame.specialWeaponIdIsNot(weapon.mpbm),
-            c.player.hasMoreOrEqualSpecialShots(8)
+            c.inGame.player.hasMoreOrEqualSpecialShots(8)
           ),
 
           noTLSandMPBM && orNext(
             c.inGame.craftIdIsNot(craft.morgan),
             c.inGame.specialWeaponIdIsNot(weapon.tls),
-            c.player.hasMoreOrEqualSpecialShots(7)
+            c.inGame.player.hasMoreOrEqualSpecialShots(7)
           ),
 
           noTLSandMPBM && orNext(
             c.inGame.craftIdIsNot(craft.falken),
             c.inGame.specialWeaponIdIsNot(weapon.tls),
-            c.player.hasMoreOrEqualSpecialShots(14)
+            c.inGame.player.hasMoreOrEqualSpecialShots(14)
           )
         )
       })
@@ -1636,15 +1671,15 @@ for (const [mission, title, points, begin, end] of [
       craftId: craft.f1,
       minimalDifficulty: difficulty.hard,
       startConditions: c => andNext(
-        c.entityGroup(0).index(0).scoreIsEqualOrGreaterThan(2000),
-        c.missionPhaseTimerWasLessThan(95),
-        c.player.gotSysMessage.missionUpdate
+        c.inGame.entityGroup(0).index(0).scoreIsEqualOrGreaterThan(2000),
+        c.inGame.missionPhaseTimer.wasLessThan(95),
+        c.inGame.player.gotSysMessage.missionUpdate
       ),
       resetConditions: c => $(
         'hits 3',
         c.missionHasStarted,
-        c.player.inAvalon.turnedAroundUnder,
-        c.player.inAvalon.divedIn
+        c.inGame.player.inAvalon.turnedAroundUnder,
+        c.inGame.player.inAvalon.divedIn
       )
     })
   })
@@ -1657,8 +1692,8 @@ for (const [mission, title, points, begin, end] of [
     minimalDifficulty: difficulty.ace,
     startConditions: c => c.missionHasStarted,
     resetConditions: c => orNext(
-      c.player.shotMissile,
-      c.player.shotSpecial
+      c.inGame.player.shotMissile,
+      c.inGame.player.shotSpecial
     )
   })
 
@@ -1757,7 +1792,7 @@ for (const [mission, title, points, begin, end] of [
         [9, 0]
       ].map(([group, index]) => andNext(
         c.missionTimerAdvanced,
-        c.entityGroup(group).index(index).takenDamage
+        c.inGame.entityGroup(group).index(index).takenDamage
       )))
     })
   })
@@ -1775,10 +1810,10 @@ for (const [mission, title, points, begin, end] of [
       minimalScore: 5000,
       startConditions: c => c.missionHasStarted,
       resetConditions: c => $(
-        c.missionPhaseTimerWentPast(120),
+        c.inGame.missionPhaseTimer.wentPast(120),
         andNext(
-          c.missionPhaseTimerWentPast(0.5),
-          c.player.isGoingSouth
+          c.inGame.missionPhaseTimer.wentPast(0.5),
+          c.inGame.player.isGoingSouth
         )
       )
     })
@@ -1819,8 +1854,8 @@ for (const [mission, title, points, begin, end] of [
       minimalDifficulty: difficulty.normal,
       startConditions: c => c.missionHasStarted,
       resetConditions: c => orNext(
-        c.player.shotMissile,
-        c.player.shotSpecial
+        c.inGame.player.shotMissile,
+        c.inGame.player.shotSpecial
       )
     })
   }).addAchievement({
@@ -1833,7 +1868,7 @@ for (const [mission, title, points, begin, end] of [
       craftId: craft.a10,
       weaponSelection: weapon.faeb,
       minimalDifficulty: difficulty.normal,
-      startConditions: c => c.player.gotSpecialWeaponKill,
+      startConditions: c => c.inGame.player.gotSpecialWeaponKill,
       resetConditions: c => c.missionHasStarted
     })
   })
@@ -1875,8 +1910,8 @@ for (const [mission, title, points, begin, end] of [
       targetsToDestroy: {
         0x20: [{
           id: 0, additionalConditions: c => orNext(
-            c.player.gotGunKill,
-            c.player.gotSpecialWeaponKill
+            c.inGame.player.gotGunKill,
+            c.inGame.player.gotSpecialWeaponKill
           )
         }]
       }
@@ -1949,15 +1984,15 @@ for (const [mission, title, points, begin, end] of [
       craftId: craft.f14,
       minimalDifficulty: difficulty.expert,
       startConditions: c => $(
-        c.inGameModeIs(inGameMode.gameplayOrCutscene).with({ lvalue: { type: 'Delta' } }),
-        c.entityGroup(0x5D).index(0).becameAlive
+        c.inGame.modeIs(inGameMode.gameplayOrCutscene).withLast({ lvalue: { type: 'Delta' } }),
+        c.inGame.entityGroup(0x5D).index(0).becameAlive
       ),
       resetConditions: c => andNext(
-        c.entityGroup(0x5D).index(0).isAlive.map(x => x.lvalue.size === 'Bit1' ? x.with({ lvalue: { type: 'Delta' } }) : x),
-        ['AddAddress', 'Mem', '32bit', c.address.missionProgressPointer],
+        c.inGame.entityGroup(0x5D).index(0).isAlive.map(x => x.lvalue.size === 'Bit1' ? x.with({ lvalue: { type: 'Delta' } }) : x),
+        c.inGame.missionStatePointer,
         ['', 'Delta', '16bit', 0x6e, '>=', 'Value', '', 7],
       ).also(
-        c.player.gotGroundKill,
+        c.inGame.player.gotGroundKill,
         c.missionHasStarted
       )
     })
@@ -1977,12 +2012,12 @@ for (const [mission, title, points, begin, end] of [
       additionalConditions: c => c.postDidntDestroyYellow,
       startConditions: c => c.missionHasStarted,
       resetConditions: c => $(
-        c.player.shotMissile,
+        c.inGame.player.shotMissile,
         andNext(
           c.inGame.specialWeaponIdIsNot(weapon.rcl),
-          c.player.shotSpecial
+          c.inGame.player.shotSpecial
         ),
-        c.missionPhaseTimerWentPast(240)
+        c.inGame.missionPhaseTimer.wentPast(240)
       )
     })
   })
@@ -1993,7 +2028,7 @@ for (const [mission, title, points, begin, end] of [
     craftId: craft.f16xl,
     minimalDifficulty: difficulty.ace,
     additionalConditions: c => {
-      let targetConditions = $(c.player.gotEnoughAirKills(8))
+      let targetConditions = $(c.inGame.player.gotEnoughAirKills(8))
       if (triggerOverride) {
         targetConditions = trigger(targetConditions)
       }
@@ -2001,8 +2036,8 @@ for (const [mission, title, points, begin, end] of [
       return once(
         c.missionHasStarted
       ).also(targetConditions).resetIf(
-        c.player.wingmanGotKill,
-        c.missionPhaseTimerWentPast(60 * 3),
+        c.inGame.player.wingmanGotKill,
+        c.inGame.missionPhaseTimer.wentPast(60 * 3),
         c.bailedIntoMainMenu
       )
     }
@@ -2048,18 +2083,18 @@ for (const [mission, title, points, begin, end] of [
       minimalDifficulty: difficulty.expert,
       startConditions: c => c.missionHasStarted,
       resetConditions: c => $(
-        c.entityGroup(49).index(0).gotDestroyed,
-        c.entityGroup(50).index(0).gotDestroyed,
-        c.entityGroup(51).index(0).gotDestroyed,
-        c.entityGroup(52).index(0).gotDestroyed,
+        c.inGame.entityGroup(49).index(0).gotDestroyed,
+        c.inGame.entityGroup(50).index(0).gotDestroyed,
+        c.inGame.entityGroup(51).index(0).gotDestroyed,
+        c.inGame.entityGroup(52).index(0).gotDestroyed,
 
-        c.missionPhaseTimerWentPast(240)
+        c.inGame.missionPhaseTimer.wentPast(240)
       )
     })
   })
 
   /** @type {CodeForCallback} */
-  const f15eAdditionalConditions = c => c.player.gotSpecialWeaponKill
+  const f15eAdditionalConditions = c => c.inGame.player.gotSpecialWeaponKill
 
   set.addAchievement({
     title: 'The Talons Go Deep',
@@ -2122,8 +2157,8 @@ for (const [mission, title, points, begin, end] of [
       [0x0F, 4],
       [0x0F, 5],
     ].map(([group, index]) => andNext(
-      c.missionPhaseTimerWentPast(60 + 40),
-      c.entityGroup(group).index(index).isAlive
+      c.inGame.missionPhaseTimer.wentPast(60 + 40),
+      c.inGame.entityGroup(group).index(index).isAlive
     )))
   })
   set.addAchievement({
@@ -2224,7 +2259,7 @@ for (const [mission, title, points, begin, end] of [
     craftId: craft.f15smtd,
     minimalDifficulty: difficulty.ace,
     additionalConditions: c => {
-      let targetConditions = $(c.player.gotEnoughAirKills(8))
+      let targetConditions = $(c.inGame.player.gotEnoughAirKills(8))
       if (triggerOverride) {
         targetConditions = trigger(targetConditions)
       }
@@ -2232,8 +2267,8 @@ for (const [mission, title, points, begin, end] of [
       return once(
         c.missionHasStarted
       ).also(targetConditions).resetIf(
-        c.player.wingmanGotKill,
-        c.missionPhaseTimerWentPast(60 * 3 + 45),
+        c.inGame.player.wingmanGotKill,
+        c.inGame.missionPhaseTimer.wentPast(60 * 3 + 45),
         c.bailedIntoMainMenu
       )
     }
@@ -2261,7 +2296,7 @@ for (const [mission, title, points, begin, end] of [
     craftId: craft.su47,
     minimalDifficulty: difficulty.ace,
     additionalConditions: c => {
-      let targetConditions = $(c.player.gotEnoughAirKills(8))
+      let targetConditions = $(c.inGame.player.gotEnoughAirKills(8))
       if (triggerOverride) {
         targetConditions = trigger(targetConditions)
       }
@@ -2269,8 +2304,8 @@ for (const [mission, title, points, begin, end] of [
       return once(
         c.missionHasStarted
       ).also(targetConditions).resetIf(
-        c.player.wingmanGotKill,
-        c.missionPhaseTimerWentPast(60 * 3 + 30),
+        c.inGame.player.wingmanGotKill,
+        c.inGame.missionPhaseTimer.wentPast(60 * 3 + 30),
         c.bailedIntoMainMenu
       )
     }
@@ -2329,7 +2364,7 @@ for (const [mission, title, points, begin, end] of [
       craftId: craft.x02,
       minimalDifficulty: difficulty.ace,
       minimalRank: rank.S,
-      pauseLockWhen: c => c.player.shotSpecial
+      pauseLockWhen: c => c.inGame.player.shotSpecial
     })
   })
 
@@ -2360,19 +2395,19 @@ for (const [mission, title, points, begin, end] of [
           [0x46, 3],
         ].map(([group, index]) => addHits(
           andNext(
-            c.player.specialCooldown(0).inProgress,
-            c.entityGroup(group).index(index).gotDestroyed
+            c.inGame.player.specialCooldown(0).inProgress,
+            c.inGame.entityGroup(group).index(index).gotDestroyed
           )
         )),
         '0=1.4.',
 
         orNext(
-          c.entityGroup(0x41).index(0).gotDestroyed,
-          c.entityGroup(0x43).index(0).gotDestroyed,
-          c.entityGroup(0x45).index(0).gotDestroyed
+          c.inGame.entityGroup(0x41).index(0).gotDestroyed,
+          c.inGame.entityGroup(0x43).index(0).gotDestroyed,
+          c.inGame.entityGroup(0x45).index(0).gotDestroyed
         )
       ).resetIf(
-        c.player.specialCooldown(0).isOver,
+        c.inGame.player.specialCooldown(0).isOver,
         c.bailedIntoMainMenu
       )
     })
@@ -2386,8 +2421,8 @@ for (const [mission, title, points, begin, end] of [
       weaponSelection: weapon.mpbm,
 
       additionalConditions: c => andNext(
-        c.player.gotSpecialWeaponKill,
-        c.entityGroup(0x19).index(0).gotDestroyed
+        c.inGame.player.gotSpecialWeaponKill,
+        c.inGame.entityGroup(0x19).index(0).gotDestroyed
       )
     })
   })
@@ -2402,8 +2437,8 @@ for (const [mission, title, points, begin, end] of [
 
     startConditions: c => c.missionHasStarted,
     resetConditions: c => orNext(
-      c.player.gotGunKill,
-      c.player.gotMissileKill
+      c.inGame.player.gotGunKill,
+      c.inGame.player.gotMissileKill
     )
   })
   set.addAchievement({
@@ -2443,17 +2478,17 @@ for (const [mission, title, points, begin, end] of [
           resetNextOnMissionRestart,
           andNext(
             'once',
-            c.inGameModeIs(inGameMode.gameplayOrCutscene),
-            c.player.usingCockpitCamera
+            c.inGame.modeIs(inGameMode.gameplayOrCutscene),
+            c.inGame.player.usingCockpitCamera
           ),
 
           resetNextOnMissionRestart,
           pauseIf(
             'once',
             andNext(
-              $('hits 90', c.missionPhaseTimerAdvanced),
-              c.inGameModeIs(inGameMode.gameplayOrCutscene),
-              c.player.notUsingCockpitCamera
+              $('hits 90', c.inGame.missionPhaseTimer.advanced),
+              c.inGame.modeIs(inGameMode.gameplayOrCutscene),
+              c.inGame.player.notUsingCockpitCamera
             )
           ),
 
