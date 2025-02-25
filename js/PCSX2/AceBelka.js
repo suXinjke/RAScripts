@@ -2490,9 +2490,7 @@ for (const [mission, title, points, begin, end] of [
               c.inGame.modeIs(inGameMode.gameplayOrCutscene),
               c.inGame.player.notUsingCockpitCamera
             )
-          ),
-
-          trigger(c.debriefingStarted)
+          )
         )
       })
 
