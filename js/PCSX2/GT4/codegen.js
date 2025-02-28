@@ -100,6 +100,7 @@ async function makeEvents() {
         subsetOnly: specialFlags.includes('subsetOnly'),
 
         /** @type {Array<{
+         * idx: number,
          * trackId: number,
          * raceId: number,
          * aSpec200?: {
@@ -162,6 +163,7 @@ async function makeEvents() {
 
       if (subEventIsNotChampionship) {
         events[eventId].races.push({
+          idx: Number(raceId.match(/\d{2}$/)),
           trackId: Number(col[5]),
           raceId: Number(col[0]),
           aSpec200: col[9] ? {
@@ -172,6 +174,10 @@ async function makeEvents() {
         })
       }
     })
+
+  for (const e of Object.values(events)) {
+    e.races.sort((a, b) => a.idx - b.idx)
+  }
 
   const licenseRegex = /^l[0i][abs]/
   const coffeeRegex = /^l0c/
