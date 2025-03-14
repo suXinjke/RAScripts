@@ -1121,12 +1121,12 @@ lists.secretRaces.forEach((x, i) => {
 
         c.missionIdIs(missionId),
 
-        checkingLapTime && andNext(
-          c.score.increased
-        ).orNext(
+        checkingLapTime && orNext(
           c.lapTimeLessOrEqualThan(0, targetTime),
           c.lapTimeLessOrEqualThan(1, targetTime),
+        ).andNext(
           c.lapTimeLessOrEqualThan(2, targetTime),
+          c.score.increased
         ),
 
         checkingTotalTime && andNext(
