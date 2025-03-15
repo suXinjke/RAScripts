@@ -1209,8 +1209,8 @@ export async function code(r = 'retail') {
       title: c.achName,
       description:
         c.laps <= 0 ?
-          'Fastest time in msec to complete this achievement' :
-          'Fastest time in msec for one lap of this achievement',
+          `Fastest time in msec to earn '${c.achName}' achievement` :
+          `Fastest time in msec for one lap of '${c.achName}' achievement`,
       lowerIsBetter: true,
       type: 'FIXED3',
       conditions: {
