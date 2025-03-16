@@ -202,6 +202,7 @@ const chiliMeta = {
   pr_supercar: { y: 52 },
   pr_city: { y: 52 },
   pr_homologation: { times: 1, y: 34 },
+  pr_concept: { times: 1, x: 50, y: 40 },
 }
 
 const nationMeta = {

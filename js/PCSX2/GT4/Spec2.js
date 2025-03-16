@@ -206,7 +206,7 @@ export default function () {
       generalProtections.pauseIfLockIfNotFromTopRoot,
 
       stat.gameFlagIs.eventRace,
-      main.eventIdIs(4131, 4132),
+      main.eventIdIs(4131, 3441),
       main.wonRace({ aSpecPoints: 80 }),
     )
   }).addAchievement({

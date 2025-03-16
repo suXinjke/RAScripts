@@ -832,8 +832,8 @@ export async function code(r = 'retail') {
       ))
     ),
 
-    spec2PauseIfBadVersion: $.str('1.08', (s, v) => $(
-      ['PauseIf', 'Mem', s, 0x9151e4, '!=', ...v]
+    spec2PauseIfBadVersion: $.str('1.09', (s, v) => $(
+      ['PauseIf', 'Mem', s, 0x915234, '!=', ...v]
     ))
   }
 
@@ -1040,9 +1040,16 @@ export async function code(r = 'retail') {
       subTitle = `A-Spec ` + subTitle
     }
 
+    description += nitrousSuffix
+
+    // HACK
+    if (c.descriptionSuffix && c.forbiddenCarIds.length > 0) {
+      description += ' ' + c.descriptionSuffix
+    }
+
     set.addAchievement({
       title: c.achievementNameOverride || (eventName + ` - ` + subTitle),
-      description: description + nitrousSuffix,
+      description,
       points: c.points,
       conditions: $(
         spec2 && $(
@@ -1058,6 +1065,7 @@ export async function code(r = 'retail') {
           championshipPossible && stat.gameFlagIs.eventChampionship,
         ),
         stat.gtModeCarIdIs(...c.carIdsRequired),
+        ...(c.forbiddenCarIds.map(id => stat.gtModeCarIdIsNot(id))),
         noCheese && generalProtections.noCheese,
         !c.nitrousAllowed && generalProtections.pauseIfHasNitrous
       )

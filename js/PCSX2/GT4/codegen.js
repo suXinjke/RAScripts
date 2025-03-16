@@ -311,7 +311,8 @@ async function makeAnySubEvents() {
       specificRaceIds: col[5] ? col[5].split('|').map(Number) : [],
       eventDescriptionOverride: col[6],
       carIdsRequired: col[7] ? col[7].split('|').map(Number) : [],
-      descriptionSuffix: col[8]
+      descriptionSuffix: col[8],
+      forbiddenCarIds: col[9] ? col[9].split('|').map(Number) : [],
     }
   })
 }
