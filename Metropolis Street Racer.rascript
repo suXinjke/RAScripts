@@ -1009,7 +1009,7 @@ achievement(
 
 achievement(
     title = "Labor Day",
-    description = "Setup and win a Quick race with 5 lawnmover opponents, with atleast 3 laps, with Grass cheat enabled, and drive a lawnmover yourself",
+    description = "Setup and win a Quick race with 5 lawnmower opponents, with atleast 3 laps, with Grass cheat enabled, and drive a lawnmower yourself",
     points = 5,
     trigger = (
         inQuickRace() &&
