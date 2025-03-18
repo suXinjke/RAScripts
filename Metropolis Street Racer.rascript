@@ -424,31 +424,31 @@ achievement(
     )
 )
 
-chapterCompletionAchievement( "Training Complete", 0,  0x03, 5  )
-chapterCompletionAchievement( "Beginner",          1,  0x04, 5  )
-chapterCompletionAchievement( "Learner",           2,  0x06, 5  )
-chapterCompletionAchievement( "Novice",            3,  0x07, 5  )
-chapterCompletionAchievement( "Amateur",           4,  0x09, 10 )
-chapterCompletionAchievement( "Rookie",            5,  0x0a, 5  )
-chapterCompletionAchievement( "Developing",        6,  0x0c, 5  )
-chapterCompletionAchievement( "Improving",         7,  0x0d, 5  )
-chapterCompletionAchievement( "Advancing",         8,  0x0f, 5  )
-chapterCompletionAchievement( "Progressing",       9,  0x10, 10 )
-chapterCompletionAchievement( "Intermediate",      10, 0x12, 5  )
-chapterCompletionAchievement( "Competent",         11, 0x13, 5  )
-chapterCompletionAchievement( "Capable",           12, 0x15, 5  )
-chapterCompletionAchievement( "Proficient",        13, 0x16, 5  )
-chapterCompletionAchievement( "Qualified",         14, 0x18, 10 )
-chapterCompletionAchievement( "Skilled",           15, 0x19, 5  )
-chapterCompletionAchievement( "Successful",        16, 0x1b, 5  )
-chapterCompletionAchievement( "Accomplished",      17, 0x1c, 5  )
-chapterCompletionAchievement( "Professional",      18, 0x1e, 5  )
-chapterCompletionAchievement( "Renowned",          19, 0x1f, 10 )
-chapterCompletionAchievement( "Specialist",        20, 0x21, 5  )
-chapterCompletionAchievement( "Expert",            21, 0x22, 5  )
-chapterCompletionAchievement( "Exceptional",       22, 0x24, 5  )
-chapterCompletionAchievement( "Perfect",           23, 0x26, 5  )
-chapterCompletionAchievement( "World Champion",    24, 0x28, 25 )
+chapterCompletionAchievement( "Training Complete", 0,  0x03, 10  )
+chapterCompletionAchievement( "Beginner",          1,  0x04, 10  )
+chapterCompletionAchievement( "Learner",           2,  0x06, 10  )
+chapterCompletionAchievement( "Novice",            3,  0x07, 10  )
+chapterCompletionAchievement( "Amateur",           4,  0x09, 25 )
+chapterCompletionAchievement( "Rookie",            5,  0x0a, 10  )
+chapterCompletionAchievement( "Developing",        6,  0x0c, 10  )
+chapterCompletionAchievement( "Improving",         7,  0x0d, 10  )
+chapterCompletionAchievement( "Advancing",         8,  0x0f, 10  )
+chapterCompletionAchievement( "Progressing",       9,  0x10, 25 )
+chapterCompletionAchievement( "Intermediate",      10, 0x12, 10  )
+chapterCompletionAchievement( "Competent",         11, 0x13, 10  )
+chapterCompletionAchievement( "Capable",           12, 0x15, 10  )
+chapterCompletionAchievement( "Proficient",        13, 0x16, 10  )
+chapterCompletionAchievement( "Qualified",         14, 0x18, 25 )
+chapterCompletionAchievement( "Skilled",           15, 0x19, 10  )
+chapterCompletionAchievement( "Successful",        16, 0x1b, 10  )
+chapterCompletionAchievement( "Accomplished",      17, 0x1c, 10  )
+chapterCompletionAchievement( "Professional",      18, 0x1e, 10  )
+chapterCompletionAchievement( "Renowned",          19, 0x1f, 25 )
+chapterCompletionAchievement( "Specialist",        20, 0x21, 10  )
+chapterCompletionAchievement( "Expert",            21, 0x22, 10  )
+chapterCompletionAchievement( "Exceptional",       22, 0x24, 10  )
+chapterCompletionAchievement( "Perfect",           23, 0x26, 25  )
+chapterCompletionAchievement( "World Champion",    24, 0x28, 10 )
 
 achievement(
     title = "Property Mine",
@@ -486,7 +486,7 @@ tenOfAKind()
 achievement(
     title = "In Control",
     description = "Win any Street Race event while driving a car with manual transmission and ABS off",
-    points = 10,
+    points = 3,
     trigger = (
         currentCarABS() == 0x0 &&
         inGameTransmission() == 0x0 &&
@@ -500,7 +500,7 @@ achievement(
 achievement(
     title = "Driving With Style",
     description = "Make a really good drift",
-    points = 5,
+    points = 2,
     trigger = (
         isInGame() &&
         // AndNextChain
@@ -578,7 +578,7 @@ streetRaceChallengeAchievement(
 timedRunChallengeAchievement(
     title = "Megane Around the Corner",
     description = "Driving Renault Megane, set a target time of 3:03 and beat it in Chapter 3, Event 3",
-    points = 5,
+    points = 10,
     carId = 0x6,
     eventId = 0x16,
     targetTimeMsec = 180 * 1000 + 3000
@@ -613,7 +613,7 @@ timedRunChallengeAchievement(
 timedRunChallengeAchievement(
     title = "Tokyo Run",
     description = "Driving Peugeot 306 Cabriolet, set a target time of 2:05 and beat it in Chapter 5, Event 2",
-    points = 5,
+    points = 10,
     carId = 0xA,
     eventId = 0x29,
     targetTimeMsec = 125 * 1000
@@ -668,7 +668,7 @@ hotlapChallengeAchievement(
 streetRaceChallengeAchievement(
     title = "Generation R129",
     description = "Driving Mercedes-Benz SL 320, win the Street Race in Chapter 10, Event 7",
-    points = 5,
+    points = 10,
     carIds = [ 0x10 ],
     eventId = 0x60
 )
@@ -713,7 +713,7 @@ overtakeChallengeAchievement(
 streetRaceChallengeAchievement(
     title = "Driven by Instinct",
     description = "Driving Audi TT Coupe, win the Street Race in Chapter 14, Event 9 without penalty",
-    points = 5,
+    points = 10,
     carIds = [ 0x15 ],
     eventId = 0x8A,
     noPenalty = true
@@ -947,7 +947,7 @@ busCarIds = [ 0x35, 0x36, 0x37 ]
 achievement(
     title = "Metropolis Transit Racing",
     description = "Setup and win a Quick race between three buses from each city, with you driving one of them for atleast 5 laps",
-    points = 10,
+    points = 3,
     trigger = (
         inQuickRace() &&
         all_of(
@@ -979,7 +979,7 @@ taxiCarIds = [ 0x31, 0x32, 0x33 ]
 achievement(
     title = "Crazy Taxi Showdown",
     description = "Setup and win a Quick race between three taxis from each city, with you driving one of them for atleast 5 laps",
-    points = 5,
+    points = 3,
     trigger = (
         inQuickRace() &&
         all_of(
