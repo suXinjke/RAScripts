@@ -163,7 +163,7 @@ function hasWonChampionship( racesAmount, expectedChampionshipPoints = 0 ) {
 function chapterCompletionAchievement( title, chapterIndex, showroomRowIndex, points ) {
     type = "progression"
     if (chapterIndex == 24) {
-      type = "win_condition"
+      type = ""
     }
 
     achievement(
