@@ -132,6 +132,8 @@ export default function () {
     const tests = Object.values(meta.licenses)
       .filter(license => license.license === letter && license.isCoffee === false)
 
+    const finalTest = tests[tests.length - 1]
+
     set.addAchievement({
       title: title + ' Graduate',
       description:
@@ -162,6 +164,10 @@ export default function () {
           stat.gameFlagIs.license,
           pointerNullCheck(main.p.root),
           main.regionIs.pal,
+
+          // HACK: attempt to protect against Full Clamping crash
+          ['', 'Mem', '32bit', finalTest.palFlagAddress, '!=', 'Value', '', 0],
+
           ...tests.map((test, idx) => $(
             ['', 'Mem', 'Upper4', test.palFlagAddress, '<=', 'Value', '', 0xB],
             idx === tests.length - 1 && (
@@ -176,6 +182,11 @@ export default function () {
           stat.gameFlagIs.license,
           pointerNullCheck(main.p.root),
           main.regionIs.ntsc,
+
+          // HACK: attempt to protect against Full Clamping crash
+          stat.root,
+          ['', 'Mem', '32bit', finalTest.ntscFlagOffset, '!=', 'Value', '', 0],
+
           ...tests.map((test, idx) => $(
             stat.root,
             ['', 'Mem', 'Upper4', test.ntscFlagOffset, '<=', 'Value', '', 0xB],
