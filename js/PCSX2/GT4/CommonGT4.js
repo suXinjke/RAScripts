@@ -640,6 +640,11 @@ export async function code(r = 'retail') {
       inBSpecMode,
       notInASpecMode,
 
+      enteredInGame: $(
+        p.root,
+        ['', 'Mem', '32bit', 0xDC, '<', 'Delta', '32bit', 0xDC],
+      ),
+
       inGameCameraIs: (camera = 0) => $(
         p.root84,
         ['AddAddress', 'Mem', '32bit', o ? 0x1D4 : 0x1BC],
@@ -726,12 +731,6 @@ export async function code(r = 'retail') {
           hud.showingRaceResults
         )
       },
-
-      inFirstChampionshipRace: raceId => $(
-        inASpecMode,
-        stat.gameFlagIs.eventChampionship,
-        eventIdIs(raceId)
-      ),
 
       earnedChampionshipMoney: $(
         p.rootAux,
@@ -939,10 +938,13 @@ export async function code(r = 'retail') {
 
         andNext(
           'once',
-          main.inFirstChampionshipRace(e.raceIds[0]),
+          stat.gameFlagIs.eventChampionship,
+          main.eventIdIs(e.raceIds[0]),
           generalProtections.forbiddenCarIds(...e.carIdsForbidden),
-          main.hud.lapTime.newLap,
-          main.inGamePlayerCar.lapsCompletedAre(0)
+          main.enteredInGame
+        ).andNext(
+          'once',
+          main.inASpecMode
         ),
 
         resetIf(
