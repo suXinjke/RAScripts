@@ -319,9 +319,9 @@ const codeFor = (region) => {
           baseAddress,
           ['AndNext', 'Mem', '16bit', offset(0x0d160e), '>', 'Delta', '16bit', offset(0x0d160e)],
           baseAddress,
-          ['AddSource', 'Mem', '16bit', offset(0x0d160e)],
-          baseAddress,
           ['SubSource', 'Delta', '16bit', offset(0x0d160e)],
+          baseAddress,
+          ['AddSource', 'Mem', '16bit', offset(0x0d160e)],
           ['', 'Value', '', 0, '>', 'Value', '', 10]
         )
       },
