@@ -1593,14 +1593,33 @@ set.addAchievement({
 set.addAchievement({
   title: 'Torn Ribbon',
   badge: b('GAUNTLET_ACE_CLEAR'),
-  description: 'Complete The Gauntlet on Ace difficulty with MOBIUS shot down after dealing with Espada Team in 60 seconds',
+  description: 'Complete The Gauntlet on Ace difficulty with MOBIUS shot down after dealing with Espada Team in 60 seconds, without using TLS or MPBM',
   points: 10,
   conditions: completedMissionInAnyMode({
     missionId: mission.Gauntlet_SP,
     minimalDifficulty: difficulty.ace,
     targetsToDestroy: {
       0x37: [0]
-    }
+    },
+    additionalConditions: c => $(
+      orNext(
+        c.inGame.craftIdIsNot(craft.morgan),
+        c.inGame.specialWeaponIdIsNot(weapon.mpbm),
+        c.inGame.player.hasMoreOrEqualSpecialShots(8)
+      ),
+
+      orNext(
+        c.inGame.craftIdIsNot(craft.morgan),
+        c.inGame.specialWeaponIdIsNot(weapon.tls),
+        c.inGame.player.hasMoreOrEqualSpecialShots(7)
+      ),
+
+      orNext(
+        c.inGame.craftIdIsNot(craft.falken),
+        c.inGame.specialWeaponIdIsNot(weapon.tls),
+        c.inGame.player.hasMoreOrEqualSpecialShots(14)
+      )
+    )
   })
 })
 
