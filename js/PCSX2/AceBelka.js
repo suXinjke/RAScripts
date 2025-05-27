@@ -825,7 +825,7 @@ function timeTrialDuringMissionConditions(conditions) {
       ),
       alt1: $(
         measuredIf(code.ntsc.regionCheck),
-        code.pal.inGame.missionPhaseTimer.measured,
+        code.ntsc.inGame.missionPhaseTimer.measured,
       ),
     }
   }
