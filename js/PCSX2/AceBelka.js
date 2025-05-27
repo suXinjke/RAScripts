@@ -794,22 +794,10 @@ const code = {
 }
 
 function timeTrialDebriefingConditions(conditions) {
-  const startConditions = {
-    ...conditions,
-    alt1: $(
-      conditions.alt1,
-      ['', 'Mem', '32bit', code.pal.address.postTime, '>', 'Value', '', 60]
-    ),
-    alt2: $(
-      conditions.alt2,
-      ['', 'Mem', '32bit', code.ntsc.address.postTime, '>', 'Value', '', 60]
-    ),
-  }
-
   return {
     cancel: alwaysFalse,
     submit: alwaysTrue,
-    start: startConditions,
+    start: conditions,
     value: {
       core: $(
         measuredIf(code.pal.regionCheck),
@@ -824,22 +812,10 @@ function timeTrialDebriefingConditions(conditions) {
 }
 
 function timeTrialDuringMissionConditions(conditions) {
-  const startConditions = {
-    ...conditions,
-    alt1: $(
-      conditions.alt1,
-      ['', 'Mem', '32bit', code.pal.address.postTime, '>', 'Value', '', 60]
-    ),
-    alt2: $(
-      conditions.alt2,
-      ['', 'Mem', '32bit', code.ntsc.address.postTime, '>', 'Value', '', 60]
-    ),
-  }
-
   return {
     cancel: alwaysFalse,
     submit: alwaysTrue,
-    start: startConditions,
+    start: conditions,
     value: {
       core: $(
         measuredIf(code.pal.regionCheck),
