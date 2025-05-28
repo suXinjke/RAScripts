@@ -2390,7 +2390,7 @@ for (const [mission, title, points, begin, end] of [
   set.addAchievement({
     title: 'Swordsmanship',
     badge: b('AIRCRAFT_MORGAN_CHALLENGE_01'),
-    description: `ADFX-01 Morgan, NORMAL+, Mission 17: destroy one of the V2 control devices and it's locks with one swift slash of TLS`,
+    description: `ADFX-01 Morgan, NORMAL+, Mission 17: destroy one of the V2 control devices and its locks with one swift slash of TLS`,
     points: 5,
     conditions: achievedDuringMission({
       missionId: mission.Avalon_17,
