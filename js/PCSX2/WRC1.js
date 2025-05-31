@@ -190,7 +190,7 @@ const trackMeta = {
       '',
     ],
     timeTrial: {
-      'Flynns Short': { time: '05:55.55', points: 10, evo: true },
+      'Flynns Short': { time: '05:05.55', points: 10, evo: true },
     }
   },
   'Great Britain': {
