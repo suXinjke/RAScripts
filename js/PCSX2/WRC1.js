@@ -206,7 +206,7 @@ const trackMeta = {
     ],
     timeTrial: {
       'Tyle': {
-        time: '03:34.70', points: 5, car: 6,
+        time: '03:34.70', points: 5, car: (r) => r === 'pal' ? 4 : 6,
         title: 'Mysterious Ford Driver at Dawn',
         description: 'Finish Great Britain SS5, Tyle in 03:34.70 or less as Ford Driver'
       },
@@ -618,12 +618,12 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
                 `Finish ${country} SS${i + 1}, ${name} in ${time} or less`,
 
           points,
-          conditions: multiRegionalConditions(c => $(
+          conditions: multiRegionalConditions((c, r) => $(
             c.pauseIfRegionCheck,
             c.main.pauseIfCheats,
             c.main.countryIdIs(countryId),
             c.main.stageIndexIs(i),
-            car && c.main.carIs(car),
+            car && c.main.carIs(car(r)),
             c.main.isInGame,
             c.main.playerFinishedStage,
             c.main.playerFinishedStageWithTimeLte(targetTime)
