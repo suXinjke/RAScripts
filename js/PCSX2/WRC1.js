@@ -409,12 +409,16 @@ const codeFor = (r) => {
         playerRestartedStageInGame: andNext(
           isInGame,
 
+          // HACK: rely on alternate stage index, it's changed when stage loads,
+          // if this flag didn't change, then 0xD30 below were reset in-game
           ptr,
-          ['AndNext', 'Delta', '32bit', 0xD34, '>', 'Value', '', 0],
+          ['AddAddress', 'Mem', '32bit', 0x42C],
+          ['AndNext', 'Delta', '32bit', 0xC, '=', 'Mem', '32bit', 0xC],
+
           ptr,
-          ['AndNext', 'Delta', '32bit', 0xD34, '<', 'Value', '', -8 * 300],
+          ['AndNext', 'Delta', '32bit', 0xD30, '>=', 'Value', '', 6],
           ptr,
-          ['', 'Mem', '32bit', 0xD34, '>=', 'Value', '', -8 * 300],
+          ['', 'Mem', '32bit', 0xD30, '=', 'Value', '', 1],
         ),
         playerRestartedStageOnFinish: andNext(
           isWatchingReplay.withLast({ lvalue: { type: 'Delta' } }),
