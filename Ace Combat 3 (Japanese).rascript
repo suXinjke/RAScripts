@@ -953,7 +953,7 @@ achievement(
 // DILEMMA_DOCKING
 achievement(
     title = "Docking: Airship over White Valley",
-    description = "Utopian Dreams: successfully docked onto airship over without using autopilot.",
+    description = "Utopian Dreams: successfully docked onto airship without using autopilot.",
     points = 1,
     trigger = hasRefueledWithoutAutopilot(0x2C, [0])
 )
@@ -2828,7 +2828,7 @@ achievement(
 // POST_LANDING_FAIL
 achievement(
     title = "Nice Landing",
-    description = "But you've overshot it.",
+    description = "But you've crashed your plane right after the landing.",
     points = 1,
     trigger = (
         gameLoopMode == GAME_LOOP_GAMEPLAY &&
@@ -2861,8 +2861,8 @@ achievement(
 
 // SCYLLA_AND_CHARYBDIS_THIRD_OPTION
 achievement(
-    title = "Friendly Fire",
-    description = "There is no third OPTION.",
+    title = "There is No Third OPTION",
+    description = "Scylla and Charybdis: when you have to DECIDE, try to damage Rena.",
     points = 3,
     trigger = (
         missionId == 0x09 &&
