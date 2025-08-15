@@ -2432,7 +2432,7 @@ for (const [mission, title, points, begin, end] of [
     })
   }).addAchievement({
     title: 'POPSICLE',
-    description: `HEY POPS, DOES THIS NUKE WORK? SURE DOES, YOU'RE ABOUT TO POPCORN INTO THE GROUND, WOOF!`,
+    description: `Nuke down Huckebein with MPBM`,
     points: 1,
     conditions: achievedDuringMission({
       missionId: mission.Mayhem_10,
