@@ -3,7 +3,7 @@ This repository holds code for [RetroAchievement sets I worked on](https://retro
 ## cruncheevos
 
 * [Ace Combat Zero: The Belkan War](https://retroachievements.org/game/20921), PS2
-* [Colony Wars: Vengeance](https://retroachievements.org/game/11562), PS2
+* [Colony Wars: Vengeance](https://retroachievements.org/game/11562), PSX
 * [Driver 2: The Wheelman is Back](https://retroachievements.org/game/11588), PSX
 * [Gran Turismo 2000 Demo](https://retroachievements.org/game/22999), PS2
 * [Gran Turismo 3: A-Spec](https://retroachievements.org/game/2830), PS2
