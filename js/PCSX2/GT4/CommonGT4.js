@@ -787,6 +787,10 @@ export async function code(r = 'retail') {
 
     pauseIfHasNitrous: pauseIf(stat.forEachSetupSlot(s => s.hasNitrous)),
 
+    spec2NoRaceLengthMultiplier: $(
+      stat.root,
+      ['', 'Mem', '32bit', 0x1AD4, '=', 'Value', '', 1]
+    ),
     spec2NoRandomTracks,
     spec2RandomTracks,
     spec2pauseIfRandomTracks: pauseIf(spec2RandomTracks),
@@ -831,8 +835,8 @@ export async function code(r = 'retail') {
       ))
     ),
 
-    spec2PauseIfBadVersion: $.str('1.09', (s, v) => $(
-      ['PauseIf', 'Mem', s, 0x915234, '!=', ...v]
+    spec2PauseIfBadVersion: $.str('1.10', (s, v) => $(
+      ['PauseIf', 'Mem', s, 0x9151e4, '!=', ...v]
     ))
   }
 
@@ -888,7 +892,8 @@ export async function code(r = 'retail') {
         spec2 && $(
           generalProtections.spec2PauseIfBadVersion,
           generalProtections.spec2PauseIfLockIfBypassRegulations,
-          generalProtections.spec2NoRandomTracks
+          generalProtections.spec2NoRandomTracks,
+          e.aSpecPoints > 0 && generalProtections.spec2NoRaceLengthMultiplier
         ),
 
         triggerConditions,
@@ -990,6 +995,7 @@ export async function code(r = 'retail') {
         ...e.raceIds.map(id => addHits(
           'once',
           andNext(
+            spec2 && e.aSpecPoints > 0 && generalProtections.spec2NoRaceLengthMultiplier,
             main.wonRace({ aSpecPoints: e.aSpecPoints }),
             main.eventIdIs(id),
             stat.gameFlagIs.eventRace,
@@ -1057,7 +1063,9 @@ export async function code(r = 'retail') {
         spec2 && $(
           generalProtections.spec2PauseIfBadVersion,
           generalProtections.spec2PauseIfLockIfBypassRegulations,
-          generalProtections.spec2NoRandomTracks
+          generalProtections.spec2NoRandomTracks,
+
+          c.aSpecPoints > 0 && generalProtections.spec2NoRaceLengthMultiplier
         ),
 
         main.wonRace({ aSpecPoints: c.aSpecPoints }),
@@ -1100,6 +1108,7 @@ export async function code(r = 'retail') {
         spec2 && $(
           generalProtections.spec2PauseIfBadVersion,
           generalProtections.spec2pauseIfRandomTracks,
+          generalProtections.spec2NoRaceLengthMultiplier
         ),
         orNext(
           stat.gameFlagIs.eventRace,
