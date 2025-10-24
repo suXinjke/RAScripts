@@ -9,6 +9,9 @@ const bailedIntoMainMenu = $(
   notInGame
 )
 
+const carColorIdIs = id => $.one(['', 'Mem', '8bit', 0x269830, '=', 'Value', '', id])
+const carIdIs = id => $.one(['', 'Mem', '8bit', 0x26982C, '=', 'Value', '', id])
+
 const playerIs = (() => {
   const first = $.one(['', 'Mem', '16bit', 0xb71194, '=', 'Value', '', 1])
   const controllingTheCar = $.one(['', 'Mem', '32bit', 0x01fffc4c, '=', 'Value', '', 0])
@@ -16,8 +19,6 @@ const playerIs = (() => {
   const throttle = $.one(['', 'Mem', '16bit', 0xb710dc, '>', 'Value', '', 0])
 
   return {
-    drivingYellowEvo: $.one(['', 'Mem', '8bit', 0x269830, '=', 'Value', '', 4]),
-
     controllingTheCar,
     watchingReplay: controllingTheCar.with({ rvalue: { value: 1 } }),
 
@@ -61,8 +62,8 @@ const playerWon = $(
 )
 
 const firstFramesOfRaceStart = $(
-  ['AndNext', 'Mem', '32bit', 0x00b68acc, '<', 'Value', '', 0x1c10],
-  ['', 'Delta', '32bit', 0x00b68acc, '>=', 'Value', '', 0x1c10]
+  ['AndNext', 'Mem', '32bit', 0x6cd564, '>=', 'Value', '', 0x30],
+  ['', 'Delta', '32bit', 0x6cd564, '<', 'Value', '', 0x30]
 )
 
 const set = new AchievementSet({ gameId: 22999, title: '~Demo~ Gran Turismo 2000' })
@@ -112,7 +113,8 @@ set.addAchievement({
       'once',
       inGame,
       playerIs.controllingTheCar,
-      playerIs.drivingYellowEvo,
+      carIdIs(0),
+      carColorIdIs(4),
       playerIs.applying.throttle,
       firstFramesOfRaceStart,
     ),
@@ -150,7 +152,10 @@ set.addAchievement({
           inGame,
           playerIs.controllingTheCar,
           playerDidntLap,
-          $.one(['', 'Mem', '32bit', 0xb68acc, '<=', 'Value', '', 60])
+          andNext(
+            ['', 'Mem', '32bit', 0xb68ac8, '>', 'Value', '', 0],
+            ['', 'Mem', '32bit', 0xb68acc, '<=', 'Value', '', 60]
+          )
         )
       )
     ],
@@ -205,6 +210,7 @@ set.addLeaderboard({
   type: 'FIXED3',
   conditions: {
     start: [
+      carIdIs(0),
       inGame,
       playerFinishedLap
     ],
