@@ -12,39 +12,68 @@ const bailedIntoMainMenu = $(
 const carColorIdIs = id => $.one(['', 'Mem', '8bit', 0x269830, '=', 'Value', '', id])
 const carIdIs = id => $.one(['', 'Mem', '8bit', 0x26982C, '=', 'Value', '', id])
 
-const playerIs = (() => {
-  const first = $.one(['', 'Mem', '16bit', 0xb71194, '=', 'Value', '', 1])
-  const controllingTheCar = $.one(['', 'Mem', '32bit', 0x01fffc4c, '=', 'Value', '', 0])
+const player = (() => {
+  const base = $.one(['AddAddress', 'Mem', '8bit', 0x26982C, '*', 'Value', '', 0xB78])
 
-  const throttle = $.one(['', 'Mem', '16bit', 0xb710dc, '>', 'Value', '', 0])
+  const first = $(
+    base,
+    ['', 'Mem', '16bit', 0xb71194, '=', 'Value', '', 1]
+  )
+
+  const controllingTheCar = $.one(['', 'Mem', '32bit', 0x01fffc4c, '=', 'Value', '', 0])
 
   return {
     controllingTheCar,
     watchingReplay: controllingTheCar.with({ rvalue: { value: 1 } }),
 
     first,
-    notFirst: first.with({ cmp: '>' }),
+    notFirst: first.withLast({ cmp: '>' }),
 
     applying: {
-      throttle,
-      brakes: $.one(['', 'Mem', '16bit', 0xb710de, '>', 'Value', '', 0]),
-      handbrake: $.one(['', 'Mem', '16bit', 0xb710e0, '>', 'Value', '', 0]),
-      reverseGear: $.one(['', 'Mem', '8bit', 0xb710e4, '=', 'Value', '', 0]),
+      throttle: $(
+        base,
+        ['', 'Mem', '16bit', 0xb710dc, '>', 'Value', '', 0]
+      ),
+      brakes: $(
+        base,
+        ['', 'Mem', '16bit', 0xb710de, '>', 'Value', '', 0]
+      ),
+      handbrake: $(
+        base,
+        ['', 'Mem', '16bit', 0xb710e0, '>', 'Value', '', 0]
+      ),
+      reverseGear: $(
+        base,
+        ['', 'Mem', '8bit', 0xb710e4, '=', 'Value', '', 0]
+      ),
     },
-    notApplyingEnoughThrottle: $(
-      throttle.with({ flag: 'AndNext', cmp: '<', rvalue: { value: 1024 } }),
-      throttle.with({ flag: '', cmp: '<', rvalue: { ...throttle.lvalue, type: 'Delta' } })
+
+    notApplyingEnoughThrottle: andNext(
+      base,
+      ['', 'Mem', '16bit', 0xb710dc, '<', 'Value', '', 1024],
+      base,
+      ['', 'Mem', '16bit', 0xb710dc, '<', 'Delta', '16bit', 0xb710dc]
+    ),
+
+    measuredTime: $(
+      base,
+      ['Measured', 'Mem', '32bit', 0xb711c4]
+    ),
+
+    didntLap: $(
+      base,
+      ['', 'Mem', '32bit', 0xb711c4, '=', 'Value', '', 0]
+    ),
+
+    finishedLap: andNext(
+      controllingTheCar,
+      base,
+      ['', 'Mem', '32bit', 0xb711c4, '>', 'Value', '', 0],
+      base,
+      ['', 'Delta', '32bit', 0xb711c4, '=', 'Value', '', 0]
     )
   }
 })()
-
-const playerDidntLap = $.one(['', 'Mem', '32bit', 0xb711c4, '=', 'Value', '', 0])
-
-const playerFinishedLap = $(
-  playerIs.controllingTheCar,
-  playerDidntLap.with({ flag: 'AndNext', cmp: '>' }),
-  playerDidntLap.with({ lvalue: { ...playerDidntLap.lvalue, type: 'Delta' } })
-)
 
 const drivingStyleIs = {
   racing: $.one(['', 'Mem', '32bit', 0x1fffcf4, '=', 'Value', '', 0]),
@@ -57,8 +86,8 @@ const gearboxIs = {
 }
 
 const playerWon = $(
-  playerIs.first,
-  playerFinishedLap
+  player.first,
+  player.finishedLap
 )
 
 const firstFramesOfRaceStart = $(
@@ -112,20 +141,20 @@ set.addAchievement({
     andNext(
       'once',
       inGame,
-      playerIs.controllingTheCar,
+      player.controllingTheCar,
       carIdIs(0),
       carColorIdIs(4),
-      playerIs.applying.throttle,
+      player.applying.throttle,
       firstFramesOfRaceStart,
     ),
 
     trigger(playerWon),
     resetIf(
-      playerIs.notApplyingEnoughThrottle,
-      playerIs.applying.brakes,
-      playerIs.applying.handbrake,
-      playerIs.applying.reverseGear,
-      playerIs.watchingReplay,
+      player.notApplyingEnoughThrottle,
+      player.applying.brakes,
+      player.applying.handbrake,
+      player.applying.reverseGear,
+      player.watchingReplay,
       notInGame
     )
   ]
@@ -150,8 +179,8 @@ set.addAchievement({
       resetIf(
         andNext(
           inGame,
-          playerIs.controllingTheCar,
-          playerDidntLap,
+          player.controllingTheCar,
+          player.didntLap,
           andNext(
             ['', 'Mem', '32bit', 0xb68ac8, '>', 'Value', '', 0],
             ['', 'Mem', '32bit', 0xb68acc, '<=', 'Value', '', 60]
@@ -165,8 +194,8 @@ set.addAchievement({
       resetIf(
         andNext(
           inGame,
-          playerFinishedLap,
-          playerIs.notFirst
+          player.finishedLap,
+          player.notFirst
         )
       )
     ],
@@ -184,7 +213,7 @@ set.addAchievement({
       resetIf(
         andNext(
           bailedIntoMainMenu,
-          playerIs.controllingTheCar
+          player.controllingTheCar
         )
       )
     ]
@@ -203,23 +232,32 @@ set.addAchievement({
   ]
 })
 
-set.addLeaderboard({
-  title: 'Fastest Evo on Seattle 2000',
-  description: 'Lap time in msec',
-  lowerIsBetter: true,
-  type: 'FIXED3',
-  conditions: {
-    start: [
-      carIdIs(0),
-      inGame,
-      playerFinishedLap
-    ],
-    cancel: '0xfeed=0xcafe',
-    submit: '0xcafe=0xcafe',
-    value: [
-      ['Measured', 'Mem', '32bit', 0xb711c4]
-    ]
-  }
-})
+for (const [title, carId] of /** @type {const} */ ([
+  ['Fastest Evo on Seattle 2000', 0],
+  ['Toyota ALTEZZA RS200', 1],
+  ['Subaru LEGACY B4 RSK', 2],
+  ['Mazda RX-7 Type RS (FD)', 3],
+  ['Nissan SKYLINE GT-R V-spec (R34)', 4],
+  ['Honda NSX Type S Zero', 5],
+])) {
+  set.addLeaderboard({
+    title,
+    description: carId === 0 ?
+      'Lap time in msec' :
+      'Lap time in msec, car available by applying patch in PCSX2',
+    lowerIsBetter: true,
+    type: 'FIXED3',
+    conditions: {
+      start: [
+        carIdIs(carId),
+        inGame,
+        player.finishedLap
+      ],
+      cancel: '0xfeed=0xcafe',
+      submit: '0xcafe=0xcafe',
+      value: player.measuredTime
+    }
+  })
+}
 
 export default set
