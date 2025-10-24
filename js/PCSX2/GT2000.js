@@ -202,7 +202,7 @@ set.addLeaderboard({
   title: 'Fastest Evo on Seattle 2000',
   description: 'Lap time in msec',
   lowerIsBetter: true,
-  type: 'SCORE',
+  type: 'FIXED3',
   conditions: {
     start: [
       inGame,
