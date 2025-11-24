@@ -561,7 +561,7 @@ const code = {
 
 /** @param {(code: ReturnType<typeof codeFor>, region: Region) => any} cb */
 function multiRegionalConditions(cb) {
-  const res = [cb(code.ntsc, 'ntsc'), cb(code.pal, 'pal'), cb(code.ntsc_j, 'pal')]
+  const res = [cb(code.ntsc, 'ntsc'), cb(code.pal, 'pal'), cb(code.ntsc_j, 'ntsc_j')]
 
   if (res[0].core) {
     let count = 1
