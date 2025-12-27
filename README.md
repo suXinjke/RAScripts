@@ -9,6 +9,7 @@ This repository holds code for [RetroAchievement sets I worked on](https://retro
 * [Gran Turismo 2000 Demo](https://retroachievements.org/game/22999), PS2
 * [Gran Turismo 3: A-Spec](https://retroachievements.org/game/2830), PS2
 * [Gran Turismo 4](https://retroachievements.org/game/20580), PS2 - including [bonus set](https://retroachievements.org/game/29854) and [Spec II](https://retroachievements.org/game/30930)
+* [Tomb Raider](https://retroachievements.org/game/11342), PSX
 * [Wipeout](https://retroachievements.org/game/11378), PSX - Time Trials only
 * [World Rally Championship](https://retroachievements.org/game/19275), PS2
 * [WRC Rally Evolved](https://retroachievements.org/game/19283), PS2
