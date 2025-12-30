@@ -166,7 +166,8 @@ const codeFor = (r: Region) => {
       ['AddAddress', 'Mem', '24bit', m(0x89eac)],
       ['Measured', 'Mem', '16bit', 0x22, '*', 'Float', '', 0.1]
     ),
-    frames: $.one(['Measured', 'Mem', '32bit', m(0x927f8), '*', 'Value', '', 2])
+    frames: $.one(['Measured', 'Mem', '32bit', m(0x927f8), '*', 'Value', '', 2]),
+    newGamePlus: $.one(['Measured', 'Mem', '32bit', m(0x9280f)])
   }
 
   const itemRing = (addr: number) => ({
@@ -2209,6 +2210,12 @@ export const rich = (() => {
           return prev
         }, {})
       },
+      NG: {
+        values: {
+          '0': '',
+          '*': '+'
+        }
+      }
     },
     format: {
       Time: 'FRAMES'
@@ -2229,6 +2236,7 @@ export const rich = (() => {
           const maxPickups = lookup.Pickups.at(c.measured.level)
 
           const time = format.Time.at(c.measured.frames)
+          const ngPlus = lookup.NG.at(c.measured.newGamePlus)
 
           return [
             [
@@ -2250,7 +2258,7 @@ export const rich = (() => {
                 c.regionCheck,
                 c.lvIdIs(0x14).with({ cmp: '<' })
               ),
-              tag`${atLevel} ❤️ ${health}% ❔${secrets}/${maxSecrets} 💀${kills}/${maxKills} 🎒${pickups}/${maxPickups} 🕒${time}`
+              tag`${atLevel}${ngPlus} ❤️${health}% ❔${secrets}/${maxSecrets} 💀${kills}/${maxKills} 🎒${pickups}/${maxPickups} 🕒${time}`
             ]
           ]
         })
