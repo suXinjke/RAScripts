@@ -1718,9 +1718,11 @@ set.addAchievement({
     lvId: 8,
     type: 'ground',
     triggerAdjust: $(
-      c.lara.xPos.between(39033, 39815),
-      c.lara.yPos.is(-5120),
-      c.lara.zPos.between(27770, 28550)
+      c.lara.isInside({
+        x: [39000, 39815],
+        y: [-5700, -5000], yAdjust: 6000,
+        z: [27770, 28550]
+      })
     ),
     coords: {
       x: [33800, 47100],
@@ -1775,7 +1777,7 @@ set.addAchievement({
     lvId: 12,
     type: 'water',
     startAdjust: c.item(54).lo4FlagsAre(4),
-    triggerAdjust: c.lara.yPos.between(18656, 18700),
+    triggerAdjust: c.lara.yPos.between(18400, 18700),
     coords: {
       x: [43100, 46000],
       y: [-3300, -40], yAdjust: 5000,
