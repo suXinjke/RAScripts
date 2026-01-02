@@ -1015,7 +1015,7 @@ set.addAchievement({
   points: 5,
   type: 'progression',
   conditions: multiRegionalConditions(c => c.firstPlaythroughAchievement({
-    lvId: 5,
+    lvId: 7,
     conditions: $(
       orNext(
         c.item(22).lo4FlagsWere(0),
