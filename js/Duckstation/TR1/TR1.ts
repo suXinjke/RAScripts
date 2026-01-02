@@ -82,7 +82,7 @@ const extremeRaiderMeta: Record<number, ExtremeRaiderParams> = {
   0x06: { lvId: 6 },
   0x07: { lvId: 7 },
   0x08: { lvId: 8 },
-  0x09: { lvId: 9, allPickups: true },
+  0x09: { lvId: 9, allKills: true },
   0x0A: { lvId: 10, allKills: true },
   0x0B: { lvId: 11, allKills: true, allPickups: true },
   0x0C: { lvId: 12, allKills: true },
@@ -1453,7 +1453,7 @@ set.addAchievement({
 
 set.addAchievement({
   title: 'Extreme Raider of the Tomb of Tihocan',
-  description: `Complete "Tomb of Tihocan" with 26 pickups and 2 secrets, without using Medi Packs, without loading mid-level saves`,
+  description: `Complete "Tomb of Tihocan" with 17 kills and 2 secrets, without using Medi Packs, without loading mid-level saves`,
   points: 10,
   conditions: multiRegionalConditions(c => c.extremeRaiderConditions(extremeRaiderMeta[9])),
   badge: '131388',
@@ -2073,7 +2073,7 @@ set.addLeaderboard({
 
 set.addLeaderboard({
   title: 'Extreme Raider of the Tomb of Tihocan',
-  description: `Fastest time to beat "Tomb of Tihocan" with 26 pickups and 2 secrets, without using Medi Packs`,
+  description: `Fastest time to beat "Tomb of Tihocan" with 17 kills and 2 secrets, without using Medi Packs`,
   lowerIsBetter: true,
   type: 'FRAMES',
   conditions: {
