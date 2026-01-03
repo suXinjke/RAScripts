@@ -388,6 +388,16 @@ const codeFor = (r: Region) => {
     }
   }
 
+  const shotIllegalWeapons = (maxWeapon: Weapon) => {
+    const weaponId = weapons[maxWeapon]
+
+    return orNext(
+      weaponId <= 0x65 && ['', 'Mem', '32bit', m(0x1ddfa8), '>', 'Delta', '32bit', m(0x1ddfa8)],
+      weaponId <= 0x64 && ['', 'Mem', '32bit', m(0x1ddf9c), '>', 'Delta', '32bit', m(0x1ddf9c)],
+      weaponId <= 0x63 && ['', 'Mem', '32bit', m(0x1ddfb4), '>', 'Delta', '32bit', m(0x1ddfb4)]
+    )
+  }
+
   const midasBladeSecret = andNext(
     lara.xPos.pastDescending(62300),
     lara.zPos.between(60450, 61400)
@@ -417,22 +427,29 @@ const codeFor = (r: Region) => {
     ]
   })
 
-  const forAnyPlaythrough = ({ lvId }: { lvId: number }) => ({
-    start: andNext(
-      lvIdIs(lvId),
-      lvIsNotFinished,
-      frameAdvance
-    ),
+  const forAnyPlaythrough = ({ lvId }: { lvId: number }) => {
+    const illegalWeaponShot = shotIllegalWeapons(levelMeta[lvId].maxWeapon)
 
-    resetArray: [
-      loadingLevelOrBail,
-      andNext(
-        ammoCheat,
-        isNotNewGamePlus
+    return {
+      start: andNext(
+        lvIdIs(lvId),
+        lvIsNotFinished,
+        frameAdvance
       ),
-      hasIllegalWeaponsOnLv(lvId)
-    ]
-  })
+
+      resetArray: [
+        loadingLevelOrBail,
+        andNext(
+          ammoCheat,
+          isNotNewGamePlus
+        ),
+        illegalWeaponShot.conditions.length > 0 && andNext(
+          illegalWeaponShot,
+          isNewGamePlus
+        )
+      ]
+    }
+  }
 
   const forLvComplete = (params: { lvId: number, oneSession?: boolean }) => {
     const { lvId } = params
@@ -459,16 +476,6 @@ const codeFor = (r: Region) => {
     maxWeapon
   }: ExtremeRaiderParams) => {
     const { cutsceneId, kills, pickups, secrets } = levelMeta[lvId]
-
-    const shotIllegalWeapons = (maxWeapon: Weapon) => {
-      const weaponId = weapons[maxWeapon]
-
-      return orNext(
-        weaponId <= 0x65 && ['', 'Mem', '32bit', m(0x1ddfa8), '>', 'Delta', '32bit', m(0x1ddfa8)],
-        weaponId <= 0x64 && ['', 'Mem', '32bit', m(0x1ddf9c), '>', 'Delta', '32bit', m(0x1ddf9c)],
-        weaponId <= 0x63 && ['', 'Mem', '32bit', m(0x1ddfb4), '>', 'Delta', '32bit', m(0x1ddfb4)]
-      )
-    }
 
     const loadLevelExploit = $(
       ['OrNext', 'Mem', '32bit', m(0x0927f8), '!=', 'Delta', '32bit', m(0x0927f8)],
