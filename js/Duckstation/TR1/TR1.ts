@@ -97,7 +97,7 @@ const codeFor = (r: Region) => {
     r === 'rev1' && $.str('0152', (s, v) => $(['', 'Mem', s, 0x087f71, '=', ...v])),
     r === 'pal' && $.str('0024', (s, v) => $(['', 'Mem', s, 0x088001, '=', ...v])),
   )
-  const pauseIfRegionCheck = pauseIf(regionCheck.map(x => x.with({ cmp: '!=' })))
+
   const m = (m: number) => {
     if (r === 'rev1') {
       if (m >= 0x89900) return m + 0x100
@@ -111,6 +111,11 @@ const codeFor = (r: Region) => {
 
     return m
   }
+
+  const pauseIfRegionDemoCheck = pauseIf(
+    regionCheck.map(x => x.with({ cmp: '!=' })),
+    ['', 'Mem', '32bit', m(0x087500), '>=', 'Value', '', 0x1E0]
+  )
 
   const lvIdIs = (lvId: number) => $.one(['', 'Mem', '8bit', m(0x87580), '=', 'Value', '', lvId])
   const lvIdIsAny = lvIdIs(0xF).with({ cmp: '<=' })
@@ -520,7 +525,7 @@ const codeFor = (r: Region) => {
 
   return {
     regionCheck,
-    pauseIfRegionCheck,
+    pauseIfRegionDemoCheck,
     lara,
     item,
     lvIdIs,
@@ -539,7 +544,7 @@ const codeFor = (r: Region) => {
     measured,
 
     larasHomeAchievement: $(
-      pauseIfRegionCheck,
+      pauseIfRegionDemoCheck,
       andNext(
         'once',
         lvIdIs(0),
@@ -555,7 +560,7 @@ const codeFor = (r: Region) => {
       const c = forLvComplete(params)
 
       return $(
-        pauseIfRegionCheck,
+        pauseIfRegionDemoCheck,
         once(c.start),
         c.trigger,
         resetIf(...c.resetArray)
@@ -569,7 +574,7 @@ const codeFor = (r: Region) => {
       const c = forFirstPlaythrough(params)
 
       return $(
-        pauseIfRegionCheck,
+        pauseIfRegionDemoCheck,
         once(c.start),
         params.conditions,
         resetIf(...c.resetArray)
@@ -582,7 +587,7 @@ const codeFor = (r: Region) => {
     }) {
       const c = forAnyPlaythrough(params)
       return $(
-        pauseIfRegionCheck,
+        pauseIfRegionDemoCheck,
         once(c.start),
         params.conditions,
         resetIf(...c.resetArray)
@@ -599,7 +604,7 @@ const codeFor = (r: Region) => {
       oneSession?: boolean
     }) {
       return $(
-        pauseIfRegionCheck,
+        pauseIfRegionDemoCheck,
         andNext(
           'once',
           lvIdIs(lvId),
@@ -623,7 +628,7 @@ const codeFor = (r: Region) => {
       const { triggerIcon = true } = params
 
       return $(
-        pauseIfRegionCheck,
+        pauseIfRegionDemoCheck,
 
         once(c.start),
         triggerIcon ? trigger(c.trigger) : c.trigger,
@@ -634,7 +639,7 @@ const codeFor = (r: Region) => {
 
     weaponObtainedAchievement(weapon: Weapon) {
       return $(
-        pauseIfRegionCheck,
+        pauseIfRegionDemoCheck,
         lvIdIsAny,
         gameNotPaused,
 
@@ -649,7 +654,7 @@ const codeFor = (r: Region) => {
       const c = forAnyPlaythrough(params)
 
       return $(
-        pauseIfRegionCheck,
+        pauseIfRegionDemoCheck,
         once(c.start),
 
         lvId !== 15 && andNext(
@@ -677,7 +682,7 @@ const codeFor = (r: Region) => {
       triggerAdjust?: ConditionBuilder,
     }) {
       return $(
-        pauseIfRegionCheck,
+        pauseIfRegionDemoCheck,
         andNext(
           'once',
           startAdjust,
@@ -709,7 +714,7 @@ const codeFor = (r: Region) => {
       triggerAdjust?: ConditionBuilder
     }) {
       return $(
-        pauseIfRegionCheck,
+        pauseIfRegionDemoCheck,
         andNext(
           'once',
           lvIdIs(lvId),
@@ -1866,7 +1871,7 @@ set.addAchievement({
   description: `Get turned into gold in "Palace Midas"`,
   points: 1,
   conditions: multiRegionalConditions(c => $(
-    c.pauseIfRegionCheck,
+    c.pauseIfRegionDemoCheck,
     c.lvIdIs(7),
     c.lara.turningIntoGold
   )),
