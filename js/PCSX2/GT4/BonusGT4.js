@@ -204,6 +204,7 @@ for (const e of events) {
       stat.gameFlagIs.photoDrive,
     ),
     main.inASpecMode,
+    main.trackIdIs(0x41),
   )
 
   set.addAchievement({
