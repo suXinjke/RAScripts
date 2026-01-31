@@ -946,7 +946,7 @@ achievement(
 busCarIds = [ 0x35, 0x36, 0x37 ]
 achievement(
     title = "Metropolis Transit Racing",
-    description = "Setup and win a Quick race between three buses from each city, with you driving one of them for atleast 5 laps",
+    description = "Setup and win a Quick race between three buses from each city, with you driving one of them for at least 5 laps",
     points = 3,
     trigger = (
         inQuickRace() &&
@@ -978,7 +978,7 @@ achievement(
 taxiCarIds = [ 0x31, 0x32, 0x33 ]
 achievement(
     title = "Crazy Taxi Showdown",
-    description = "Setup and win a Quick race between three taxis from each city, with you driving one of them for atleast 5 laps",
+    description = "Setup and win a Quick race between three taxis from each city, with you driving one of them for at least 5 laps",
     points = 3,
     trigger = (
         inQuickRace() &&
@@ -1009,7 +1009,7 @@ achievement(
 
 achievement(
     title = "Labor Day",
-    description = "Setup and win a Quick race with 5 lawnmower opponents, with atleast 3 laps, with Grass cheat enabled, and drive a lawnmower yourself",
+    description = "Setup and win a Quick race with 5 lawnmower opponents, with at least 3 laps, with Grass cheat enabled, and drive a lawnmower yourself",
     points = 5,
     trigger = (
         inQuickRace() &&
