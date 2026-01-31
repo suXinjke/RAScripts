@@ -199,7 +199,7 @@ export default function () {
 
   set.addAchievement({
     title: 'Quick Race',
-    description: 'Win a random Event Synthesizer race and earn atleast 80 A-Spec points',
+    description: 'Win a random Event Synthesizer race and earn at least 80 A-Spec points',
     points: 1,
     conditions: $(
       generalProtections.spec2PauseIfBadVersion,
@@ -211,7 +211,7 @@ export default function () {
     )
   }).addAchievement({
     title: 'Exhibition',
-    description: 'Win a random Event Synthesizer race while driving Auto Union V16 Type C Streamline `37 and earn atleast 10 A-Spec points',
+    description: 'Win a random Event Synthesizer race while driving Auto Union V16 Type C Streamline `37 and earn at least 10 A-Spec points',
     points: 3,
     conditions: $(
       generalProtections.spec2PauseIfBadVersion,
@@ -231,7 +231,7 @@ export default function () {
 
   set.addAchievement({
     title: 'Spilling Gears',
-    description: 'Win any race of Supercar Festival while only driving on 1st gear and earn atleast 4 A-Spec points. Nitrous is not allowed.',
+    description: 'Win any race of Supercar Festival while only driving on 1st gear and earn at least 4 A-Spec points. Nitrous is not allowed.',
     points: 3,
     conditions: $(
       generalProtections.spec2PauseIfBadVersion,

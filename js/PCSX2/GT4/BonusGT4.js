@@ -48,11 +48,11 @@ function define24HourEvent(e) {
   const hourSet = [8, 16, 24]
   hourSet.forEach((hours, i) => {
     const subtitle = hours === 24 ? 'Finish!' : `${hours} hour mark!`
-    let description = `Win the ${e.name} event in A-Spec mode and earn atleast ${e.aSpecPoints} A-Spec points.`
+    let description = `Win the ${e.name} event in A-Spec mode and earn at least ${e.aSpecPoints} A-Spec points.`
     if (hours !== 24) {
       description =
         `In ${e.name} event in A-Spec mode, cross the finish line in the 1st place, after ${hours} hours have passed. ` +
-        `Remember to earn atleast ${e.aSpecPoints} A-Spec points on finish!`
+        `Remember to earn at least ${e.aSpecPoints} A-Spec points on finish!`
     }
 
     const timeInMsec = hours * 60 * 60 * 3000
@@ -279,7 +279,7 @@ const mediumRallyEvents = Object.values(meta.events)
 for (const r of mediumRallyEvents) {
   set.addAchievement({
     title: `${r.name} - Clean Challenge`,
-    description: `Win any ${r.name} event in A-Spec mode and earn atleast ${r.aSpecPoints} A-Spec points, without getting any penalties. Nitrous is not allowed.`,
+    description: `Win any ${r.name} event in A-Spec mode and earn at least ${r.aSpecPoints} A-Spec points, without getting any penalties. Nitrous is not allowed.`,
     points: r.points,
     conditions: $(
       stat.gameFlagIs.eventRace,

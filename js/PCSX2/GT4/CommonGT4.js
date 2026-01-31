@@ -868,7 +868,7 @@ export async function code(r = 'retail') {
 
     const nitrousSuffix = !e.aSpecPoints || e.nitrousAllowed ? '' : ' Nitrous is not allowed.'
     const aSpecSuffix = e.aSpecPoints ?
-      ` and earn atleast ${e.aSpecPoints} A-Spec points.` : '.'
+      ` and earn at least ${e.aSpecPoints} A-Spec points.` : '.'
 
     description += aSpecSuffix
 
@@ -978,7 +978,7 @@ export async function code(r = 'retail') {
       const nitrousSuffix = e.nitrousAllowed ? '' : ' Nitrous is not allowed.'
       description =
         `Win all ${e.name} events in one sitting in A-Spec mode, earning ` +
-        `atleast ${e.aSpecPoints} A-Spec points in each.` + nitrousSuffix
+        `at least ${e.aSpecPoints} A-Spec points in each.` + nitrousSuffix
     }
 
     set.addAchievement({
@@ -1035,11 +1035,11 @@ export async function code(r = 'retail') {
       description = [
         'Win ',
         c.eventDescriptionOverride || ('any ' + eventNameWithSuffix + ' event'),
-        (c.aSpecPoints <= 0 ? '' : ` and earn atleast ${c.aSpecPoints} A-Spec points`),
+        (c.aSpecPoints <= 0 ? '' : ` and earn at least ${c.aSpecPoints} A-Spec points`),
         ` while driving ${c.descriptionSuffix}`
       ].join('')
     } else if (c.specificRaceIds.length > 0) {
-      description = `Win ${c.eventDescriptionOverride} in A-Spec mode and earn atleast ${c.aSpecPoints} A-Spec points.`
+      description = `Win ${c.eventDescriptionOverride} in A-Spec mode and earn at least ${c.aSpecPoints} A-Spec points.`
     } else {
       description = `Earn ${c.aSpecPoints} A-Spec points or more in any of the ${eventNameWithSuffix} events.`
     }
