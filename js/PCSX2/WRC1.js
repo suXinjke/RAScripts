@@ -382,7 +382,7 @@ const codeFor = (r) => {
           ptr,
           ['AndNext', 'Prior', '32bit', 0xC58, '=', 'Value', '', 0x75],
           ptr,
-          ['AndNext', 'Mem', '32bit', 0xC58, '=', 'Value', '', 0x78]
+          ['', 'Mem', '32bit', 0xC58, '=', 'Value', '', 0x78]
         ),
         bailedFromRally: $(
           ptr,
