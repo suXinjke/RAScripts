@@ -378,9 +378,17 @@ const codeFor = (r) => {
         isInGame,
         isWatchingReplay,
 
-        bailedIntoResultsPriorInGame: $(
+        bailedIntoMenuPriorReplay: $(
           ptr,
           ['AndNext', 'Prior', '32bit', 0xC58, '=', 'Value', '', 0x75],
+          ptr,
+          ['', 'Mem', '32bit', 0xC58, '=', 'Value', '', 0x78]
+        ),
+        bailedIntoMenuPriorReplayOrDriving: $(
+          ptr,
+          ['OrNext', 'Prior', '32bit', 0xC58, '=', 'Value', '', 0x75],
+          ptr,
+          ['AndNext', 'Prior', '32bit', 0xC58, '=', 'Value', '', 0x77],
           ptr,
           ['', 'Mem', '32bit', 0xC58, '=', 'Value', '', 0x78]
         ),
@@ -552,14 +560,14 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
 
         resetIf(
           andNext(
-            c.main.bailedIntoResultsPriorInGame,
+            c.main.bailedIntoMenuPriorReplay,
             c.main.movedIntoNextRallyFrom(Number(countryId)),
             c.main.playerLostRally
           )
         ),
 
         trigger(
-          c.main.bailedIntoResultsPriorInGame,
+          c.main.bailedIntoMenuPriorReplay,
           c.main.movedIntoNextRallyFrom(Number(countryId)),
           c.main.playerWonRally
         )
@@ -659,7 +667,7 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
               c.main.isTransmission(0).withLast({ cmp: '!=' }),
               c.main.playerRestartedStageInGame,
               c.main.playerRestartedStageOnFinish,
-              c.main.bailedFromRally,
+              c.main.bailedIntoMenuPriorReplayOrDriving,
               c.main.timerWentPast(targetTime)
             ),
             trigger(
@@ -699,7 +707,7 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
                   c.main.isTransmission(transmissionId).withLast({ cmp: '!=' }),
                   c.main.playerRestartedStageInGame,
                   c.main.playerRestartedStageOnFinish,
-                  c.main.bailedFromRally,
+                  c.main.bailedIntoMenuPriorReplayOrDriving,
                 ),
                 c.main.playerFinishedStage,
               )),
@@ -748,7 +756,7 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
           c.main.bailedFromRally
         ),
 
-        c.main.bailedIntoResultsPriorInGame,
+        c.main.bailedIntoMenuPriorReplay,
         c.main.movedIntoNextRallyFrom(Number(countryId))
       )),
       value: /** @type const */ (['ntsc', 'pal']).flatMap(region => {
@@ -846,7 +854,7 @@ set.addAchievement({
     ),
     resetIf(
       c.main.playerRestartedStageInGame,
-      c.main.bailedFromRally,
+      c.main.bailedIntoMenuPriorReplayOrDriving,
       c.main.cameraIs(0).withLast({ cmp: '!=' }),
     ),
     trigger(
