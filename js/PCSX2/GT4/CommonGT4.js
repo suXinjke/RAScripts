@@ -157,13 +157,19 @@ export async function code(r = 'retail') {
       ['', 'Mem', '8bit', o ? 0x20800 : 0x38c20, '=', 'Value', '', 0]
     )
 
+    const inGTModeProject = $.str('gtmo', (s, v) => $(
+      root,
+      ['', 'Mem', s, o ? 0x1E1C : 0x3A3BC, '=', ...v]
+    ))
+
     return {
       root,
 
-      inGTModeProject: $.str('gtmo', (s, v) => $(
-        root,
-        ['', 'Mem', s, o ? 0x1E1C : 0x3A3BC, '=', ...v]
-      )),
+      inGTModeProject,
+      inGTModeProjectFor2Frames: andNext(
+        inGTModeProject,
+        inGTModeProject.withLast({ lvalue: ['Delta'] }),
+      ),
 
       gameFlagIs,
       abandonedChampionship,

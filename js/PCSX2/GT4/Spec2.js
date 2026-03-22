@@ -191,7 +191,7 @@ export default function () {
     conditions: $(
       generalProtections.spec2PauseIfBadVersion,
       stat.gameFlagIs.inGameMenus,
-      stat.inGTModeProject,
+      stat.inGTModeProjectFor2Frames,
       stat.prizeCarCountIncreased,
       stat.spec2RandomCars
     )
