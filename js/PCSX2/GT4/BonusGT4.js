@@ -30,7 +30,7 @@ function b(filePath, cb) {
  * @typedef {T extends (Record <string, infer U>) ? U : never} ObjectValue
  * **/
 
-const set = new AchievementSet({ gameId: 29854, title: 'Gran Turismo 4 [Subset - Bonus]' })
+const set = new AchievementSet({ gameId: 20580, id: 9517, title: 'Gran Turismo 4 [Subset - Bonus]' })
 
 const events = Object.values(meta.events)
 const subsetOnlyEvents = events.filter(e => e.subsetOnly)
