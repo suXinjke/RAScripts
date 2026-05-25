@@ -173,10 +173,6 @@ export async function code(r = 'retail') {
 
       gameFlagIs,
       abandonedChampionship,
-      abandonedChampionshipDelta: andNext(
-        gameFlagIs.inGameMenus.withLast({ lvalue: { type: 'Delta' }, cmp: '!=' }),
-        abandonedChampionship
-      ),
 
       gtModeCarId,
       gtModeCarIdStaysSame,
@@ -959,11 +955,7 @@ export async function code(r = 'retail') {
         ),
 
         resetIf(
-          // Must use the delta check,
-          // otherwise it cancels out R1 pause locks
-          spec2 && stat.abandonedChampionshipDelta,
-
-          !spec2 && stat.abandonedChampionship,
+          stat.abandonedChampionship,
           main.hud.inBSpecMode
         ),
 
