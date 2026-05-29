@@ -173,7 +173,7 @@ const missionMeta = {
       {
         id: 0x0d,
         ace: { title: 'Air Corridor', points: 3 },
-        team: 'Gamma Team'
+        team: 'Theta Team'
       }
     ]
   },
