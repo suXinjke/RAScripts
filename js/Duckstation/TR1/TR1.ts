@@ -139,6 +139,10 @@ const codeFor = (r: Region) => {
   )
 
   const gamePaused = $.one(['', 'Mem', '32bit', m(0x089010), '!=', 'Value', '', 0])
+  const gamePausedForTwoFrames = $(
+    ['AndNext', 'Mem', '32bit', m(0x089010), '!=', 'Value', '', 0],
+    ['', 'Delta', '32bit', m(0x089010), '!=', 'Value', '', 0],
+  )
   const gameNotPaused = gamePaused.with({ cmp: '=' })
 
   const levelSkipCheat = $(
@@ -147,11 +151,12 @@ const codeFor = (r: Region) => {
     lvIsFinished
   )
 
-  const ammoCheat = $(
-    ['OrNext', 'Mem', '32bit', m(0x1ddf94), '!=', 'Delta', '32bit', m(0x1ddf94)],
-    ['OrNext', 'Mem', '32bit', m(0x1ddfa0), '!=', 'Delta', '32bit', m(0x1ddfa0)],
-    ['AndNext', 'Mem', '32bit', m(0x1ddfac), '!=', 'Delta', '32bit', m(0x1ddfac)],
-    gamePaused
+  const ammoCheat = orNext(
+    ['', 'Mem', '32bit', m(0x1ddf94), '!=', 'Delta', '32bit', m(0x1ddf94)],
+    ['', 'Mem', '32bit', m(0x1ddfa0), '!=', 'Delta', '32bit', m(0x1ddfa0)]
+  ).andNext(
+    ['', 'Mem', '32bit', m(0x1ddfac), '!=', 'Delta', '32bit', m(0x1ddfac)],
+    gamePausedForTwoFrames
   )
 
   const pickupCountIs = (count: number) => $.one(['', 'Mem', '8bit', m(0x09280e), '=', 'Value', '', count])
@@ -482,12 +487,13 @@ const codeFor = (r: Region) => {
   }: ExtremeRaiderParams) => {
     const { cutsceneId, kills, pickups, secrets } = levelMeta[lvId]
 
-    const loadLevelExploit = $(
-      ['OrNext', 'Mem', '32bit', m(0x0927f8), '!=', 'Delta', '32bit', m(0x0927f8)],
-      ['OrNext', 'Mem', '32bit', m(0x0927fc), '!=', 'Delta', '32bit', m(0x0927fc)],
-      ['OrNext', 'Mem', '8bit', m(0x092800), '!=', 'Delta', '8bit', m(0x092800)],
-      ['AndNext', 'Mem', '8bit', m(0x09280e), '!=', 'Delta', '8bit', m(0x09280e)],
-      gamePaused,
+    const loadLevelExploit = orNext(
+      ['', 'Mem', '32bit', m(0x0927f8), '!=', 'Delta', '32bit', m(0x0927f8)],
+      ['', 'Mem', '32bit', m(0x0927fc), '!=', 'Delta', '32bit', m(0x0927fc)],
+      ['', 'Mem', '8bit', m(0x092800), '!=', 'Delta', '8bit', m(0x092800)]
+    ).andNext(
+      ['', 'Mem', '8bit', m(0x09280e), '!=', 'Delta', '8bit', m(0x09280e)],
+      gamePausedForTwoFrames,
     )
 
     return {
