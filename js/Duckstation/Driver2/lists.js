@@ -8,8 +8,8 @@ export const pursuits = /** @type {const} */ ([
 export const getaways = /** @type {const} */ ([
     [0x66, 'Chicago - Downtown'],
     [0x67, 'Chicago - Wrigleyville'],
-    [0x6e, 'Havana - Necropolis de Colo'],
-    [0x6f, 'Havana - Capitolo'],
+    [0x6e, 'Havana - Necropolis de Colon'],
+    [0x6f, 'Havana - Capitolio'],
     [0x76, 'Las Vegas - Downtown'],
     [0x77, 'Las Vegas - Upper Strip'],
     [0x7e, 'Rio - Centro'],
