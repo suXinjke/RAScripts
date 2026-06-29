@@ -619,7 +619,12 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
       }
 
       const { time, points, evo, title, description, bonus, car } = e[1]
-      const targetTime = inGameTimeFromStr(time)
+
+      // HACK: notice +2
+      // Value of 2 still results in time of 00:00.00
+      // Value of 5 still results in time of 00:00.01
+      // For anti-frustration reasons, respect what player sees on screen
+      const targetTime = inGameTimeFromStr(time) + 2
 
       if (!evo) {
         set.addAchievement({
