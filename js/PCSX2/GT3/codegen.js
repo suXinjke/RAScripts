@@ -1,4 +1,4 @@
-import { getParsedSheet as _getSheet } from '../../common.js'
+import { getParsedSheet as _getSheet } from '../../common.ts'
 import * as fs from 'fs'
 import * as path from 'path'
 

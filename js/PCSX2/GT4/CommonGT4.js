@@ -1,6 +1,4 @@
 // @ts-check
-
-import '../../common.js'
 import {
   AchievementSet, Condition, ConditionBuilder, define as $,
   andNext, orNext, resetIf, resetNextIf, trigger, pauseIf, addHits, once,

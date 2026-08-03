@@ -1,5 +1,4 @@
 // @ts-check
-import '../../common.js'
 import {
   AchievementSet, define as $,
   orNext, andNext, resetIf, trigger, once, addHits, measuredIf,

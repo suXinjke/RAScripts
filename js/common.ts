@@ -5,25 +5,13 @@ export function givenRangeOf(start = 0, end = 0) {
   return Array.from({ length: end - start + 1 }, (v, k) => start + k)
 }
 
-Number.prototype.toHexString = function () {
-  return '0x' + this.toString(16)
-}
-
-String.prototype.removeQuotesFromHex = function () {
-  return this.replace(/"(0x[\dABCDEF]+)"/gi, "$1")
-}
-
-String.prototype.toHexString = function () {
-  return Number(this).toHexString()
-}
-
-function tsvParse(tsv) {
+function tsvParse(tsv: string) {
   return tsv.split('\r\n').map(x => x.split('\t')).slice(1)
 }
 
 export async function getParsedSheet(
-  rootDir,
-  id,
+  rootDir: string,
+  id: string,
   linksFileName = 'links',
   subDir = ''
 ) {
