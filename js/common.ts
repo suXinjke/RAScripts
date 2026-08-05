@@ -1,6 +1,37 @@
 import * as path from 'path'
 import * as fs from 'fs'
 
+export function mapObject<T extends object, NewValue>(
+  input: T,
+  cb: (value: T[keyof T], key: string) => NewValue
+) {
+  const res = {} as Record<keyof T, NewValue>
+
+  for (const key in input) {
+    res[key] = cb(input[key], key)
+  }
+
+  return res
+}
+
+export function mapNumberedObject<T extends object, NewValue>(
+  input: T,
+  cb: (value: T[keyof T], key: number) => NewValue
+) {
+  const res = {} as Record<keyof T, NewValue>
+
+  for (const key in input) {
+    const numKey = Number(key)
+    if (Number.isNaN(numKey)) {
+      throw new Error(`got NaN: ${key}`)
+    }
+
+    res[key] = cb(input[key], numKey)
+  }
+
+  return res
+}
+
 export function givenRangeOf(start = 0, end = 0) {
   return Array.from({ length: end - start + 1 }, (v, k) => start + k)
 }
