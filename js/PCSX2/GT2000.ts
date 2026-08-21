@@ -1,4 +1,3 @@
-// @ts-check
 import { AchievementSet, define as $, trigger, andNext, resetIf, measured, resetNextIf, pauseIf } from '@cruncheevos/core'
 
 const inGame = $.one(['', 'Mem', '16bit', 0x2a0fc4, '=', 'Value', '', 2])
@@ -9,8 +8,8 @@ const bailedIntoMainMenu = $(
   notInGame
 )
 
-const carColorIdIs = id => $.one(['', 'Mem', '8bit', 0x269830, '=', 'Value', '', id])
-const carIdIs = id => $.one(['', 'Mem', '8bit', 0x26982C, '=', 'Value', '', id])
+const carColorIdIs = (id: number) => $.one(['', 'Mem', '8bit', 0x269830, '=', 'Value', '', id])
+const carIdIs = (id: number) => $.one(['', 'Mem', '8bit', 0x26982C, '=', 'Value', '', id])
 
 const player = (() => {
   const base = $.one(['AddAddress', 'Mem', '8bit', 0x26982C, '*', 'Value', '', 0xB78])
@@ -102,11 +101,11 @@ set.addAchievement({
   description: 'Win the race with Racing driving style',
   points: 1,
   type: 'win_condition',
-  conditions: [
+  conditions: $(
     pauseIf(notInGame),
     playerWon,
     drivingStyleIs.racing
-  ]
+  )
 })
 
 set.addAchievement({
@@ -114,11 +113,11 @@ set.addAchievement({
   description: 'Win the race with Drift driving style',
   points: 2,
   type: 'win_condition',
-  conditions: [
+  conditions: $(
     pauseIf(notInGame),
     playerWon,
     drivingStyleIs.drift
-  ]
+  )
 })
 
 set.addAchievement({
@@ -126,18 +125,18 @@ set.addAchievement({
   description: 'Win the race with Manual gearbox',
   points: 3,
   type: 'win_condition',
-  conditions: [
+  conditions: $(
     pauseIf(notInGame),
     playerWon,
     gearboxIs.manual
-  ]
+  )
 })
 
 set.addAchievement({
   title: 'The Final Meme',
   description: 'Win the race while driving Dandelion Yellow EVO V, always stepping on gas and never applying brakes',
   points: 3,
-  conditions: [
+  conditions: $(
     andNext(
       'once',
       inGame,
@@ -157,7 +156,7 @@ set.addAchievement({
       player.watchingReplay,
       notInGame
     )
-  ]
+  )
 })
 
 set.addAchievement({
@@ -165,43 +164,37 @@ set.addAchievement({
   description: 'Win the race three times in a row! Time Out or bailing into main menu without finish will reset the streak.',
   points: 5,
   conditions: {
-    core: [
-      measured(
-        andNext(
-          'hits 3',
-          inGame,
-          playerWon
-        )
+    core: measured(
+      andNext(
+        'hits 3',
+        inGame,
+        playerWon
       )
-    ],
+    ),
     // if player timed out
-    alt1: [
-      resetIf(
+    alt1: resetIf(
+      andNext(
+        inGame,
+        player.controllingTheCar,
+        player.didntLap,
         andNext(
-          inGame,
-          player.controllingTheCar,
-          player.didntLap,
-          andNext(
-            ['', 'Mem', '32bit', 0xb68ac8, '>', 'Value', '', 0],
-            ['', 'Mem', '32bit', 0xb68acc, '<=', 'Value', '', 60]
-          )
+          ['', 'Mem', '32bit', 0xb68ac8, '>', 'Value', '', 0],
+          ['', 'Mem', '32bit', 0xb68acc, '<=', 'Value', '', 60]
         )
       )
-    ],
+    ),
 
     // didn't finish first
-    alt2: [
-      resetIf(
-        andNext(
-          inGame,
-          player.finishedLap,
-          player.notFirst
-        )
+    alt2: resetIf(
+      andNext(
+        inGame,
+        player.finishedLap,
+        player.notFirst
       )
-    ],
+    ),
 
     // bailed into menu, but allow it if player won
-    alt3: [
+    alt3: $(
       resetNextIf(firstFramesOfRaceStart),
       pauseIf(
         'once',
@@ -216,7 +209,7 @@ set.addAchievement({
           player.controllingTheCar
         )
       )
-    ]
+    )
   }
 })
 
@@ -225,21 +218,21 @@ set.addAchievement({
   description: 'Win the race with Automatic gearbox',
   points: 1,
   type: 'win_condition',
-  conditions: [
+  conditions: $(
     pauseIf(notInGame),
     playerWon,
     gearboxIs.auto
-  ]
+  )
 })
 
-for (const [title, carId] of /** @type {const} */ ([
+for (const [title, carId] of [
   ['Fastest Evo on Seattle 2000', 0],
   ['Toyota ALTEZZA RS200', 1],
   ['Subaru LEGACY B4 RSK', 2],
   ['Mazda RX-7 Type RS (FD)', 3],
   ['Nissan SKYLINE GT-R V-spec (R34)', 4],
   ['Honda NSX Type S Zero', 5],
-])) {
+] as const) {
   set.addLeaderboard({
     title,
     description: carId === 0 ?
@@ -248,11 +241,11 @@ for (const [title, carId] of /** @type {const} */ ([
     lowerIsBetter: true,
     type: 'FIXED3',
     conditions: {
-      start: [
+      start: $(
         carIdIs(carId),
         inGame,
         player.finishedLap
-      ],
+      ),
       cancel: '0xfeed=0xcafe',
       submit: '0xcafe=0xcafe',
       value: player.measuredTime
