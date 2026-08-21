@@ -1,13 +1,32 @@
-// @ts-check
-import { AchievementSet, define as $, orNext, ConditionBuilder, RichPresence, pauseIf, measuredIf, andNext, resetIf, trigger } from '@cruncheevos/core'
+import { AchievementSet, ConditionBuilder, define as $, orNext, RichPresence, pauseIf, measuredIf, andNext, resetIf, trigger } from '@cruncheevos/core'
+import { makeMultiRegionalConditionsFunction } from '../common.ts'
 
-function inGameTimeFromStr(input) {
+function inGameTimeFromStr(input: string) {
   const [minutes, seconds, msec] = input.split(/[:.]/).map(Number)
   const totalSec = minutes * 60 + seconds + (msec / 100)
   return Math.floor(totalSec * 300)
 }
 
-const trackMeta = {
+type Region = 'ntsc' | 'pal'
+const regions: Region[] = ['ntsc', 'pal']
+
+interface TimeTrialMeta {
+  title?: string
+  description?: string
+  time: string
+  points: number
+  car?: (r: Region) => number
+  evo?: boolean
+  bonus?: boolean
+}
+
+interface TrackMeta {
+  id: number,
+  tracks: string[]
+  timeTrial: Record<string, TimeTrialMeta>
+}
+
+const trackMeta: Record<string, TrackMeta> = {
   'Monte Carlo': {
     id: 0,
     tracks: [
@@ -214,10 +233,7 @@ const trackMeta = {
   },
 }
 
-/** @typedef {'pal' | 'ntsc'} Region */
-
-/** @param {Region} r */
-const codeFor = (r) => {
+const codeFor = (r: Region) => {
   const regionCheck = $(
     r === 'ntsc' && $.str('2041', (s, v) => $(['', 'Mem', s, 0x2247a6, '=', ...v])),
     r === 'pal' && $.str('5013', (s, v) => $(['', 'Mem', s, 0x230d66, '=', ...v])),
@@ -230,17 +246,18 @@ const codeFor = (r) => {
     main: (() => {
       const ptr = $.one(['AddAddress', 'Mem', '32bit', r === 'ntsc' ? 0x22dd84 : 0x23ba04])
 
-      /** @param {'championship' | 'singleRally' | 'timeTrial'} mode */
-      const gameModeIs = (mode) => {
-        const modes = {
-          championship: 0,
-          singleRally: 1,
-          timeTrial: 2
-        }
-
-        return $(
+      const gameModeIs = {
+        championship: $(
           ptr,
-          ['', 'Mem', '32bit', 0xB4, '=', 'Value', '', modes[mode]]
+          ['', 'Mem', '32bit', 0xB4, '=', 'Value', '', 0]
+        ),
+        singleRally: $(
+          ptr,
+          ['', 'Mem', '32bit', 0xB4, '=', 'Value', '', 1]
+        ),
+        timeTrial: $(
+          ptr,
+          ['', 'Mem', '32bit', 0xB4, '=', 'Value', '', 2]
         )
       }
 
@@ -324,44 +341,35 @@ const codeFor = (r) => {
         },
 
         cheat,
-
         gameModeIs,
 
-        /** @param {'novice' | 'normal' | 'pro'} diff */
-        difficultyIsAtleast: (diff) => {
-          const difficulties = {
-            normal: 1,
-            pro: 2,
-          }
-
-          return $(
-            ptr,
-            ['', 'Mem', '32bit', 0xCC, diff === 'pro' ? '=' : '>=', 'Value', '', difficulties[diff]]
-          )
-        },
+        difficultyIsAtleast: (diff: number) => $(
+          ptr,
+          ['', 'Mem', '32bit', 0xCC, diff === 2 ? '=' : '>=', 'Value', '', diff]
+        ),
 
         pauseIfCheats: pauseIf(
           andNext(
             cheat.evoPower,
-            gameModeIs('timeTrial')
+            gameModeIs.timeTrial
           )
         ),
 
-        cameraIs: i => $(
+        cameraIs: (i: number) => $(
           ptr,
           ['', 'Mem', '32bit', 0x78, '=', 'Value', '', i]
         ),
 
-        carIs: i => $(
+        carIs: (i: number) => $(
           ptr,
           ['', 'Mem', '32bit', 0xAC, '=', 'Value', '', i]
         ),
 
-        countryIdIs: i => $(
+        countryIdIs: (i: number) => $(
           ptr,
           ['', 'Mem', '32bit', 0xB8, '=', 'Value', '', i]
         ),
-        stageIndexIs: i => $(
+        stageIndexIs: (i: number) => $(
           ptr,
           ['', 'Mem', '32bit', 0xBC, '=', 'Value', '', i]
         ),
@@ -398,7 +406,7 @@ const codeFor = (r) => {
           ptr,
           ['', 'Mem', '32bit', 0xC0, '=', 'Value', '', 2],
         ),
-        movedIntoNextRallyFrom: id => $(
+        movedIntoNextRallyFrom: (id: number) => $(
           ptr,
           ['AndNext', 'Delta', '32bit', 0xB8, '=', 'Value', '', id],
           ptr,
@@ -450,15 +458,15 @@ const codeFor = (r) => {
           ptr,
           ['', 'Mem', '32bit', 0xD30, '=', 'Value', '', 7],
         ),
-        playerFinishedStageWithTimeLte: time => $(
+        playerFinishedStageWithTimeLte: (time: number) => $(
           ptr,
           ['', 'Mem', '32bit', 0x74, '<=', 'Value', '', time],
         ),
-        shakedownIs: active => $(
+        shakedownIs: (active: number) => $(
           ptr,
           ['', 'Mem', '32bit', 0xC0, '=', 'Value', '', active],
         ),
-        timerWentPast: time => $(
+        timerWentPast: (time: number) => $(
           ptr,
           ['AndNext', 'Delta', '32bit', 0xD34, '<=', 'Value', '', time],
           ptr,
@@ -467,7 +475,7 @@ const codeFor = (r) => {
           ['', 'Mem', '32bit', 0xD34, '<', 'Value', '', -8 * 300],
         ),
 
-        isTransmission: transmission => $(
+        transmissionIs: (transmission: number) => $(
           ptr,
           ['AddAddress', 'Mem', '32bit', 0xC44],
           ['AddAddress', 'Mem', '32bit', 0x34],
@@ -480,72 +488,36 @@ const codeFor = (r) => {
   }
 }
 
-const c = {
+const code = {
+  ntsc: codeFor('ntsc'),
   pal: codeFor('pal'),
-  ntsc: codeFor('ntsc')
 }
 
-/** @param {(code: ReturnType<typeof codeFor>, region: Region) => any} cb */
-function multiRegionalConditions(cb) {
-  const res = [cb(c.ntsc, 'ntsc'), cb(c.pal, 'pal')]
-
-  if (res[0].core) {
-    let count = 1
-    const ret = {
-      core: res[0].core
-    }
-
-    for (const bunch of res) {
-      for (const group of Object.values(bunch).slice(1)) {
-        ret[`alt${count}`] = group
-        count++
-      }
-    }
-
-    return ret
-  }
-
-  if (Array.isArray(res[0]) && res[0].length === 1) {
-    return {
-      core: res[0],
-      alt1: res[1],
-      alt2: res[2],
-    }
-  }
-
-  return {
-    core: 'hcafe=hcafe',
-    alt1: res[0],
-    alt2: res[1],
-  }
-}
+const multiRegionalConditions = makeMultiRegionalConditionsFunction(code)
 
 const set = new AchievementSet({ gameId: 19275, title: 'World Rally Championship' })
 
 for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entries(trackMeta)) {
-  for (const difficulty of ['novice', 'pro']) {
-    let title = `Rally ${country}` + (difficulty === 'novice' ? '' : ' - Pro')
-
+  for (const difficulty of [0, 2]) {
     const difficultyDescription =
-      difficulty === 'novice' ?
+      difficulty === 0 ?
         `on Novice difficulty or higher` :
         'on Professional difficulty'
-    const description = `Win Rally ${country} ` + difficultyDescription + ', in one sitting and with no restarts'
 
     set.addAchievement({
-      title,
-      description,
+      title: `Rally ${country}` + (difficulty === 0 ? '' : ' - Pro'),
+      description: `Win Rally ${country} ${difficultyDescription}, in one sitting and with no restarts`,
       points: 5,
-      type: difficulty === 'novice' ? 'progression' : '',
+      type: difficulty === 0 ? 'progression' : '',
       conditions: multiRegionalConditions(c => $(
         c.pauseIfRegionCheck,
         andNext(
           'once',
           orNext(
-            c.main.gameModeIs('championship'),
-            c.main.gameModeIs('singleRally'),
+            c.main.gameModeIs.championship,
+            c.main.gameModeIs.singleRally,
           ),
-          difficulty === 'pro' && c.main.difficultyIsAtleast('pro'),
+          difficulty === 2 && c.main.difficultyIsAtleast(2),
           c.main.countryIdIs(countryId),
           c.main.stageIndexIs(0),
           c.main.shakedownIs(0),
@@ -602,12 +574,12 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
         )),
         value: {
           core: $(
-            measuredIf(c.ntsc.regionCheck),
-            c.ntsc.main.measured.time
+            measuredIf(code.ntsc.regionCheck),
+            code.ntsc.main.measured.time
           ),
           alt1: $(
-            measuredIf(c.pal.regionCheck),
-            c.pal.main.measured.time
+            measuredIf(code.pal.regionCheck),
+            code.pal.main.measured.time
           ),
         },
       }
@@ -659,17 +631,17 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
             c.pauseIfRegionCheck,
             andNext(
               'once',
-              c.main.gameModeIs('timeTrial'),
+              c.main.gameModeIs.timeTrial,
               c.main.isOnePlayer,
               c.main.cheat.evoPower,
-              c.main.isTransmission(0),
+              c.main.transmissionIs(0),
               c.main.countryIdIs(countryId),
               c.main.stageIndexIs(i),
               c.main.isInGame,
               c.main.playerStartedStage
             ),
             resetIf(
-              c.main.isTransmission(0).withLast({ cmp: '!=' }),
+              c.main.transmissionIs(0).withLast({ cmp: '!=' }),
               c.main.playerRestartedStageInGame,
               c.main.playerRestartedStageOnFinish,
               c.main.bailedIntoMenuPriorReplayOrDriving,
@@ -682,7 +654,7 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
           ))
         })
 
-        for (const gear of ['auto', 'man']) {
+        for (const gear of ['auto', 'man'] as const) {
           const transmissionId = gear === 'auto' ? 0 : 2
 
           set.addLeaderboard({
@@ -699,17 +671,17 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
                 c.pauseIfRegionCheck,
                 andNext(
                   'once',
-                  c.main.gameModeIs('timeTrial'),
+                  c.main.gameModeIs.timeTrial,
                   c.main.isOnePlayer,
                   c.main.cheat.evoPower,
-                  c.main.isTransmission(transmissionId),
+                  c.main.transmissionIs(transmissionId),
                   c.main.countryIdIs(countryId),
                   c.main.stageIndexIs(i),
                   c.main.isInGame,
                   c.main.playerStartedStage
                 ),
                 resetIf(
-                  c.main.isTransmission(transmissionId).withLast({ cmp: '!=' }),
+                  c.main.transmissionIs(transmissionId).withLast({ cmp: '!=' }),
                   c.main.playerRestartedStageInGame,
                   c.main.playerRestartedStageOnFinish,
                   c.main.bailedIntoMenuPriorReplayOrDriving,
@@ -718,12 +690,12 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
               )),
               value: {
                 core: $(
-                  measuredIf(c.ntsc.regionCheck),
-                  c.ntsc.main.measured.time
+                  measuredIf(code.ntsc.regionCheck),
+                  code.ntsc.main.measured.time
                 ),
                 alt1: $(
-                  measuredIf(c.pal.regionCheck),
-                  c.pal.main.measured.time
+                  measuredIf(code.pal.regionCheck),
+                  code.pal.main.measured.time
                 ),
               },
             }
@@ -746,8 +718,8 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
         andNext(
           'once',
           orNext(
-            c.main.gameModeIs('championship'),
-            c.main.gameModeIs('singleRally'),
+            c.main.gameModeIs.championship,
+            c.main.gameModeIs.singleRally,
           ),
           c.main.countryIdIs(countryId),
           c.main.stageIndexIs(0),
@@ -764,8 +736,8 @@ for (const [country, { id: countryId, tracks, timeTrial = {} }] of Object.entrie
         c.main.bailedIntoMenuPriorReplay,
         c.main.movedIntoNextRallyFrom(Number(countryId))
       )),
-      value: /** @type const */ (['ntsc', 'pal']).flatMap(region => {
-        const c = codeFor(region)
+      value: regions.flatMap(region => {
+        const c = code[region]
         return Array.from({ length: 21 }, (_, i) => $(
           measuredIf(
             andNext(
@@ -791,7 +763,7 @@ set.addAchievement({
   points: 1,
   conditions: multiRegionalConditions(c => $(
     c.pauseIfRegionCheck,
-    c.main.gameModeIs('timeTrial'),
+    c.main.gameModeIs.timeTrial,
     c.main.isOnePlayer,
     c.main.isInGame,
     c.main.playerFinishedStage,
@@ -806,7 +778,7 @@ set.addAchievement({
   points: 1,
   conditions: multiRegionalConditions(c => $(
     c.pauseIfRegionCheck,
-    c.main.gameModeIs('timeTrial'),
+    c.main.gameModeIs.timeTrial,
     c.main.isOnePlayer,
     c.main.isInGame,
     c.main.playerFinishedStage,
@@ -820,7 +792,7 @@ set.addAchievement({
   points: 1,
   conditions: multiRegionalConditions(c => $(
     c.pauseIfRegionCheck,
-    c.main.gameModeIs('timeTrial'),
+    c.main.gameModeIs.timeTrial,
     c.main.isOnePlayer,
     c.main.isInGame,
     c.main.playerFinishedStage,
@@ -834,7 +806,7 @@ set.addAchievement({
   points: 1,
   conditions: multiRegionalConditions(c => $(
     c.pauseIfRegionCheck,
-    c.main.gameModeIs('timeTrial'),
+    c.main.gameModeIs.timeTrial,
     c.main.isOnePlayer,
     c.main.isInGame,
     c.main.playerFinishedStage,
@@ -850,7 +822,7 @@ set.addAchievement({
     c.pauseIfRegionCheck,
     andNext(
       'once',
-      c.main.gameModeIs('timeTrial'),
+      c.main.gameModeIs.timeTrial,
       c.main.isOnePlayer,
       c.main.isInGame,
       c.main.cheat.stupid,
@@ -874,7 +846,7 @@ set.addAchievement({
   points: 1,
   conditions: multiRegionalConditions(c => $(
     c.pauseIfRegionCheck,
-    c.main.gameModeIs('timeTrial'),
+    c.main.gameModeIs.timeTrial,
     c.main.isOnePlayer,
     c.main.isInGame,
     c.main.playerFinishedStage,
@@ -889,7 +861,7 @@ set.addAchievement({
   points: 1,
   conditions: multiRegionalConditions(c => $(
     c.pauseIfRegionCheck,
-    c.main.gameModeIs('timeTrial'),
+    c.main.gameModeIs.timeTrial,
     c.main.isOnePlayer,
     c.main.isWatchingReplay,
     c.main.cheat.ufoReplay,
@@ -897,139 +869,134 @@ set.addAchievement({
   ))
 })
 
-export const rich = (() => {
-  /** @type Region[] */
-  const regions = ['ntsc', 'pal']
-
-  return RichPresence({
-    lookup: {
-      GameMode: {
-        values: {
-          0: 'Championship',
-          1: 'Single Rally',
-          2: 'Time Trial'
-        }
-      },
-      Car: {
-        values: {
-          0x00: 'Peugeot 206',
-          0x01: 'Peugeot 206',
-          0x02: 'Peugeot 206',
-          0x03: 'Peugeot 206',
-          0x04: 'Ford Focus',
-          0x05: 'Ford Focus',
-          0x06: 'Ford Focus',
-          0x07: 'Subaru Impreza',
-          0x08: 'Subaru Impreza',
-          0x09: 'Subaru Impreza',
-          0x0A: 'Subaru Impreza',
-          0x0B: 'Mitsubishi Lancer',
-          0x0C: 'Mitsubishi Lancer',
-          0x0D: 'Hyundai Accent',
-          0x0E: 'Hyundai Accent',
-          0x0F: 'Hyundai Accent',
-          0x10: 'Skoda Octavia',
-          0x11: 'Skoda Octavia',
-          0x12: 'Citroen Xsara',
-          0x13: 'Citroen Xsara',
-          0x14: 'Citroen Xsara',
-        },
-      },
-      Country: {
-        values: Object.fromEntries(
-          Object.entries(trackMeta).map(([name, { id }]) => [id, name])
-        )
-      },
-      Difficulty: {
-        values: {
-          0: 'Novice',
-          1: 'Normal',
-          2: 'Professional'
-        }
-      },
-      CalculatedStage: {
-        values: Object.fromEntries(
-          Object.values(trackMeta).reduce((prev, cur) => {
-            const countryOffset = cur.id * 7
-            prev.push(
-              ...cur.tracks
-                .map((name, i) => [countryOffset + i, name])
-                .filter(([_, name]) => name)
-            )
-
-            return prev
-          }, []).concat([['*', '???']])
-        )
-      },
-      Stage: {
-        values: {
-          0: 'SS1',
-          1: 'SS2',
-          2: 'SS3',
-          3: 'SS4',
-          4: 'SS5',
-          5: 'SSS',
-          6: 'Bonus Stage',
-        }
+export const rich = RichPresence({
+  lookup: {
+    GameMode: {
+      values: {
+        0: 'Championship',
+        1: 'Single Rally',
+        2: 'Time Trial'
       }
     },
-    displays: ({ lookup, tag }) => regions.flatMap(r => {
-      const c = codeFor(r)
-      const atCar = lookup.Car.at(c.main.measured.car)
-      const atGameMode = lookup.GameMode.at(c.main.measured.gameMode)
-      const atCountry = lookup.Country.at(c.main.measured.country)
-      const atStageIndex = lookup.Stage.at(c.main.measured.stageIndex)
-      const atStageName = lookup.CalculatedStage.at(c.main.measured.calculatedStage)
-      const atDifficulty = lookup.Difficulty.at(c.main.measured.difficulty)
+    Car: {
+      values: {
+        0x00: 'Peugeot 206',
+        0x01: 'Peugeot 206',
+        0x02: 'Peugeot 206',
+        0x03: 'Peugeot 206',
+        0x04: 'Ford Focus',
+        0x05: 'Ford Focus',
+        0x06: 'Ford Focus',
+        0x07: 'Subaru Impreza',
+        0x08: 'Subaru Impreza',
+        0x09: 'Subaru Impreza',
+        0x0A: 'Subaru Impreza',
+        0x0B: 'Mitsubishi Lancer',
+        0x0C: 'Mitsubishi Lancer',
+        0x0D: 'Hyundai Accent',
+        0x0E: 'Hyundai Accent',
+        0x0F: 'Hyundai Accent',
+        0x10: 'Skoda Octavia',
+        0x11: 'Skoda Octavia',
+        0x12: 'Citroen Xsara',
+        0x13: 'Citroen Xsara',
+        0x14: 'Citroen Xsara',
+      },
+    },
+    Country: {
+      values: Object.fromEntries(
+        Object.entries(trackMeta).map(([name, { id }]) => [id, name])
+      )
+    },
+    Difficulty: {
+      values: {
+        0: 'Novice',
+        1: 'Normal',
+        2: 'Professional'
+      }
+    },
+    CalculatedStage: {
+      values: Object.fromEntries(
+        Object.values(trackMeta).reduce((prev, cur) => {
+          const countryOffset = cur.id * 7
+          prev.push(
+            ...cur.tracks
+              .map((name, i) => [countryOffset + i, name])
+              .filter(([_, name]) => name)
+          )
 
-      return /** @type Array<string | [ConditionBuilder, string]> */ ([
-        [
-          $(
-            c.regionCheck,
-            c.main.areTwoPlayers,
-            c.main.gameModeIs('timeTrial')
+          return prev
+        }, []).concat([['*', '???']])
+      )
+    },
+    Stage: {
+      values: {
+        0: 'SS1',
+        1: 'SS2',
+        2: 'SS3',
+        3: 'SS4',
+        4: 'SS5',
+        5: 'SSS',
+        6: 'Bonus Stage',
+      }
+    }
+  },
+  displays: ({ lookup, tag }) => regions.flatMap(r => {
+    const c = code[r]
+    const atCar = lookup.Car.at(c.main.measured.car)
+    const atGameMode = lookup.GameMode.at(c.main.measured.gameMode)
+    const atCountry = lookup.Country.at(c.main.measured.country)
+    const atStageIndex = lookup.Stage.at(c.main.measured.stageIndex)
+    const atStageName = lookup.CalculatedStage.at(c.main.measured.calculatedStage)
+    const atDifficulty = lookup.Difficulty.at(c.main.measured.difficulty)
+
+    return [
+      [
+        $(
+          c.regionCheck,
+          c.main.areTwoPlayers,
+          c.main.gameModeIs.timeTrial
+        ),
+        tag`Two Player Mode 📍 ${atCountry} ${atStageIndex} - ${atStageName}`
+      ],
+      [
+        $(
+          c.regionCheck,
+          orNext(
+            c.main.gameModeIs.championship,
+            c.main.gameModeIs.singleRally,
           ),
-          tag`Two Player Mode 📍 ${atCountry} ${atStageIndex} - ${atStageName}`
-        ],
-        [
-          $(
-            c.regionCheck,
-            orNext(
-              c.main.gameModeIs('championship'),
-              c.main.gameModeIs('singleRally'),
-            ),
-            c.main.shakedownIs(1),
-            orNext(
-              c.main.isWatchingReplay,
-              c.main.isInGame
-            ),
+          c.main.shakedownIs(1),
+          orNext(
+            c.main.isWatchingReplay,
+            c.main.isInGame
           ),
-          tag`${atGameMode} (${atDifficulty}) 📍 ${atCountry} Shakedown 🚗 ${atCar}`
-        ],
-        [
-          $(
-            c.regionCheck,
-            orNext(
-              c.main.gameModeIs('championship'),
-              c.main.gameModeIs('singleRally'),
-            ),
+        ),
+        tag`${atGameMode} (${atDifficulty}) 📍 ${atCountry} Shakedown 🚗 ${atCar}`
+      ],
+      [
+        $(
+          c.regionCheck,
+          orNext(
+            c.main.gameModeIs.championship,
+            c.main.gameModeIs.singleRally,
           ),
-          tag`${atGameMode} (${atDifficulty}) 📍 ${atCountry} ${atStageIndex} - ${atStageName} 🚗 ${atCar}`
-        ],
-        [
-          $(
-            c.regionCheck,
-            orNext(
-              c.main.isWatchingReplay,
-              c.main.isInGame
-            ),
+        ),
+        tag`${atGameMode} (${atDifficulty}) 📍 ${atCountry} ${atStageIndex} - ${atStageName} 🚗 ${atCar}`
+      ],
+      [
+        $(
+          c.regionCheck,
+          orNext(
+            c.main.isWatchingReplay,
+            c.main.isInGame
           ),
-          tag`${atGameMode} 📍 ${atCountry} ${atStageIndex} - ${atStageName} 🚗 ${atCar}`
-        ],
-      ])
-    }).concat('Playing World Rally Championship')
-  })
-})()
+        ),
+        tag`${atGameMode} 📍 ${atCountry} ${atStageIndex} - ${atStageName} 🚗 ${atCar}`
+      ],
+    ] as Array<string | [ConditionBuilder, string]>
+  }).concat('Playing World Rally Championship')
+})
 
 export default set
 
