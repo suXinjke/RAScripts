@@ -1,29 +1,6 @@
-// @ts-check
 import { AchievementSet, define as $, trigger, andNext, resetIf, pauseIf, orNext, once, stringToNumberLE, ConditionBuilder, RichPresence } from '@cruncheevos/core'
 
-const gamemode = {
-  singleRally: 3,
-  championship: 4,
-  rallycross: 6,
-  testCourse: 7,
-  historicChallenge: 0xA,
-}
-
-const difficulty = {
-  novice: 1,
-  professional: 2,
-  expert: 3
-}
-
-const rallyClass = {
-  s1600: 1,
-  wrc: 2,
-  extreme: 3,
-  historic: 5,
-  independents: 6,
-}
-
-const countryIds = {
+const countryIds: Record<string, string> = {
   AR: "Argentina",
   AU: "Australia",
   CY: "Cyprus",
@@ -42,7 +19,7 @@ const countryIds = {
   TR: "Turkey",
 }
 
-const trackIds = {
+const trackIds: Record<string, string> = {
   MC1: "SS1 - Prunieres",
   MC2: "SS2 - Sigale",
   MC3: "SS3 - Turini",
@@ -93,7 +70,7 @@ const trackIds = {
   AU3: "SS3 - Stirling West"
 }
 
-const trophyIds = {
+const trophyIds: Record<string, string> = {
   AR__: "Rally Argentina",
   AU__: "Rally Australia",
   CY__: "Rally Cyprus",
@@ -118,7 +95,7 @@ const trophyIds = {
   ECHA: "Championship Expert",
 }
 
-const carIds = {
+const carIds: Record<string, string> = {
   FPS_: "Fiat Punto Abarth Rally S1600",
   P2S_: "Peugeot 206 S1600",
   FFS_: "Ford Fiesta S1600",
@@ -157,17 +134,7 @@ const carIds = {
 }
 
 const c = (() => {
-  const playerAmountIs = x => $.one(['', 'Mem', '16bit', 0x1ffa408, '=', 'Value', '', x])
-
-  /** @param {keyof typeof difficulty} x */
-  const difficultyIs = (x) => $.one(['', 'Mem', '8bit', 0x1ffa403, '=', 'Value', '', difficulty[x]])
-  /** @param {keyof typeof difficulty} x */
-  const difficultyIsNot = x => difficultyIs(x).with({ cmp: '!=' })
-
-  /** @param {keyof typeof gamemode} x */
-  const gameModeIs = x => $.one(['', 'Mem', '8bit', 0x1ffa404, '=', 'Value', '', gamemode[x]])
-  /** @param {keyof typeof gamemode} x */
-  const gameModeIsNot = x => gameModeIs(x).with({ cmp: '!=' })
+  const playerAmountIs = (x: number) => $.one(['', 'Mem', '16bit', 0x1ffa408, '=', 'Value', '', x])
 
   const isInPodiumMenu = $.str('.podium.', (s, v) => $(
     ['', 'Mem', s, 0x1AAFF34, '=', ...v],
@@ -178,34 +145,34 @@ const c = (() => {
     ['', 'Mem', '32bit', 0x4d069c, '!=', 'Value', '', 0x104710],
   )
 
-  const activeCheatStrIs = x => $.str(x, (s, v) => $(
-    ['', 'Mem', s, 0x005794e8, '=', ...v],
+  const activeCheatStrIs = (x: string) => $.str(x, (s, v) => $(
+    ['', 'Mem', s, 0x5794e8, '=', ...v],
   ))
 
-  const cheatActive = $.one(['', 'Mem', '8bit', 0x004d94e4, '!=', 'Value', '', 0])
+  const cheatActive = $.one(['', 'Mem', '8bit', 0x4d94e4, '!=', 'Value', '', 0])
 
-  const carIs = x => $.str(x, (s, v) => $(
+  const carIs = (x: string) => $.str(x, (s, v) => $(
     ['AddAddress', 'Mem', '32bit', 0x1ff4b3c],
     ['', 'Mem', s, 0, '=', ...v],
   ))
 
-  const countryIs = x => $.str(x, (s, v) => $(
+  const countryIs = (x: string) => $.str(x, (s, v) => $(
     ['AddAddress', 'Mem', '32bit', 0x01fe4cec],
     ['', 'Mem', s, 0, '=', ...v],
   ))
 
-  const trackIs = x => $.str(x, (s, v) => $(
+  const trackIs = (x: string) => $.str(x, (s, v) => $(
     ['AddAddress', 'Mem', '32bit', 0x01fe4cf4],
     ['', 'Mem', s, 0, '=', ...v],
   ))
 
-  const isOnStageByIndex = x => $.str(x.toString(), (s, v) => $(
+  const isOnStageByIndex = (x: number) => $.str(x.toString(), (s, v) => $(
     ['AddAddress', 'Mem', '32bit', 0x01fe4cf4],
     ['', 'Mem', s, 0x2, '=', ...v]
   ))
 
   const rxInGame = (() => {
-    const base = $(['AddAddress', 'Mem', '32bit', 0x005797a0])
+    const base = $(['AddAddress', 'Mem', '32bit', 0x5797a0])
     return {
       isNull: base.withLast({ flag: '', cmp: '=', rvalue: ['Value', '', 0] }),
       started: $(
@@ -218,7 +185,7 @@ const c = (() => {
         base,
         ['', 'Mem', '8bit', 0x36, '=', 'Value', '', 0],
       ),
-      lapsToCompleteAre: x => $(
+      lapsToCompleteAre: (x: number) => $(
         base,
         ['', 'Mem', '32bit', 0x44, '=', 'Value', '', x],
       )
@@ -226,10 +193,10 @@ const c = (() => {
   })()
 
   const generalInGame = (() => {
-    const base = $(['AddAddress', 'Mem', '32bit', 0x005797e0])
+    const base = $(['AddAddress', 'Mem', '32bit', 0x5797e0])
 
     return {
-      positionIs: x => $(
+      positionIs: (x: number) => $(
         base,
         ['', 'Mem', '32bit', 0xC, '=', 'Value', '', x],
       )
@@ -244,7 +211,7 @@ const c = (() => {
         base,
         ['', 'Mem', 'Float', 0xe80, '>', 'Delta', 'Float', 0xe80],
       ),
-      currentCameraIs: x => $(
+      currentCameraIs: (x: number) => $(
         base,
         ['AddAddress', 'Mem', '32bit', 0xFB4],
         ['AddAddress', 'Mem', '32bit', 0],
@@ -254,7 +221,7 @@ const c = (() => {
   })()
 
   const rallyStageInGame = (() => {
-    const base = $(['AddAddress', 'Mem', '32bit', 0x00579268])
+    const base = $(['AddAddress', 'Mem', '32bit', 0x579268])
 
     return {
       started: $(
@@ -276,7 +243,7 @@ const c = (() => {
         base,
         ['', 'Mem', '8bit', 0x1615, '=', 'Value', '', 1],
       ),
-      timeIsLeq: x => $(
+      timeIsLeq: (x: number) => $(
         base,
         ['', 'Mem', '32bit', 0x1600, '<=', 'Value', '', x],
       ),
@@ -291,18 +258,24 @@ const c = (() => {
     ['', 'Mem', s, 0x1AAFF34, '=', ...v]
   ))
 
+  const gameModeIs = {
+    singleRally: $.one(['', 'Mem', '8bit', 0x1ffa404, '=', 'Value', '', 3]),
+    championship: $.one(['', 'Mem', '8bit', 0x1ffa404, '=', 'Value', '', 4]),
+    rallycross: $.one(['', 'Mem', '8bit', 0x1ffa404, '=', 'Value', '', 6]),
+    testCourse: $.one(['', 'Mem', '8bit', 0x1ffa404, '=', 'Value', '', 7]),
+    historicChallenge: $.one(['', 'Mem', '8bit', 0x1ffa404, '=', 'Value', '', 0xA]),
+  }
+
   return {
     isIngame: $.one(['', 'Mem', '32bit', 0x579248, '!=', 'Value', '', 0]),
     debugModeTampered,
 
     gameModeIs,
-    gameModeIsNot,
-    /** @param {keyof typeof rallyClass} x */
-    rallyClassIs: (x) => $.one(['', 'Mem', '8bit', 0x1ffa402, '=', 'Value', '', rallyClass[x]]),
-    /** @param {keyof typeof rallyClass} x */
-    rallycrossClassIs: (x) => $.one(['', 'Mem', '8bit', 0x1ffa405, '=', 'Value', '', rallyClass[x]]),
-    difficultyIs,
-    difficultyIsNot,
+
+    rallyClassIs: (x: number) => $.one(['', 'Mem', '8bit', 0x1ffa402, '=', 'Value', '', x]),
+    rallycrossClassIs: (x: number) => $.one(['', 'Mem', '8bit', 0x1ffa405, '=', 'Value', '', x]),
+
+    difficultyIs: (x: number) => $.one(['', 'Mem', '8bit', 0x1ffa403, '=', 'Value', '', x]),
 
     countryIs,
     carIs,
@@ -312,10 +285,10 @@ const c = (() => {
 
     hasDamagedCar: (() => {
       const base = $(['AddAddress', 'Mem', '32bit', 0x5796e4])
-      const offsets = [0x3F0, 0x40C, 0x454, 0x48C, 0x4A8, 0x4C4]
+      const carPartOffsets = [0x3F0, 0x40C, 0x454, 0x48C, 0x4A8, 0x4C4]
       return andNext(
         orNext(
-          ...offsets.map(x => $(
+          ...carPartOffsets.map(x => $(
             base,
             ['', 'Mem', '8bit', x, '>', 'Delta', '8bit', x]
           ))
@@ -326,7 +299,7 @@ const c = (() => {
 
     hasWonChampionship: $(
       playerAmountIs(1),
-      gameModeIs('championship'),
+      gameModeIs.championship,
       isInPodiumMenu,
       orNext(
         ['', 'Mem', '8bit', 0x1fea94c, '=', 'Value', '', 0], // champ win scene
@@ -342,14 +315,13 @@ const c = (() => {
       ['', 'Mem', '32bit', 0x01fea948, '=', 'Value', '', 1] // rally pos
     ),
 
-    playerAmountIs,
     beganRally: andNext(
       isOnStageByIndex(1),
       rallyStageInGame.started
     ),
 
     hasWonRallycrossEvent: $(
-      gameModeIs('rallycross'),
+      gameModeIs.rallycross,
       once(rxInGame.finished),
       generalInGame.positionIs(1),
       resetIf(
@@ -411,12 +383,7 @@ const c = (() => {
   }
 })()
 
-/**
- * @param {string} title
- * @param {string} expectedTrackId
- * @param {string[]} expectedCarIds
- */
-function defineLeaderboard(title, expectedTrackId, expectedCarIds = []) {
+function defineLeaderboard(title: string, expectedTrackId: string, expectedCarIds: string[] = []) {
   set.addLeaderboard({
     title,
     description: 'Finish in least time',
@@ -447,23 +414,25 @@ function defineLeaderboard(title, expectedTrackId, expectedCarIds = []) {
 
 const set = new AchievementSet({ gameId: 19283, title: 'WRC Rally Evolved' })
 
-for (const [points, carClass, difficultyValue, title, championshipDescription] of /** @type const */ ([
-  [25, 's1600', difficulty.novice, "Junior Champion", "Super 1600 Championship"],
-  [25, 'wrc', difficulty.novice, "WRC Novice Champion", "World Rally Championship on Novice difficulty or higher"],
-  [25, 'wrc', difficulty.professional, "WRC Professional Champion", "World Rally Championship on Professional difficulty or higher"],
-  [25, 'wrc', difficulty.expert, "WRC Expert Champion", "World Rally Championship on Expert difficulty"],
-])) {
+for (const [points, carClass, difficultyValue, title, championshipDescription] of [
+  [25, 1, 1, "Junior Champion", "Super 1600 Championship"],
+  [25, 2, 1, "WRC Novice Champion", "World Rally Championship on Novice difficulty or higher"],
+  [25, 2, 2, "WRC Professional Champion", "World Rally Championship on Professional difficulty or higher"],
+  [25, 2, 3, "WRC Expert Champion", "World Rally Championship on Expert difficulty"],
+] as const) {
+  const isWRC = carClass === 2
+
   set.addAchievement({
     title,
     description: `Win the ` + championshipDescription,
     points,
-    type: carClass === 'wrc' ? 'win_condition' : 'progression',
+    type: isWRC ? 'win_condition' : 'progression',
     conditions: $(
       c.rallyClassIs(carClass),
-      carClass === 'wrc' && orNext(
-        c.difficultyIs('expert'),
-        difficultyValue <= difficulty.professional && c.difficultyIs('professional'),
-        difficultyValue <= difficulty.novice && c.difficultyIs('novice'),
+      isWRC && orNext(
+        c.difficultyIs(3),
+        difficultyValue <= 2 && c.difficultyIs(2),
+        difficultyValue <= 1 && c.difficultyIs(1),
       ),
       c.hasWonChampionship,
       c.pauseIfCheatingInRally
@@ -471,7 +440,7 @@ for (const [points, carClass, difficultyValue, title, championshipDescription] o
   })
 }
 
-for (const [countryId, title] of /** @type const */ ([
+for (const [countryId, title] of [
   ['MC__', "Monte Carlo Rally Champion"],
   ['SE__', "Swedish Rally Champion"],
   ['ME__', "Rally Mexico Champion"],
@@ -488,7 +457,7 @@ for (const [countryId, title] of /** @type const */ ([
   ['FR__', "Tour de Corse Champion"],
   ['ES__', "Rally Catalunya Champion"],
   ['AU__', "Rally Australia Champion"],
-])) {
+] as const) {
   set.addAchievement({
     title,
     description: `Win the ${trophyIds[countryId]} on WRC Professional or Expert difficulty`,
@@ -496,14 +465,14 @@ for (const [countryId, title] of /** @type const */ ([
     points: 2,
     conditions: $(
       orNext(
-        c.gameModeIs('singleRally'),
-        c.gameModeIs('championship'),
+        c.gameModeIs.singleRally,
+        c.gameModeIs.championship,
       ),
       orNext(
-        c.difficultyIs('professional'),
-        c.difficultyIs('expert'),
+        c.difficultyIs(2),
+        c.difficultyIs(3),
       ),
-      c.rallyClassIs('wrc'),
+      c.rallyClassIs(2),
       c.countryIs(countryId),
       c.hasWonRally,
       c.pauseIfCheatingInRally
@@ -511,7 +480,7 @@ for (const [countryId, title] of /** @type const */ ([
   })
 }
 
-for (const [expectedCarIds] of /** @type const */ ([
+for (const [expectedCarIds] of [
   [['FPS_']],
   [['P2S_']],
   [['FFS_']],
@@ -524,7 +493,7 @@ for (const [expectedCarIds] of /** @type const */ ([
   [['P3W_']],
   [['MLW_']],
   [['SFW_']],
-])) {
+] as const) {
   const carName = carIds[expectedCarIds[0]]
 
   set.addAchievement({
@@ -533,8 +502,8 @@ for (const [expectedCarIds] of /** @type const */ ([
     points: 2,
     conditions: $(
       orNext(
-        c.gameModeIs('singleRally'),
-        c.gameModeIs('championship'),
+        c.gameModeIs.singleRally,
+        c.gameModeIs.championship,
       ),
       orNext(
         ...(expectedCarIds.map(id => c.carIs(id)))
@@ -556,7 +525,7 @@ for (const expectedCarId of [
   'LDH_',
   'FRH_',
   'P2H_',
-]) {
+] as const) {
   const carName = carIds[expectedCarId]
 
   set.addAchievement({
@@ -582,13 +551,13 @@ set.addAchievement({
   )
 })
 
-for (const [goldString, points, carClassFormatted, carClass] of /** @type const */ ([
-  ['SG', 25, "S1600", 's1600'],
-  ['WG', 25, "WRC", 'wrc'],
-  ['PG', 25, "Independents", 'independents'],
-  ['EG', 25, "Extreme", 'extreme'],
-  ['HG', 25, "Historic", 'historic'],
-])) {
+for (const [goldString, points, carClassFormatted, carClass] of [
+  ['SG', 25, "S1600", 1],
+  ['WG', 25, "WRC", 2],
+  ['PG', 25, "Independents", 6],
+  ['EG', 25, "Extreme", 3],
+  ['HG', 25, "Historic", 5],
+] as const) {
   const addresses = []
   for (let i = 0x1fe45c6; i <= 0x1fe45c6 + 0x4 * 273; i += 4) {
     addresses.push(i)
@@ -616,7 +585,7 @@ for (const [goldString, points, carClassFormatted, carClass] of /** @type const 
   })
 }
 
-for (const [expectedTrackId, carId, points, timeLimit, medalName] of /** @type const */ ([
+for (const [expectedTrackId, carId, points, timeLimit, medalName] of [
   ['HAQ1', 'AQH_', 3, 39000, "Bronze"],
   ['HAQ2', 'AQH_', 3, 53750, "Silver"],
   ['HAQ3', 'AQH_', 3, 62000, "Gold"],
@@ -635,7 +604,7 @@ for (const [expectedTrackId, carId, points, timeLimit, medalName] of /** @type c
   ['HR51', 'RMH_', 3, 39000, "Bronze"],
   ['HR52', 'RMH_', 3, 43250, "Silver"],
   ['HR53', 'RMH_', 4, 60000, "Gold"]
-])) {
+] as const) {
   const carName = carIds[carId]
 
   set.addAchievement({
@@ -776,12 +745,12 @@ set.addAchievement({
   conditions: $(
     pauseIf(
       andNext(
-        c.gameModeIsNot('singleRally'),
-        c.gameModeIsNot('championship')
+        c.gameModeIs.singleRally.with({ cmp: '!=' }),
+        c.gameModeIs.championship.with({ cmp: '!=' })
       ),
       andNext(
-        c.difficultyIsNot('professional'),
-        c.difficultyIsNot('expert')
+        c.difficultyIs(2).with({ cmp: '!=' }),
+        c.difficultyIs(3).with({ cmp: '!=' })
       ),
     ),
     once(
@@ -807,12 +776,12 @@ set.addAchievement({
   conditions: $(
     pauseIf(
       andNext(
-        c.gameModeIsNot('singleRally'),
-        c.gameModeIsNot('championship')
+        c.gameModeIs.singleRally.with({ cmp: '!=' }),
+        c.gameModeIs.championship.with({ cmp: '!=' })
       ),
       andNext(
-        c.difficultyIsNot('professional'),
-        c.difficultyIsNot('expert')
+        c.difficultyIs(2).with({ cmp: '!=' }),
+        c.difficultyIs(3).with({ cmp: '!=' })
       ),
     ),
 
@@ -833,8 +802,8 @@ set.addAchievement({
   conditions: $(
     once(
       orNext(
-        c.gameModeIs('singleRally'),
-        c.gameModeIs('championship'),
+        c.gameModeIs.singleRally,
+        c.gameModeIs.championship,
       ).andNext(
         c.cheatActive,
         c.activeCheatStrIs('PSYC'),
@@ -854,8 +823,8 @@ set.addAchievement({
   conditions: $(
     once(
       orNext(
-        c.gameModeIs('singleRally'),
-        c.gameModeIs('championship'),
+        c.gameModeIs.singleRally,
+        c.gameModeIs.championship,
       ).andNext(
         c.cheatActive,
         c.activeCheatStrIs('XEYE'),
@@ -927,9 +896,9 @@ Object.entries({
   }
 })
 
-const convertLookup = obj => Object.fromEntries(
+const convertLookup = (obj: Record<string, string>) => Object.fromEntries(
   Object.entries(obj).map(([key, value]) => [stringToNumberLE(key), value])
-)
+) as Record<string, string>
 
 export const rich = RichPresence({
   lookupDefaultParameters: { keyFormat: 'hex' },
@@ -990,57 +959,55 @@ export const rich = RichPresence({
     },
   },
 
-  displays: ({ lookup, tag }) => {
-    return [
-      [
-        $(
-          c.isIngame,
-          c.rallyClassIs('s1600'),
-          orNext(
-            c.gameModeIs('championship'),
-            c.gameModeIs('singleRally'),
-          )
-        ),
-        tag`S1600 ${lookup.Gamemode} / ${lookup.Country} ${lookup.Stage} / ${lookup.Car}`
-      ],
-      [
-        $(
-          c.isIngame,
-          orNext(
-            c.gameModeIs('championship'),
-            c.gameModeIs('singleRally'),
-          )
-        ),
-        tag`${lookup.Difficulty} ${lookup.Gamemode} / ${lookup.Country} ${lookup.Stage} / ${lookup.Car}`
-      ],
-      [
-        $(
-          c.isIngame,
-          c.gameModeIs('rallycross'),
-        ),
-        tag`Rallycross / ${lookup.Country} / ${lookup.Car}`
-      ],
-      [
-        $(
-          c.isIngame,
-          c.gameModeIs('historicChallenge'),
-        ),
-        tag`Historic Challenge / ${lookup.HistoricChallenge}`
-      ],
-      [
-        $(
-          c.isIngame,
-          c.gameModeIs('testCourse'),
-        ),
-        tag`Test Track / ${lookup.Car}`
-      ],
-      [
-        $(c.isIngame),
-        tag`${lookup.Gamemode} / ${lookup.Country} ${lookup.Stage} / ${lookup.Car}`
-      ],
-      'In menus of WRC: Rally Evolved'
-    ]
-  }
+  displays: ({ lookup, tag }) => [
+    [
+      $(
+        c.isIngame,
+        c.rallyClassIs(1),
+        orNext(
+          c.gameModeIs.championship,
+          c.gameModeIs.singleRally,
+        )
+      ),
+      tag`S1600 ${lookup.Gamemode} / ${lookup.Country} ${lookup.Stage} / ${lookup.Car}`
+    ],
+    [
+      $(
+        c.isIngame,
+        orNext(
+          c.gameModeIs.championship,
+          c.gameModeIs.singleRally,
+        )
+      ),
+      tag`${lookup.Difficulty} ${lookup.Gamemode} / ${lookup.Country} ${lookup.Stage} / ${lookup.Car}`
+    ],
+    [
+      $(
+        c.isIngame,
+        c.gameModeIs.rallycross,
+      ),
+      tag`Rallycross / ${lookup.Country} / ${lookup.Car}`
+    ],
+    [
+      $(
+        c.isIngame,
+        c.gameModeIs.historicChallenge,
+      ),
+      tag`Historic Challenge / ${lookup.HistoricChallenge}`
+    ],
+    [
+      $(
+        c.isIngame,
+        c.gameModeIs.testCourse,
+      ),
+      tag`Test Track / ${lookup.Car}`
+    ],
+    [
+      $(c.isIngame),
+      tag`${lookup.Gamemode} / ${lookup.Country} ${lookup.Stage} / ${lookup.Car}`
+    ],
+    'In menus of WRC: Rally Evolved'
+  ]
 })
 
 export default set
