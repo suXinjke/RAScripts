@@ -252,7 +252,7 @@ async function makeCarChallenges() {
   const rows = await getParsedSheet('carChallenges')
 
   return rows.map((col) => {
-    let description = col[9]
+    let description = col[9] || ''
     let fullDescription = ''
     if (description.startsWith('!')) {
       fullDescription = description.slice(1)
