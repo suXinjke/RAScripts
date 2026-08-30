@@ -1,7 +1,10 @@
 import { AchievementSet, RichPresence, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, measuredIf, addHits, once } from '@cruncheevos/core'
+import type { Condition, ConditionBuilder } from '@cruncheevos/core'
 
-Number.prototype.paddedMissionNumber = function () {
-  return (this + 1).toString().padStart(2, '0')
+import { makeMultiRegionalConditionsFunction } from '../common.ts'
+
+function paddedMissionNumber(x: number | string) {
+  return (Number(x) + 1).toString().padStart(2, '0')
 }
 
 const alwaysFalse = '0xcafe=0'
@@ -76,7 +79,19 @@ const weapon = {
   mpbm: 0x14
 }
 
-const missionMeta = {
+interface MissionMeta {
+  title: string
+  ach?: { title: string, points: number }
+  isNotCampaign?: boolean
+  freeMissions: Array<{
+    id: number
+    ace?: { title: string, points: number, noTLSandMPBM?: boolean }
+    squadron?: string
+    team?: string
+  }>
+}
+
+const missionMeta: Record<string, MissionMeta> = {
   0x00: {
     title: 'Glacial Skies',
     ach: { title: 'Enter the Galm Team', points: 2 },
@@ -286,14 +301,14 @@ const missionMeta = {
     ]
   },
   0x1E: {
-    // title: 'The Gauntlet',
+    title: 'The Gauntlet',
     freeMissions: [{ id: 0x1E }],
     isNotCampaign: true
   }
 }
 
 
-const missionToFreeMissions = (id, style) => id === 'any' ? [] : missionMeta[id].freeMissions.filter(
+const missionToFreeMissions = (id: number | 'any', style: number) => id === 'any' ? [] : missionMeta[id].freeMissions.filter(
   (_, idx) => style >= 0 ? idx === style : true
 )
 
@@ -321,27 +336,10 @@ const rank = {
   C: 3
 }
 
-const b = (s) => {
-  if (process.argv.includes('badge')) {
-    return `local\\\\${s}.png`
-  }
-}
+type Region = 'pal' | 'ntsc'
 
-/** @typedef {'pal' | 'ntsc'} Region */
-
-/**
- * @template T
- * @typedef {(c: typeof codeFor extends (...args: any[]) => infer U ? U : any) => T} CodeForCallbackTemplate
-*/
-
-/** @typedef {CodeForCallbackTemplate<
-      import('@cruncheevos/core').ConditionBuilder |
-      import('@cruncheevos/core').Condition
-    >} CodeForCallback */
-
-/** @param {Region} region */
-const codeFor = (region) => {
-  const offset = a => {
+const codeFor = (region: Region) => {
+  const offset = (a: number) => {
     const offset =
       a < 0x400000 ? 0x1700 :
         a < 0x700000 ? 0x1f80 :
@@ -377,7 +375,7 @@ const codeFor = (region) => {
     missionTimer: offset(0x4076c0),
   }
 
-  const fpOffset = offset => region === 'ntsc' ? offset + 0x28 : offset
+  const fpOffset = (offset: number) => region === 'ntsc' ? offset + 0x28 : offset
   const functionPointer = {
     mainMenu: fpOffset(0x281C10),
     briefing: fpOffset(0x281C60),
@@ -392,7 +390,7 @@ const codeFor = (region) => {
   )
 
   const functionPointerChanged = $.one(['', 'Mem', '32bit', address.functionPointer, '!=', 'Delta', '32bit', address.functionPointer])
-  const functionPointerIs = pointer => $.one(['', 'Mem', '32bit', address.functionPointer, '=', 'Value', '', pointer])
+  const functionPointerIs = (pointer: number) => $.one(['', 'Mem', '32bit', address.functionPointer, '=', 'Value', '', pointer])
 
   return {
     address,
@@ -444,26 +442,26 @@ const codeFor = (region) => {
         ['AddAddress', 'Mem', '32bit', 0x5E4B8],
       )
 
-      const minimalMissionDifficultyIs = difficulty => $(
+      const minimalMissionDifficultyIs = (difficulty: number) => $(
         missionInfo,
         ['', 'Mem', '8bit', 0x39B, '>=', 'Value', '', difficulty]
       )
-      const craftIdIs = craftId => $(
+      const craftIdIs = (craftId: number) => $(
         playerStuffPointer,
         ['', 'Mem', '8bit', 0x1AB3, '=', 'Value', '', craftId]
       )
-      const missionIdIs = missionId => $(
+      const missionIdIs = (missionId: number) => $(
         missionInfo,
         ['', 'Mem', '8bit', 0x396, '=', 'Value', '', missionId]
       )
 
-      const modeIs = mode => $(
+      const modeIs = (mode: number) => $(
         missionInfo,
         ['', 'Mem', '8bit', 0x38D, '=', 'Value', '', mode]
       )
 
-      const entityGroup = (group) => {
-        const basePointer = $(
+      const entityGroup = (group: number) => {
+        const groupBase = $(
           base,
           ['AddAddress', 'Mem', '32bit', 0x5E500],
           ['AddAddress', 'Mem', '32bit', group * 0x4],
@@ -471,116 +469,116 @@ const codeFor = (region) => {
         )
 
         return {
-          index(index) {
+          index(index: number) {
             const offset = index * 0x4A0
 
             return {
               becameAlive: $(
-                basePointer,
+                groupBase,
                 ['AndNext', 'Delta', 'Bit1', offset + 0x1F8, '=', 'Value', '', 0],
-                basePointer,
+                groupBase,
                 ['', 'Mem', 'Bit1', offset + 0x1F8, '>', 'Value', '', 0]
               ),
 
               isAlive: $(
-                basePointer,
+                groupBase,
                 ['', 'Mem', 'Bit1', offset + 0x1F8, '=', 'Value', '', 1]
               ),
 
               gotDestroyed: $(
-                basePointer,
+                groupBase,
                 ['', 'Mem', 'Bit1', offset + 0x1F8, '<', 'Delta', 'Bit1', offset + 0x1F8]
               ),
 
               takenDamage: $(
-                basePointer,
+                groupBase,
                 ['SubSource', 'Delta', '32bit', offset + 0x398]
               ).also(
-                basePointer,
+                groupBase,
                 ['', 'Mem', '32bit', offset + 0x398, '>', 'Value', '', 0]
               ),
 
               isGoingSouth: $(
-                basePointer,
+                groupBase,
                 ['', 'Mem', 'Float', 0x268, '>', 'Delta', 'Float', 0x268]
               ),
 
               inAvalon: (() => {
                 const pi2 = Math.PI / 2
                 const isUnderAndNext = $(
-                  basePointer,
+                  groupBase,
                   ['AndNext', 'Mem', 'Float', 0x264, '<=', 'Float', '', 1500],
                 )
 
                 const isInTheRightAreaAndNext = $(
-                  basePointer,
+                  groupBase,
                   ['AndNext', 'Mem', 'Float', 0x260, '>=', 'Float', '', 13000],
-                  basePointer,
+                  groupBase,
                   ['AndNext', 'Mem', 'Float', 0x260, '<=', 'Float', '', 25000],
-                  basePointer,
+                  groupBase,
                   ['AndNext', 'Mem', 'Float', 0x268, '>=', 'Float', '', -154000],
-                  basePointer,
+                  groupBase,
                   ['AndNext', 'Mem', 'Float', 0x268, '<=', 'Float', '', -100000],
                 )
 
                 return {
                   divedIn: $(
                     isInTheRightAreaAndNext,
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Delta', 'Float', 0x264, '>', 'Float', '', 1500],
-                    basePointer,
+                    groupBase,
                     ['', 'Mem', 'Float', 0x264, '<=', 'Float', '', 1500]
                   ),
                   turnedAroundUnder: $(
                     isInTheRightAreaAndNext,
                     isUnderAndNext,
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', 0],
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Mem', 'Float', 0x274, '>', 'Float', '', 0],
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Delta', 'Float', 0x274, '<=', 'Float', '', pi2],
-                    basePointer,
+                    groupBase,
                     ['', 'Mem', 'Float', 0x274, '>', 'Float', '', pi2],
 
                     isInTheRightAreaAndNext,
                     isUnderAndNext,
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', 0],
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Mem', 'Float', 0x274, '>', 'Float', '', 0],
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', pi2],
-                    basePointer,
+                    groupBase,
                     ['', 'Mem', 'Float', 0x274, '<=', 'Float', '', pi2],
 
                     isInTheRightAreaAndNext,
                     isUnderAndNext,
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Delta', 'Float', 0x274, '<', 'Float', '', 0],
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Mem', 'Float', 0x274, '<', 'Float', '', 0],
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Delta', 'Float', 0x274, '<=', 'Float', '', -pi2],
-                    basePointer,
+                    groupBase,
                     ['', 'Mem', 'Float', 0x274, '>', 'Float', '', -pi2],
 
                     isInTheRightAreaAndNext,
                     isUnderAndNext,
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Delta', 'Float', 0x274, '<', 'Float', '', 0],
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Mem', 'Float', 0x274, '<', 'Float', '', 0],
-                    basePointer,
+                    groupBase,
                     ['AndNext', 'Delta', 'Float', 0x274, '>', 'Float', '', -pi2],
-                    basePointer,
+                    groupBase,
                     ['', 'Mem', 'Float', 0x274, '<=', 'Float', '', -pi2],
                   )
                 }
               })(),
 
-              scoreIsEqualOrGreaterThan: score => $(
-                basePointer,
+              scoreIsEqualOrGreaterThan: (score: number) => $(
+                groupBase,
                 ['', 'Mem', '32bit', 0x390, '>=', 'Value', '', score]
               )
             }
@@ -590,15 +588,15 @@ const codeFor = (region) => {
 
       return {
         minimalMissionDifficultyIs,
-        minimalMissionDifficultyIsNot: difficulty => minimalMissionDifficultyIs(difficulty).withLast({ cmp: '<' }),
+        minimalMissionDifficultyIsNot: (difficulty: number) => minimalMissionDifficultyIs(difficulty).withLast({ cmp: '<' }),
         missionIdIs,
-        missionIdIsNot: missionId => missionIdIs(missionId).withLast({ cmp: '!=' }),
-        specialWeaponIdIsNot: weaponId => $(
+        missionIdIsNot: (missionId: number) => missionIdIs(missionId).withLast({ cmp: '!=' }),
+        specialWeaponIdIsNot: (weaponId: number) => $(
           playerStuffPointer,
           ['', 'Mem', '8bit', 0x1624, '!=', 'Value', '', weaponId]
         ),
         craftIdIs,
-        craftIdIsNot: craftId => craftIdIs(craftId).map(c => c.flag !== '' ? c : c.with({ cmp: '!=' })),
+        craftIdIsNot: (craftId: number) => craftIdIs(craftId).map(c => c.flag !== '' ? c : c.with({ cmp: '!=' })),
 
         notInFreeFlight: minimalMissionDifficultyIs(difficulty.freeFlight).withLast({ cmp: '!=' }),
 
@@ -616,40 +614,47 @@ const codeFor = (region) => {
             missionInfo,
             ['', 'Mem', '32bit', 0x348, '>', 'Delta', '32bit', 0x348]
           ),
-          wentPast: seconds => $(
+          wentPast: (seconds: number) => $(
             missionInfo,
             ['AndNext', 'Mem', '32bit', 0x348, '>', 'Delta', '32bit', 0x348],
             missionInfo,
             ['', 'Mem', '32bit', 0x348, '>', 'Value', '', seconds * (region === 'ntsc' ? 60 : 50)]
           ),
-          refuelIsTakingLessThan: seconds => $(
+          refuelIsTakingLessThan: (seconds: number) => $(
             missionInfo,
             ['AndNext', 'Mem', '32bit', 0x348, '<', 'Delta', '32bit', 0x348],
             missionInfo,
             ['', 'Mem', '32bit', 0x348, '>', 'Value', '', seconds * (region === 'ntsc' ? 60 : 50)]
           ),
-          wasLessThan: (seconds) => $(
+          wasLessThan: (seconds: number) => $(
             missionInfo,
             ['', 'Delta', '32bit', 0x348, '<', 'Value', '', seconds * (region === 'ntsc' ? 60 : 50)]
           ),
 
           measured: $(
             missionInfo,
-            ['Measured', 'Mem', '32bit', 0x348]
+            region === 'ntsc' && ['Measured', 'Mem', '32bit', 0x348],
+            region === 'pal' && ['Measured', 'Mem', '32bit', 0x348, '*', 'Float', '', 1.2]
           )
         },
 
         entityGroup,
         player: (() => {
-          const hasSysMessageBase = bit => $(
-            playerStuffPointer,
-            ['', 'Mem', 'Bit' + bit, 0x1600, '=', 'Value', '', 1]
-          )
+          const hasSysMessageBase = (bit: number) => {
+            const size = ('Bit' + bit) as Condition.SizeRegular
+            return $(
+              playerStuffPointer,
+              ['', 'Mem', size, 0x1600, '=', 'Value', '', 1]
+            )
+          }
 
-          const gotSysMessageBase = bit => $(
-            playerStuffPointer,
-            ['', 'Mem', 'Bit' + bit, 0x1600, '>', 'Delta', 'Bit' + bit, 0x1600]
-          )
+          const gotSysMessageBase = (bit: number) => {
+            const size = ('Bit' + bit) as Condition.SizeRegular
+            return $(
+              playerStuffPointer,
+              ['', 'Mem', size, 0x1600, '>', 'Delta', size, 0x1600]
+            )
+          }
 
           return {
             hasSysMessage: {
@@ -675,12 +680,12 @@ const codeFor = (region) => {
               ['', 'Mem', '8bit', 0x1AAA, '<', 'Delta', '8bit', 0x1AAA],
             ),
 
-            hasMoreOrEqualSpecialShots: (shots) => $(
+            hasMoreOrEqualSpecialShots: (shots: number) => $(
               playerStuffPointer,
               ['', 'Mem', '8bit', 0x1AAA, '>=', 'Value', '', shots],
             ),
 
-            specialCooldown(index) {
+            specialCooldown(index: number) {
               const offset = + 0x20 * index
               return {
                 inProgress: $(
@@ -694,12 +699,10 @@ const codeFor = (region) => {
               }
             },
 
-            gotEnoughAirKills(amount) {
-              return $(
-                playerStuffPointer,
-                ['', 'Mem', '16bit', 0x2150, '>=', 'Value', '', amount],
-              )
-            },
+            gotEnoughAirKills: (amount: number) => $(
+              playerStuffPointer,
+              ['', 'Mem', '16bit', 0x2150, '>=', 'Value', '', amount],
+            ),
 
             gotGunKill: $(
               playerStuffPointer,
@@ -758,15 +761,15 @@ const codeFor = (region) => {
       ['', 'Mem', '32bit', address.missionTimer, '>', 'Delta', '32bit', address.missionTimer]
     ),
 
-    postRankIsAtleast: value => $(
+    postRankIsAtleast: (value: number) => $(
       ['', 'Mem', '32bit', address.postRank, value === 0 ? '=' : '<=', 'Value', '', value]
     ),
-    postScoreIsAtleast: value => $(
+    postScoreIsAtleast: (value: number) => $(
       ['SubSource', 'Mem', '32bit', address.postRankBonus],
       ['SubSource', 'Mem', '32bit', address.postLandingBonus],
       ['', 'Mem', '32bit', address.postScore, '>=', 'Value', '', value]
     ),
-    postLandingBonusIs: value => $.one(
+    postLandingBonusIs: (value: number) => $.one(
       ['', 'Mem', '32bit', address.postLandingBonus, '=', 'Value', '', value]
     ),
     postDidntDestroyYellow: $(
@@ -774,7 +777,7 @@ const codeFor = (region) => {
       ['', 'Mem', '32bit', address.postYellowGroundTargetsDestroyed, '=', 'Value', '', 0]
     ),
 
-    completedMissionInLessThan(timeString) {
+    completedMissionInLessThan(timeString: string) {
       const [min, sec] = timeString.split(':').map(Number)
       const totalSec = min * 60 + sec
 
@@ -788,50 +791,55 @@ const codeFor = (region) => {
   }
 }
 
+type CodeForCallbackTemplate<T> = (c: typeof codeFor extends (...args: any[]) => infer U ? U : any) => T
+type CodeForCallback = CodeForCallbackTemplate<Condition | ConditionBuilder>
+
 const code = {
   pal: codeFor('pal'),
   ntsc: codeFor('ntsc')
 }
 
-function timeTrialDebriefingConditions(conditions) {
+const multiRegionalConditions = makeMultiRegionalConditionsFunction(code, { alwaysTrueCondition: '0xcafe=0xcafe' })
+
+function timeTrialDebriefingConditions(conditions: Condition.GroupSet) {
   return {
     cancel: alwaysFalse,
     submit: alwaysTrue,
     start: conditions,
-    value: {
-      core: $(
-        measuredIf(code.pal.regionCheck),
-        ['Measured', 'Mem', '32bit', code.pal.address.postTime, '*', 'Float', '', 1.2]
-      ),
-      alt1: $(
-        measuredIf(code.ntsc.regionCheck),
-        ['Measured', 'Mem', '32bit', code.ntsc.address.postTime]
-      ),
-    }
+    value: multiRegionalConditions.coreIncluded((c, r) => $(
+      measuredIf(c.regionCheck),
+      r === 'pal' && ['Measured', 'Mem', '32bit', c.address.postTime, '*', 'Float', '', 1.2],
+      r === 'ntsc' && ['Measured', 'Mem', '32bit', c.address.postTime]
+    ))
   }
 }
 
-function timeTrialDuringMissionConditions(conditions) {
+function timeTrialDuringMissionConditions(conditions: Condition.GroupSet) {
   return {
     cancel: alwaysFalse,
     submit: alwaysTrue,
     start: conditions,
-    value: {
-      core: $(
-        measuredIf(code.pal.regionCheck),
-        code.pal.inGame.missionPhaseTimer.measured.withLast({
-          cmp: '*', rvalue: ['Float', '', 1.2]
-        }),
-      ),
-      alt1: $(
-        measuredIf(code.ntsc.regionCheck),
-        code.ntsc.inGame.missionPhaseTimer.measured,
-      ),
-    }
+    value: multiRegionalConditions.coreIncluded(c => $(
+      measuredIf(c.regionCheck),
+      c.inGame.missionPhaseTimer.measured
+    )),
   }
 }
 
-/** @param params {{
+function completedMissionInAnyMode({
+  missionId,
+  craftId,
+  weaponSelection,
+  missionStyle,
+  minimalDifficulty,
+  minimalScore,
+  minimalRank,
+  additionalConditions,
+  startConditions,
+  resetConditions,
+  triggerOverride,
+  targetsToDestroy = {}
+}: {
   missionId: number | 'any'
   craftId?: number
   weaponSelection?: number
@@ -846,21 +854,7 @@ function timeTrialDuringMissionConditions(conditions) {
   targetsToDestroy?: Record<number, Array<number | {
     id: number,
     additionalConditions?: CodeForCallback
-  }>
-}} */
-function completedMissionInAnyMode({
-  missionId,
-  craftId = -1,
-  weaponSelection = -1,
-  missionStyle = -1,
-  minimalDifficulty = -1,
-  minimalScore,
-  minimalRank = -1,
-  additionalConditions = null,
-  startConditions = null,
-  resetConditions = null,
-  triggerOverride,
-  targetsToDestroy = {}
+  }>>
 }) {
   const hasTargetsToDestroy = Object.keys(targetsToDestroy).length > 0
   const hasHits = Boolean(startConditions || resetConditions || hasTargetsToDestroy)
@@ -868,7 +862,7 @@ function completedMissionInAnyMode({
 
   const shouldWrapInTrigger = triggerOverride !== undefined ? triggerOverride : hasHits
 
-  const [alt1, alt2] = [code.pal, code.ntsc].map(c => {
+  return multiRegionalConditions(c => {
     let triggerConditions = $(
       c.debriefingStarted,
       minimalScore > 0 && c.postScoreIsAtleast(minimalScore),
@@ -903,7 +897,7 @@ function completedMissionInAnyMode({
       ...Object.entries(targetsToDestroy).flatMap(([group, pack]) =>
         pack.map(value => {
           const obj = typeof value === 'number' ? { id: value } : value
-          return { group, ...obj }
+          return { group: Number(group), ...obj }
         })
       ).map(({ group, id, additionalConditions = null }) =>
         andNext(
@@ -923,62 +917,37 @@ function completedMissionInAnyMode({
       )
     )
   })
-
-  return {
-    core: alwaysTrue,
-    alt1,
-    alt2
-  }
 }
 
-/** @param params {{
+function achievedDuringMission({
+  missionId,
+  missionStyle,
+  craftId,
+  weaponSelection,
+  minimalDifficulty,
+  additionalConditions
+}: {
   missionId?: number
   missionStyle?: number
   craftId?: number
   weaponSelection?: number
   minimalDifficulty?: number
   additionalConditions: CodeForCallback
-}} */
-function achievedDuringMission({
-  missionId,
-  missionStyle,
-  craftId,
-  weaponSelection,
-  minimalDifficulty = -1,
-  additionalConditions
 }) {
   const freeMissions = missionToFreeMissions(missionId, missionStyle)
 
-  const [alt1, alt2] = [code.pal, code.ntsc].map(c => {
-    return pauseIf(
-      c.regionCheckPause,
-      andNext(...freeMissions.map(x => c.inGame.missionIdIsNot(x.id))),
+  return multiRegionalConditions(c => pauseIf(
+    c.regionCheckPause,
+    andNext(...freeMissions.map(x => c.inGame.missionIdIsNot(x.id))),
 
-      minimalDifficulty >= 0 && c.inGame.minimalMissionDifficultyIsNot(minimalDifficulty),
-      craftId >= 0 && c.inGame.craftIdIsNot(craftId),
-      weaponSelection >= 0 && c.inGame.specialWeaponIdIsNot(weaponSelection)
-    ).also(
-      additionalConditions?.(c)
-    )
-  })
-
-  return {
-    core: alwaysTrue,
-    alt1,
-    alt2
-  }
+    minimalDifficulty >= 0 && c.inGame.minimalMissionDifficultyIsNot(minimalDifficulty),
+    craftId >= 0 && c.inGame.craftIdIsNot(craftId),
+    weaponSelection >= 0 && c.inGame.specialWeaponIdIsNot(weaponSelection)
+  ).also(
+    additionalConditions?.(c)
+  ))
 }
 
-/** @param params {{
-  missionsRequired: number
-  // missionIds?: Record<number, number[] | 'any'>
-  missionIds?: number[],
-  craftId?: number
-  minimalDifficulty: number,
-  minimalRank: number,
-
-  pauseLockWhen?: CodeForCallback,
-}} */
 function completedSetOfMissions({
   missionIds,
   missionsRequired,
@@ -987,61 +956,60 @@ function completedSetOfMissions({
 
   minimalRank = -1,
   pauseLockWhen
+}: {
+  missionsRequired: number
+  missionIds?: number[],
+  craftId?: number
+  minimalDifficulty: number,
+  minimalRank: number,
+
+  pauseLockWhen?: CodeForCallback,
 }) {
-  // const freeMissionGroups = Object.values(missionIds ? missionIds : freeMissionMapping)
-  const freeMissionGroups = (missionIds || Object.keys(missionMeta)).map(id => missionMeta[id].freeMissions.map(x => x.id))
+  const freeMissionGroups = (missionIds || Object.keys(missionMeta))
+    .map(id => missionMeta[id].freeMissions.map(x => x.id))
 
-  const [alt1, alt2] = [code.pal, code.ntsc].map(c => {
-    return pauseIf(
-      c.regionCheckPause,
-      c.isNotInGame,
+  return multiRegionalConditions(c => pauseIf(
+    c.regionCheckPause,
+    c.isNotInGame,
 
-      minimalDifficulty >= 0 && c.inGame.minimalMissionDifficultyIsNot(minimalDifficulty),
-      craftId >= 0 && c.inGame.craftIdIsNot(craftId),
-    ).addHits(
-      // Complete any mission in the mission group and it marks a hit
-      ...freeMissionGroups.map(group => andNext(
-        'once',
-        orNext(
-          ...group.map(missionId => c.inGame.missionIdIs(missionId))
-        ),
-        minimalRank >= 0 && c.postRankIsAtleast(minimalRank),
-        c.debriefingStarted
-      ))
-    ).also(
-      ['Measured', 'Value', '', 0, '=', 'Value', '', 1, missionsRequired],
+    minimalDifficulty >= 0 && c.inGame.minimalMissionDifficultyIsNot(minimalDifficulty),
+    craftId >= 0 && c.inGame.craftIdIsNot(craftId),
+  ).addHits(
+    // Complete any mission in the mission group and it marks a hit
+    ...freeMissionGroups.map(group => andNext(
+      'once',
+      orNext(
+        ...group.map(missionId => c.inGame.missionIdIs(missionId))
+      ),
+      minimalRank >= 0 && c.postRankIsAtleast(minimalRank),
+      c.debriefingStarted
+    ))
+  ).also(
+    ['Measured', 'Value', '', 0, '=', 'Value', '', 1, missionsRequired],
 
-      pauseLockWhen && resetNextIf(
-        c.missionHasStarted
-      ).pauseIf(
-        'once',
-        pauseLockWhen(c)
-      )
+    pauseLockWhen && resetNextIf(
+      c.missionHasStarted
+    ).pauseIf(
+      'once',
+      pauseLockWhen(c)
     )
-  })
-
-  return {
-    core: alwaysTrue,
-    alt1,
-    alt2
-  }
+  ))
 }
 
-/** @param params {{
-  minimalDifficulty: number,
-  allStyles?: boolean
-}} */
 function completedSetOfMissionFlags({
   minimalDifficulty,
   allStyles
+}: {
+  minimalDifficulty: number,
+  allStyles?: boolean
 }) {
-  const offsets = []
+  const offsets: Array<number[]> = []
   const missionCount = 18
 
   if (allStyles) {
     for (let m = 0; m < missionCount; m++) {
       for (let s = 0; s <= 2; s++) {
-        const offsetPack = []
+        const offsetPack: number[] = []
 
         for (let d = minimalDifficulty; d <= difficulty.ace; d++) {
           offsetPack.push(
@@ -1068,7 +1036,7 @@ function completedSetOfMissionFlags({
     }
   }
 
-  const [alt1, alt2] = [code.pal, code.ntsc].map(c => {
+  return multiRegionalConditions(c => {
     const missionFlagsAreOk = offsets.flatMap((pack) =>
       pack.map((offset, offsetIndex, offsetSelf) =>
         offsetIndex < offsetSelf.length - 1 ?
@@ -1102,23 +1070,13 @@ function completedSetOfMissionFlags({
       )
     )
   })
-
-  return {
-    core: alwaysTrue,
-    alt1,
-    alt2
-  }
 }
 
-/** @param params {{
-  begin: number,
-  end: number
-}} */
-function completedAssaultRecords({ begin, end }) {
+function completedAssaultRecords({ begin, end }: { begin: number, end: number }) {
   const recordCount = (end - begin) + 1
   const assaultRecordIndexes = Array.from({ length: recordCount }, (_, i) => i + begin)
 
-  const [alt1, alt2] = [code.pal, code.ntsc].map(c => {
+  return multiRegionalConditions(c => {
     const assaultRecordsAreOk = assaultRecordIndexes.map(entry => $.one(
       ['', 'Mem', '8bit', c.address.assaultRecordsTable + entry, '>', 'Value', '', 0]
     ))
@@ -1147,24 +1105,16 @@ function completedAssaultRecords({ begin, end }) {
       )
     )
   })
-
-  return {
-    core: alwaysTrue,
-    alt1,
-    alt2
-  }
 }
 
-/** @param params {{
-  craftId: number,
-  minimalDifficulty: number
-}} */
 function completedPermadeath({
   craftId,
   minimalDifficulty
+}: {
+  craftId: number,
+  minimalDifficulty: number
 }) {
-
-  const [alt1, alt2] = [code.pal, code.ntsc].map(c => {
+  return multiRegionalConditions(c => {
     const gracePeriod = 8
     const graceFrames = (c === code.pal ? 25 : 30) * gracePeriod
 
@@ -1246,31 +1196,24 @@ function completedPermadeath({
       )
     )
   })
-
-  return {
-    core: alwaysTrue,
-    alt1,
-    alt2
-  }
 }
 
 const set = new AchievementSet({ gameId: 20921, title: 'Ace Combat Zero: The Belkan War' })
 
 // Regular progression and easy challenges
-for (let missionId in missionMeta) {
-  missionId = Number(missionId)
+for (let _missionId in missionMeta) {
+  const missionId = Number(_missionId)
 
   const meta = missionMeta[missionId]
   if (meta.isNotCampaign) {
     continue
   }
 
-  const missionNumber = Number(missionId).paddedMissionNumber()
+  const missionNumber = paddedMissionNumber(missionId)
   const { title, points } = meta.ach
 
   set.addAchievement({
     title,
-    badge: b(`MISSION_${missionNumber}_COMPLETE`),
     description: `Complete Mission ${missionNumber}: ${meta.title}`,
     points,
     conditions: completedMissionInAnyMode({ missionId }),
@@ -1280,7 +1223,6 @@ for (let missionId in missionMeta) {
   if (missionId === mission.FlickerOfHope_05) {
     set.addAchievement({
       title: 'Guardian',
-      badge: b('MISSION_05_MEDAL'),
       description: `Complete Mission 05 without any allied transport aircraft getting shot down`,
       points: 2,
       conditions: completedMissionInAnyMode({
@@ -1289,7 +1231,6 @@ for (let missionId in missionMeta) {
       })
     }).addAchievement({
       title: 'On the Money',
-      badge: b('MISSION_05_LANDING_PERFECT'),
       description: `Perfect, Galm 1! You've got grand credit Landing Bonus at the end of Mission 05`,
       points: 1,
       conditions: completedMissionInAnyMode({
@@ -1302,7 +1243,6 @@ for (let missionId in missionMeta) {
   if (missionId === mission.Glatisant_07) {
     set.addAchievement({
       title: 'Relentless Onslaught',
-      badge: b('MISSION_07_NO_REFUEL'),
       description: `Complete Mission 07 without crossing the Return Line`,
       points: 3,
       conditions: completedMissionInAnyMode({
@@ -1316,7 +1256,6 @@ for (let missionId in missionMeta) {
   if (missionId === mission.Merlon_08) {
     set.addAchievement({
       title: 'Brightest Minute',
-      badge: b('MISSION_08_EXCALIBUR_NO_DAMAGE'),
       description: `Complete Mission 08 without taking damage after MISSION UPDATE`,
       points: 1,
       conditions: completedMissionInAnyMode({
@@ -1335,7 +1274,6 @@ for (let missionId in missionMeta) {
   if (missionId === mission.Excalibur_09) {
     set.addAchievement({
       title: 'Broken Sword',
-      badge: b('MISSION_09_MEDAL'),
       description: `Complete Mission 09 with all JAMMERs and RTLS units destroyed`,
       points: 1,
       conditions: completedMissionInAnyMode({
@@ -1359,7 +1297,6 @@ for (let missionId in missionMeta) {
   if (missionId === mission.Deceit_13) {
     set.addAchievement({
       title: 'Long Haul',
-      badge: b('MISSION_13_NO_REFUEL'),
       description: `Complete Mission 13 without crossing the Return Line`,
       points: 3,
       conditions: completedMissionInAnyMode({
@@ -1373,7 +1310,6 @@ for (let missionId in missionMeta) {
   if (missionId === mission.AirFortress_15) {
     set.addAchievement({
       title: 'Ragnarok',
-      badge: b('MISSION_15_MEDAL'),
       description: `Complete Mission 15 within 7 minutes of Espada Team appearing`,
       points: 2,
       conditions: completedMissionInAnyMode({
@@ -1386,7 +1322,6 @@ for (let missionId in missionMeta) {
   if (missionId === mission.Avalon_17) {
     set.addAchievement({
       title: 'Ace Gulps',
-      badge: b('MISSION_17_REFUEL_PERFECT'),
       description: `Perfect, Galm 1! You've approached refuel in 20 seconds at the start of Mission 17`,
       points: 1,
       conditions: achievedDuringMission({
@@ -1399,7 +1334,6 @@ for (let missionId in missionMeta) {
       })
     }).addAchievement({
       title: 'The Gold of Annwn',
-      badge: b('MISSION_17_MEDAL'),
       description: `Complete Mission 17 with all eight GUN TOWERs destroyed`,
       points: 2,
       conditions: completedMissionInAnyMode({
@@ -1421,19 +1355,18 @@ for (let missionId in missionMeta) {
 }
 
 // Ace difficulty
-for (let missionId in missionMeta) {
+for (let _missionId in missionMeta) {
+  const missionId = Number(_missionId)
+
   if (missionMeta[missionId].isNotCampaign) {
     continue
   }
-
-  const missionNumber = Number(missionId).paddedMissionNumber()
-  const letters = ['A', 'B', 'C']
 
   missionMeta[missionId].freeMissions.forEach(({ squadron, team, ace }, i) => {
     const hasChoice = Boolean(squadron || team)
     const { title, points, noTLSandMPBM } = ace
 
-    let description = `Complete Mission ${missionNumber} on ACE difficulty with S rank`
+    let description = `Complete Mission ${paddedMissionNumber(missionId)} on ACE difficulty with S rank`
     if (squadron) {
       description += ` (${squadron} team)`
     }
@@ -1446,7 +1379,6 @@ for (let missionId in missionMeta) {
 
     set.addAchievement({
       title,
-      badge: b(`MISSION_${missionNumber}${hasChoice ? letters[i] : ''}_ACE`),
       description,
       points,
       conditions: completedMissionInAnyMode({
@@ -1482,7 +1414,6 @@ for (let missionId in missionMeta) {
 // Game Clear
 set.addAchievement({
   title: 'Bronze Wing',
-  badge: b('DIFFICULTY_NORMAL_CLEAR'),
   description: 'Complete all campaign missions (any variation) on Normal difficulty or higher',
   points: 5,
   conditions: (() => {
@@ -1512,7 +1443,6 @@ set.addAchievement({
 
 set.addAchievement({
   title: 'Silver Wing',
-  badge: b('DIFFICULTY_HARD_CLEAR'),
   description: 'Complete all campaign missions (any variation) on Hard difficulty or higher',
   points: 10,
   conditions: (() => {
@@ -1536,7 +1466,6 @@ set.addAchievement({
 
 set.addAchievement({
   title: 'Gold Wing',
-  badge: b('DIFFICULTY_EXPERT_CLEAR'),
   description: 'Complete all campaign missions (any variation) on Expert difficulty or higher',
   points: 10,
   conditions: completedSetOfMissionFlags({
@@ -1546,7 +1475,6 @@ set.addAchievement({
 
 set.addAchievement({
   title: 'Three Kinds of Aces',
-  badge: b('MERCENARY_STYLE_CLEAR'),
   description: 'Complete all variations of campaign missions on any difficulty',
   points: 25,
   conditions: completedSetOfMissionFlags({
@@ -1557,7 +1485,6 @@ set.addAchievement({
 
 set.addAchievement({
   title: 'Ace Rush',
-  badge: b('GAUNTLET_CLEAR'),
   description: 'Complete Mission SP: The Gauntlet on Normal difficulty or higher',
   points: 10,
   conditions: completedMissionInAnyMode({
@@ -1568,7 +1495,6 @@ set.addAchievement({
 
 set.addAchievement({
   title: 'Torn Ribbon',
-  badge: b('GAUNTLET_ACE_CLEAR'),
   description: 'Complete The Gauntlet on Ace difficulty with MOBIUS shot down after dealing with Espada Team in 60 seconds, without using TLS or MPBM',
   points: 10,
   conditions: completedMissionInAnyMode({
@@ -1618,13 +1544,12 @@ for (const [mission, title, points, begin, end] of [
   ['15', 'Worldwide Coup', 5, 127, 136],
   ['16', 'X-Planes', 5, 137, 160],
   ['17', 'Political Turmoil', 5, 161, 167],
-]) {
+] as const) {
   const beginPadded = begin.toString().padStart(3, '0')
   const endPadded = end.toString().padStart(3, '0')
 
   set.addAchievement({
     title,
-    badge: b(`MISSION_${mission}_ASSAULT_RECORDS`),
     description: `Unlock Assault Records #${beginPadded}-${endPadded}`,
     points,
     conditions: completedAssaultRecords({ begin, end })
@@ -1635,7 +1560,6 @@ for (const [mission, title, points, begin, end] of [
 {
   set.addAchievement({
     title: 'Paper Tiger',
-    badge: b('AIRCRAFT_F5E_CHALLENGE'),
     description: 'F-5E Tiger II, NORMAL+, Mission 18: complete the mission without applying throttle or brakes',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -1656,7 +1580,7 @@ for (const [mission, title, points, begin, end] of [
     })
   })
 
-  const drakenChallengeConditions = triggerOverride => completedMissionInAnyMode({
+  const drakenChallengeConditions = (triggerOverride?: boolean) => completedMissionInAnyMode({
     missionId: mission.GlacialSkies_01,
     craftId: craft.draken,
     minimalDifficulty: difficulty.ace,
@@ -1667,7 +1591,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Draconian Measures',
-    badge: b('AIRCRAFT_DRAKEN_CHALLENGE'),
     description: 'J35J Draken, ACE, Mission 01: complete the mission with SCORE of 13000 or more in less than 02:30',
     points: 10,
     conditions: drakenChallengeConditions()
@@ -1677,12 +1600,11 @@ for (const [mission, title, points, begin, end] of [
     description: 'Fastest time to earn this achievement',
     lowerIsBetter: true,
     type: 'FRAMES',
-    conditions: timeTrialDebriefingConditions(drakenChallengeConditions(false))
+    conditions: timeTrialDebriefingConditions(drakenChallengeConditions())
   })
 
   set.addAchievement({
     title: 'Dam Break',
-    badge: b('AIRCRAFT_F1_CHALLENGE'),
     description: 'F-1, HARD+, Mission 17: break into the dam with SCORE of 2000 or more in less than 01:35, then prevent the V2 launch in one or two dives into facility, without U-turns underground',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -1703,7 +1625,7 @@ for (const [mission, title, points, begin, end] of [
     })
   })
 
-  const mig21ChallengeConditions = triggerOverride => completedMissionInAnyMode({
+  const mig21ChallengeConditions = (triggerOverride?: boolean) => completedMissionInAnyMode({
     missionId: mission.Mayhem_10,
     missionStyle: 2,
     triggerOverride,
@@ -1718,14 +1640,12 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Swiss Cheeser',
-    badge: b('AIRCRAFT_MIG21_CHALLENGE'),
     description: 'MiG-21bis Fishbed, ACE, Mission 10K: complete the mission using GUN only',
     points: 25,
     conditions: mig21ChallengeConditions()
   }).addLeaderboard({
     id: 83868,
     title: 'Swiss Cheeser',
-    badge: b('LB_AIRCRAFT_MIG21_CHALLENGE'),
     description: 'Fastest time to earn this achievement',
     lowerIsBetter: true,
     type: 'FRAMES',
@@ -1743,7 +1663,6 @@ for (const [mission, title, points, begin, end] of [
   })
   set.addAchievement({
     title: 'Blast From the Past',
-    badge: b('AIRCRAFT_F4_CHALLENGE'),
     description: 'F-4E Phantom II, ACE, Mission SP: complete the mission with MOBIUS shot down after dealing with Espada Team in 60 seconds',
     points: 25,
     conditions: f4ChallengeConditions
@@ -1756,7 +1675,7 @@ for (const [mission, title, points, begin, end] of [
     conditions: timeTrialDebriefingConditions(f4ChallengeConditions)
   })
 
-  const mig29challengeConditions = triggerOverride => completedMissionInAnyMode({
+  const mig29challengeConditions = (triggerOverride?: boolean) => completedMissionInAnyMode({
     missionId: mission.Merlon_08,
     missionStyle: 2,
     craftId: craft.mig29,
@@ -1767,7 +1686,6 @@ for (const [mission, title, points, begin, end] of [
   })
   set.addAchievement({
     title: 'Fairly Superior',
-    badge: b('AIRCRAFT_MIG29_CHALLENGE'),
     description: 'MiG-29A Fulcrum, ACE, Mission 08C: complete the mission with SCORE of 11000 or more in less than 08:00',
     points: 10,
     conditions: mig29challengeConditions()
@@ -1782,7 +1700,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Shark Waters',
-    badge: b('AIRCRAFT_F20_CHALLENGE'),
     description: 'F-20A Tigershark, NORMAL+, Mission 04C: complete the mission with S rank, without giving the enemy a single chance to attack the fleet',
     points: 25,
     conditions: completedMissionInAnyMode({
@@ -1819,7 +1736,6 @@ for (const [mission, title, points, begin, end] of [
   set.addAchievement({
     title: 'Very Straightforward Mission',
     id: 377348,
-    badge: b('AIRCRAFT_F16_CHALLENGE'),
     description: 'F-16C Fighting Falcon, NORMAL+, Mission 02: without ever going back south, complete the mission with SCORE of 5000 or more in less than 02:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -1838,7 +1754,7 @@ for (const [mission, title, points, begin, end] of [
     })
   })
 
-  const f18ChallengeConditions = triggerOverride => completedMissionInAnyMode({
+  const f18ChallengeConditions = (triggerOverride?: boolean) => completedMissionInAnyMode({
     missionId: mission.Merlon_08,
     missionStyle: 0,
     craftId: craft.hornet,
@@ -1849,7 +1765,6 @@ for (const [mission, title, points, begin, end] of [
   })
   set.addAchievement({
     title: 'Stinger',
-    badge: b('AIRCRAFT_F18_CHALLENGE'),
     description: 'F/A-18C Hornet, ACE, Mission 08A: complete the mission with SCORE of 9000 or more in less than 05:00',
     points: 10,
     conditions: f18ChallengeConditions()
@@ -1864,7 +1779,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'BRRRRRRRT',
-    badge: b('AIRCRAFT_A10_CHALLENGE_01'),
     description: 'A-10A Thunderbolt II, NORMAL+, Mission 13: complete the mission using GUN only',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -1879,7 +1793,6 @@ for (const [mission, title, points, begin, end] of [
     })
   }).addAchievement({
     title: 'Hamburger Griller',
-    badge: b('AIRCRAFT_A10_CHALLENGE_02'),
     description: 'A-10A Thunderbolt II, NORMAL+, Mission 15: destroy any target using FAEB, then complete the mission',
     points: 5,
     conditions: completedMissionInAnyMode({
@@ -1892,7 +1805,7 @@ for (const [mission, title, points, begin, end] of [
     })
   })
 
-  const mig31ChallengeConditions = triggerOverride => completedMissionInAnyMode({
+  const mig31ChallengeConditions = (triggerOverride?: boolean) => completedMissionInAnyMode({
     missionId: mission.GlacialSkies_01,
     craftId: craft.mig31,
     minimalDifficulty: difficulty.ace,
@@ -1901,7 +1814,6 @@ for (const [mission, title, points, begin, end] of [
   })
   set.addAchievement({
     title: 'The Final Hit is Out of Bounds',
-    badge: b('AIRCRAFT_MIG31_CHALLENGE'),
     description: 'MiG-31 Foxhound, ACE, Mission 01: complete the mission in less than 01:10',
     points: 5,
     conditions: mig31ChallengeConditions()
@@ -1916,7 +1828,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Les Chevaliers du Ciel',
-    badge: b('AIRCRAFT_MIRAGE_CHALLENGE'),
     description: 'Mirage 2000D, HARD+, Mission 10K: shoot down BERGTAUBE using GUN or Special Weapon, then complete the mission with SCORE of 14000 or more',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -1939,7 +1850,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Interference',
-    badge: b('AIRCRAFT_EA6B_CHALLENGE'),
     description: 'EA-6B Prowler, HARD+, Mission 04A: complete the mission with SCORE of 13000 or more in less than 04:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -1954,7 +1864,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Flanker Crusade',
-    badge: b('AIRCRAFT_SU27_CHALLENGE'),
     description: 'Su-27 Flanker, ACE, Mission 08B: complete the mission with SCORE of 12000 or more in less than 07:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -1969,7 +1878,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Yo, Buddy, Still Alive?',
-    badge: b('AIRCRAFT_F15C_CHALLENGE'),
     description: 'F-15C Eagle, NORMAL+, SP New Game: complete the campaign in one sitting without failing, restarting or exiting the mission',
     points: 50,
     conditions: completedPermadeath({
@@ -1980,7 +1888,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'eXtra feisty',
-    badge: b('AIRCRAFT_X29A_CHALLENGE'),
     description: 'X-29A, EXPERT+, Mission 10S: complete the mission with SCORE of 28000 or more in less than 08:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -1995,7 +1902,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Extremely Huge Fly Swatter',
-    badge: b('AIRCRAFT_F14D_CHALLENGE'),
     description: 'F-14D Super Tomcat, EXPERT+, Mission 07: after all major targets are revealed, complete the mission by attacking aircraft only (Pixy is allowed to attack ground targets)',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2019,7 +1925,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Old School Methods',
-    badge: b('AIRCRAFT_GRIPEN_CHALLENGE'),
     description: 'Gripen C, HARD+, Mission 14A: without destroying yellow targets, complete the mission using GUN and RCL only with SCORE of 10000 or more in less than 04:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2041,7 +1946,7 @@ for (const [mission, title, points, begin, end] of [
     })
   })
 
-  const f16xlChallengeConditions = triggerOverride => achievedDuringMission({
+  const f16xlChallengeConditions = (triggerOverride?: boolean) => achievedDuringMission({
     missionId: mission.Demon_16,
     missionStyle: 2,
     craftId: craft.f16xl,
@@ -2064,7 +1969,6 @@ for (const [mission, title, points, begin, end] of [
   set.addAchievement({
     title: 'Witch Hunt',
     id: 377354,
-    badge: b('AIRCRAFT_F16XL_CHALLENGE'),
     description: `F-16XL, ACE, Mission 16K: destroy the Wizard Team all by yourself in less than 03:00`,
     points: 10,
     conditions: f16xlChallengeConditions(true)
@@ -2079,7 +1983,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Natural Disaster',
-    badge: b('AIRCRAFT_TORNADO_CHALLENGE'),
     description: `Tornado GR.4, EXPERT+, Mission 06: complete the mission with SCORE of 15500 or more in less than 05:00`,
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2093,7 +1996,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Miracles',
-    badge: b('AIRCRAFT_F2_CHALLENGE'),
     description: 'F-2A, EXPERT+, Mission 09: without destroying any jammers, complete the mission in less than 04:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2112,12 +2014,10 @@ for (const [mission, title, points, begin, end] of [
     })
   })
 
-  /** @type {CodeForCallback} */
-  const f15eAdditionalConditions = c => c.inGame.player.gotSpecialWeaponKill
+  const f15eAdditionalConditions: CodeForCallback = c => c.inGame.player.gotSpecialWeaponKill
 
   set.addAchievement({
     title: 'The Talons Go Deep',
-    badge: b('AIRCRAFT_F15E_CHALLENGE'),
     description: 'F-15E Strike Eagle, EXPERT+, Mission 07: destroy CTRL TOWER, ACC, both RAMPARTs and both AA SITEs using GPB, then complete the mission in less than 10:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2140,7 +2040,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Nightless Night',
-    badge: b('AIRCRAFT_F117_CHALLENGE'),
     description: 'F-117A Nighthawk, EXPERT+, Mission 11: without destroying yellow targets, complete the mission with score of 15000 or more in less than 06:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2155,7 +2054,7 @@ for (const [mission, title, points, begin, end] of [
     })
   })
 
-  const f35ChallengeConditions = triggerOverride => completedMissionInAnyMode({
+  const f35ChallengeConditions = (triggerOverride?: boolean) => completedMissionInAnyMode({
     missionId: mission.Juggernaut_04,
     missionStyle: 1,
     craftId: craft.f35,
@@ -2183,7 +2082,6 @@ for (const [mission, title, points, begin, end] of [
   set.addAchievement({
     title: 'Fleetbuster',
     id: 377347,
-    badge: b('AIRCRAFT_F35C_CHALLENGE'),
     description: 'F-35C, ACE, Mission 04B: sink the entire TGT naval fleet in less than 01:40, then complete the mission with SCORE of 20000 or more',
     points: 5,
     conditions: f35ChallengeConditions()
@@ -2198,7 +2096,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'EWAR',
-    badge: b('AIRCRAFT_EA-18G_CHALLENGE'),
     description: 'EA-18G, EXPERT+, Mission 14C: complete the mission with SCORE of 14000 or more in less than 05:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2213,7 +2110,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Bombing Raffle',
-    badge: b('AIRCRAFT_RAFALE_CHALLENGE'),
     description: 'Rafale M, EXPERT+, Mission 14B: while also using SOD, complete the mission with SCORE of 15000 or more in less than 04:30',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2229,7 +2125,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Maelstrom',
-    badge: b('AIRCRAFT_TYPHOON_CHALLENGE'),
     description: 'Typhoon, EXPERT+, Mission 12: complete the mission with SCORE of 22000 or more in less than 06:30',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2243,7 +2138,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: `Cipher Wouldn't Do It`,
-    badge: b('AIRCRAFT_SU32_CHALLENGE'),
     description: 'Su-32 Strike Flanker, EXPERT+, Mission 02: without destroying yellow targets, complete the mission with SCORE of 6000 or more in less than 03:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2260,7 +2154,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: `We're the Best!`,
-    badge: b('AIRCRAFT_YF23A_CHALLENGE'),
     description: 'YF-23A Black Widow II, HARD+, Mission 05: complete the mission with SCORE of 8000 or more in less than 04:00',
     points: 10,
     conditions: completedMissionInAnyMode({
@@ -2272,7 +2165,7 @@ for (const [mission, title, points, begin, end] of [
     })
   })
 
-  const f15smtdChallengeConditions = triggerOverride => achievedDuringMission({
+  const f15smtdChallengeConditions = (triggerOverride?: boolean) => achievedDuringMission({
     missionId: mission.Demon_16,
     missionStyle: 0,
     craftId: craft.f15smtd,
@@ -2296,7 +2189,6 @@ for (const [mission, title, points, begin, end] of [
   set.addAchievement({
     title: 'Sorcery',
     id: 377353,
-    badge: b('AIRCRAFT_F15SMTD_CHALLENGE'),
     description: `F-15S/MTD, ACE, Mission 16M: destroy the Sorcerer Team all by yourself in less than 03:45 (kudos for flying with SPECIAL skin)`,
     points: 10,
     conditions: f15smtdChallengeConditions(true)
@@ -2309,7 +2201,7 @@ for (const [mission, title, points, begin, end] of [
     conditions: timeTrialDuringMissionConditions(f15smtdChallengeConditions())
   })
 
-  const su47ChallengeConditions = triggerOverride => achievedDuringMission({
+  const su47ChallengeConditions = (triggerOverride?: boolean) => achievedDuringMission({
     missionId: mission.Demon_16,
     missionStyle: 1,
     craftId: craft.su47,
@@ -2332,7 +2224,6 @@ for (const [mission, title, points, begin, end] of [
   set.addAchievement({
     title: 'Unpredictable Patterns!',
     id: 377338,
-    badge: b('AIRCRAFT_SU47_CHALLENGE'),
     description: `Su-47, ACE, Mission 16S: destroy the Gault Team all by yourself in less than 03:30 (kudos for flying with KNIGHT skin)`,
     points: 10,
     conditions: su47ChallengeConditions(true)
@@ -2347,7 +2238,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'B7R Terminator',
-    badge: b('AIRCRAFT_SU37_CHALLENGE'),
     description: 'Su-37 Terminator, ACE: in one session, get S ranks for any variation of Mission 03, 10 and 16',
     points: 10,
     conditions: completedSetOfMissions({
@@ -2361,7 +2251,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Three Strikes',
-    badge: b('AIRCRAFT_F22_CHALLENGE'),
     description: 'F/A-22A Raptor, EXPERT+: in one session, get S ranks for three different missions of your choice, only one variation per mission',
     points: 10,
     conditions: completedSetOfMissions({
@@ -2374,7 +2263,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Dragon Slayer',
-    badge: b('AIRCRAFT_X02_CHALLENGE'),
     description: 'X-02 Wyvern, ACE: in one session and without using special weapons, get S ranks for any variation of mission 09, 15, 16, 17 and 18',
     points: 10,
     conditions: completedSetOfMissions({
@@ -2389,7 +2277,6 @@ for (const [mission, title, points, begin, end] of [
 
   set.addAchievement({
     title: 'Swordsmanship',
-    badge: b('AIRCRAFT_MORGAN_CHALLENGE_01'),
     description: `ADFX-01 Morgan, NORMAL+, Mission 17: destroy one of the V2 control devices and its locks with one swift slash of TLS`,
     points: 5,
     conditions: achievedDuringMission({
@@ -2446,7 +2333,7 @@ for (const [mission, title, points, begin, end] of [
     })
   })
 
-  const falkenChallengeConditions = triggerOverride => completedMissionInAnyMode({
+  const falkenChallengeConditions = (triggerOverride?: boolean) => completedMissionInAnyMode({
     missionId: mission.Mayhem_10,
     missionStyle: 0,
     craftId: craft.falken,
@@ -2462,7 +2349,6 @@ for (const [mission, title, points, begin, end] of [
   })
   set.addAchievement({
     title: 'Death Rays',
-    badge: b('AIRCRAFT_FALKEN_CHALLENGE'),
     description: 'ADF-01 FALKEN, ACE, Mission 10M: complete the mission using TLS only',
     points: 10,
     conditions: falkenChallengeConditions()
@@ -2483,78 +2369,59 @@ for (const [mission, title, points, begin, end] of [
     title: 'Immersive Canopy',
     description: 'Complete any mission using Cockpit view only',
     points: 1,
-    conditions: (() => {
-      const [alt1, alt2] = [code.pal, code.ntsc].map(c => {
-        const resetNextOnMissionRestart = resetNextIf(
-          ['', 'Delta', '32bit', c.address.missionTimer, '=', 'Value', '', 0]
-        )
+    conditions: multiRegionalConditions(c => {
+      const resetNextOnMissionRestart = resetNextIf(
+        ['', 'Delta', '32bit', c.address.missionTimer, '=', 'Value', '', 0]
+      )
 
-        return $(
-          c.regionCheckPause,
-          pauseIf(c.isNotInGame),
-          trigger(c.debriefingStarted),
+      return $(
+        c.regionCheckPause,
+        pauseIf(c.isNotInGame),
+        trigger(c.debriefingStarted),
 
-          resetNextOnMissionRestart,
+        resetNextOnMissionRestart,
+        andNext(
+          'once',
+          c.inGame.modeIs(inGameMode.gameplayOrCutscene),
+          c.inGame.player.usingCockpitCamera
+        ),
+
+        resetNextOnMissionRestart,
+        pauseIf(
+          'once',
           andNext(
-            'once',
+            $('hits 90', c.inGame.missionPhaseTimer.advanced),
             c.inGame.modeIs(inGameMode.gameplayOrCutscene),
-            c.inGame.player.usingCockpitCamera
-          ),
-
-          resetNextOnMissionRestart,
-          pauseIf(
-            'once',
-            andNext(
-              $('hits 90', c.inGame.missionPhaseTimer.advanced),
-              c.inGame.modeIs(inGameMode.gameplayOrCutscene),
-              c.inGame.player.notUsingCockpitCamera
-            )
+            c.inGame.player.notUsingCockpitCamera
           )
         )
-      })
-
-      return {
-        core: alwaysTrue,
-        alt1,
-        alt2
-      }
-    })(),
+      )
+    })
   })
 
   set.addAchievement({
     title: 'Na-Mu-Ko',
-    badge: b('ACE_PACMAN_765'),
     description: `One of your aircraft have accumulated 765 kills and acquired the secret cheese wheel in its cockpit`,
     points: 3,
-    conditions: (() => {
-      const [alt1, alt2] = [code.pal, code.ntsc].map(c => {
-        return $(
-          c.regionCheckPause,
-          ...Array.from({ length: 36 }, (_, i) => {
-            const offset = c.address.tgtDestroyedTable + i * 4
-            return andNext(
-              c.wasInDebriefing,
-              ['', 'Delta', '32bit', offset, '<', 'Value', '', 765],
-              ['AddHits', 'Mem', '32bit', offset, '>=', 'Value', '', 765]
-            )
-          }),
-          '0=1.1.'
+    conditions: multiRegionalConditions(c => $(
+      c.regionCheckPause,
+      ...Array.from({ length: 36 }, (_, i) => {
+        const offset = c.address.tgtDestroyedTable + i * 4
+        return andNext(
+          c.wasInDebriefing,
+          ['', 'Delta', '32bit', offset, '<', 'Value', '', 765],
+          ['AddHits', 'Mem', '32bit', offset, '>=', 'Value', '', 765]
         )
-      })
-
-      return {
-        core: alwaysTrue,
-        alt1,
-        alt2
-      }
-    })()
+      }),
+      '0=1.1.'
+    ))
   })
 }
 
 // Campaign / Free Mission (DIFFICULTY) | 📍 Mission | ✈️ Craft | SCORE: %d
 export const rich = (() => {
 
-  const regions = ['pal', 'ntsc']
+  const regions: Region[] = ['pal', 'ntsc'] as const
   const missionFree = {
     0x00: 'Glacial Skies',
     0x01: 'Annex',
@@ -2736,7 +2603,7 @@ export const rich = (() => {
             ),
             `Free Mission (${atDifficultyF}) | 📍 ${atMissionF} | Briefing and Preparations`
           ]
-        ]
+        ] as Array<string | [ConditionBuilder, string]>
       }).concat('Playing Ace Combat Zero')
 
   })
