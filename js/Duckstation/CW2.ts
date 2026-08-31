@@ -1,53 +1,28 @@
-// @ts-check
-import { AchievementSet, Condition, define as $, once, trigger, andNext, resetIf, orNext, measuredIf, measured, resetNextIf, pauseIf } from '@cruncheevos/core'
-import { givenRangeOf } from '../common.ts'
-
-/** @param {(region: 'NTSC' | 'PAL') => Condition.Group} cb */
-function givenMultiRegionalAlts(cb) {
-  return {
-    alt1: cb('NTSC'),
-    alt2: cb('PAL')
-  }
-}
-
-const regionalOffset = (region = '') => region === 'PAL' ? 0x2c0 : 0
+import { AchievementSet, define as $, once, trigger, andNext, resetIf, orNext, measuredIf, measured, resetNextIf, pauseIf, ConditionBuilder, addHits } from '@cruncheevos/core'
+import { givenRangeOf, makeMultiRegionalConditionsFunction } from '../common.ts'
 
 const HEX = 0
 const WRAITH = 1
 const DIABLO = 2
 
-const infiniteHealthCheat = $.one(['', 'Mem', '8bit', 0x34444, '=', 'Value', '', 0])
-const levelSelectCheat = $.one(['', 'Mem', '8bit', 0x34445, '=', 'Value', '', 0])
-const infiniteSecondaryWeaponCheat = $.one(['', 'Mem', '8bit', 0x34446, '=', 'Value', '', 0])
-const noWeaponOverheatCheat = $.one(['', 'Mem', '8bit', 0x34447, '=', 'Value', '', 0])
-const infiniteAfterburnersCheat = $.one(['', 'Mem', '8bit', 0x34449, '=', 'Value', '', 0])
-const allWeaponsCheat = $.one(['', 'Mem', '8bit', 0x3444b, '=', 'Value', '', 0])
-const allCheatsOff = $(
-  infiniteHealthCheat,
-  infiniteSecondaryWeaponCheat,
-  noWeaponOverheatCheat,
-  infiniteAfterburnersCheat,
-  allWeaponsCheat,
+const infiniteHealthCheatOff = $.one(['', 'Mem', '8bit', 0x34444, '=', 'Value', '', 0])
+const levelSelectCheatOff = $.one(['', 'Mem', '8bit', 0x34445, '=', 'Value', '', 0])
+const infiniteSecondaryWeaponCheatOff = $.one(['', 'Mem', '8bit', 0x34446, '=', 'Value', '', 0])
+const noWeaponOverheatCheatOff = $.one(['', 'Mem', '8bit', 0x34447, '=', 'Value', '', 0])
+const infiniteAfterburnersCheatOff = $.one(['', 'Mem', '8bit', 0x34449, '=', 'Value', '', 0])
+const allWeaponsCheatOff = $.one(['', 'Mem', '8bit', 0x3444b, '=', 'Value', '', 0])
+const allInGameCheatsOff = $(
+  infiniteHealthCheatOff,
+  infiniteSecondaryWeaponCheatOff,
+  noWeaponOverheatCheatOff,
+  infiniteAfterburnersCheatOff,
+  allWeaponsCheatOff,
 )
 
-const anyCheatOn = allCheatsOff.map(c => c.with({ cmp: '!=' }))
-
-const regionIs = {
-  NTSC: $.one(['', 'Mem', '24bit', 0x9e1e, '=', 'Value', '', 0x373030]),
-  PAL: $.one(['', 'Mem', '24bit', 0x9e1e, '=', 'Value', '', 0x333130]),
-  get not() {
-    return {
-      NTSC: regionIs.NTSC.with({ cmp: '!=' }),
-      PAL: regionIs.PAL.with({ cmp: '!=' })
-    }
-  }
-}
-
 const noDemoPlaybackAndParticleGun = $.one(['', 'Mem', '8bit', 0x34c8c, '=', 'Value', '', 0])
-const demoPlayback = $.one(['', 'Mem', '8bit', 0x34c8c, '=', 'Value', '', 2])
 const inLoadingScreen = $.one(['', 'Mem', '16bit', 0x34684, '=', 'Value', '', 0xA0])
 
-function pauseCodeBelowUntilSubMission(subMission = 0) {
+function pauseCodeBelowUntilSubMission(subMission: number) {
   return $(
     ['AndNext', 'Mem', '16bit', 0x34684, '!=', 'Delta', '16bit', 0x34684],
     ['ResetNextIf', 'Mem', '16bit', 0x34684, '=', 'Value', '', 0x100, subMission],
@@ -110,17 +85,13 @@ const player = {
     ['', 'Mem', '32bit', 0x45fb8, '<', 'Value', '', 0x7FFFFFFF]
   ),
 
-  isFlyingShip: (ship = 0) => $.one(
+  isFlyingShip: (ship: number) => $.one(
     ['', 'Mem', '8bit', 0x41ff4, '=', 'Value', '', ship]
   ),
 
   isDead: $.one(['', 'Mem', '8bit', 0x59d76, '=', 'Value', '', 4]),
 
   cameraDetached: $.one(['', 'Mem', '8bit', 0x34724, '=', 'Value', '', 5]),
-
-  cannotMove: (region = '') => $.one(
-    ['', 'Delta', '8bit', 0x11e250 + regionalOffset(region), '=', 'Value', '', 0]
-  ),
 
   isGrappled: $(
     ['AndNext', 'Mem', '8bit', 0x59d72, '=', 'Value', '', 14],
@@ -132,17 +103,29 @@ const player = {
 
 const timeTrialValue = $.one(['Measured', 'Mem', '32bit', 0x34440, '*', 'Value', '', 2])
 
-const actIs = (act = 0) => $.one(['', 'Mem', '8bit', 0x59d72, '=', 'Value', '', act])
-const missionIs = (mission = 0) => $.one(['', 'Mem', '8bit', 0x59d74, '=', 'Value', '', mission])
+const actIs = (act: number) => $.one(['', 'Mem', '8bit', 0x59d72, '=', 'Value', '', act])
+const missionIs = (mission: number) => $.one(['', 'Mem', '8bit', 0x59d74, '=', 'Value', '', mission])
 
-function startedMission(opts = {}) {
+function startedMission(opts: {
+  ship?: number
+  act?: number
+  mission?: number
+  missions?: Array<[number, number, 'ground'?]>
+  withoutCheatChecks?: boolean
+  exactShip?: boolean
+
+  additionalConditions?: ConditionBuilder
+} = {}) {
   const missions = opts.missions || [[opts.act, opts.mission]]
 
   const hasMultipleMissions = missions.length > 1
 
+  const demoPlayback = $.one(['', 'Mem', '8bit', 0x34c8c, '=', 'Value', '', 2])
+  const anyInGameCheatOn = allInGameCheatsOff.map(c => c.with({ cmp: '!=' }))
+
   return $(
     pauseIf(
-      opts.withoutCheatChecks !== true && anyCheatOn,
+      opts.withoutCheatChecks !== true && anyInGameCheatOn,
       demoPlayback
     ).resetIf(
       inMainMenu
@@ -154,14 +137,14 @@ function startedMission(opts = {}) {
       }),
       act > 0 && actIs(act),
       mission > 0 && missionIs(mission),
-      ...(opts.additionalConditions || []),
+      opts.additionalConditions,
       [hasMultipleMissions ? 'AddHits' : '', 'Mem', '32bit', 0x34a68, '=', 'Value', '', 132, 1],
     )),
     hasMultipleMissions && `0=1.1.`
   )
 }
 
-function entityInstance(index = 0) {
+function entityInstance(index: number) {
   const base = 0x46520 + 0x280 * index
   const id = base + 0x4
   const bitmask = base + 0x119
@@ -177,11 +160,11 @@ function entityInstance(index = 0) {
     hasNoHulls: $.one(['', 'Mem', '32bit', hulls, '=', 'Value', '', 0]),
     gotShieldDamage: $.one(['', 'Mem', '32bit', shields, '<', 'Delta', '32bit', shields]),
     gotHullDamage,
-    gotShieldsLowerThan: (value = 0) => $.one(
+    gotShieldsLowerThan: (value: number) => $.one(
       ['', 'Mem', '32bit', shields, '<', 'Value', '', value],
     ),
 
-    withId: (entityId = 0) => ({
+    withId: (entityId: number) => ({
       gotHullDamage: $(
         ['AndNext', 'Mem', '8bit', id, '=', 'Value', '', entityId],
         ['AndNext', 'Mem', '8bit', id, '=', 'Delta', '8bit', id],
@@ -191,7 +174,7 @@ function entityInstance(index = 0) {
   }
 }
 
-function entityIDStats(index = 0) {
+function entityIDStats(index: number) {
   const killCount = 0x4cf68 + index * 0x44
   const objectiveCount = killCount + 0x2
   const jumpedInCount = killCount + 0x4
@@ -199,15 +182,15 @@ function entityIDStats(index = 0) {
   return {
     hasKills: $.one(['', 'Mem', '16bit', killCount, '>', 'Value', '', 0]),
     gotKilled: $.one(['', 'Mem', '16bit', killCount, '>', 'Delta', '16bit', killCount]),
-    gotKilledExactTimes: (times = 0) => $.one(
+    gotKilledExactTimes: (times: number) => $.one(
       ['', 'Mem', '16bit', killCount, '=', 'Value', '', times]
     ),
-    gotKilledLessThan: (times = 0) => $.one(
+    gotKilledLessThan: (times: number) => $.one(
       ['', 'Mem', '16bit', killCount, '<', 'Value', '', times]
     ),
     jumpedInAtleastOnce: $.one(['', 'Mem', '8bit', jumpedInCount, '>', 'Value', '', 0]),
     jumpedInHit: $.one(['', 'Mem', '8bit', jumpedInCount, '!=', 'Value', '', 0, 1]),
-    jumpedInExactTimes: (times = 0) => $.one(
+    jumpedInExactTimes: (times: number) => $.one(
       ['', 'Mem', '8bit', jumpedInCount, '=', 'Value', '', times]
     ),
 
@@ -215,110 +198,104 @@ function entityIDStats(index = 0) {
   }
 }
 
-function weaponInstance(index = 0, region = '') {
-  const heat = 0x12e21c + regionalOffset(region) + index * 0x58
-  const icon = heat + 0x8
-  const shotsLeft = heat + 0xc
-  const leachBeamThing = heat + 0x28
+type Region = 'ntsc' | 'pal'
+
+const codeFor = (r: Region) => {
+  const inGameOffset = r === 'pal' ? 0x2c0 : 0
+  const menuOffset = r === 'pal' ? 0x10 : 0
+
+  const regionCheck = $(
+    r === 'ntsc' && $.one(['', 'Mem', '24bit', 0x9e1e, '=', 'Value', '', 0x373030]),
+    r === 'pal' && $.one(['', 'Mem', '24bit', 0x9e1e, '=', 'Value', '', 0x333130]),
+  )
 
   return {
-    wasSameWeaponForOneFrame: $.one(['', 'Mem', '8bit', icon, '=', 'Delta', '8bit', icon]),
-    isHeatingUp: $.one(['', 'Mem', '32bit', heat, '>', 'Value', '', 0]),
-    isAlienLaser: $.one(['', 'Mem', '8bit', icon, '=', 'Value', '', 7]),
+    inGameOffset,
 
-    gotLaunched: $.one(['', 'Mem', '32bit', shotsLeft, '<', 'Delta', '32bit', shotsLeft]),
-    shotPlasma: $.one(['', 'Mem', '32bit', heat, '<', 'Delta', '32bit', heat]),
-    shotLeachBeam: $.one(['', 'Mem', '32bit', leachBeamThing, '>', 'Delta', '32bit', leachBeamThing]),
-  }
-}
+    regionCheck,
+    pauseIfRegionCheck: pauseIf(regionCheck.withLast({ cmp: '!=' })),
 
-function currentWeaponInstance(region = '') {
-  const offset = regionalOffset(region)
+    playerCannotMove: $.one(['', 'Delta', '8bit', 0x11e250 + inGameOffset, '=', 'Value', '', 0]),
 
-  const lookup = $.one(['AddAddress', 'Mem', '8bit', 0x11cad0 + offset, '*', 'Value', '', 88])
-  const isNotFiredCondition = $.one(['', 'Mem', '32bit', 0x12e220 + offset, '=', 'Value', '', 0])
+    weaponInstance(index: number) {
+      const heat = 0x12e21c + inGameOffset + index * 0x58
+      const icon = heat + 0x8
+      const shotsLeft = heat + 0xc
+      const leachBeamThing = heat + 0x28
 
-  return {
-    isNotAlienLaser: $(
-      lookup,
-      ['', 'Mem', '32bit', 0x12e224 + offset, '!=', 'Value', '', 7],
+      return {
+        wasSameWeaponForOneFrame: $.one(['', 'Mem', '8bit', icon, '=', 'Delta', '8bit', icon]),
+        isHeatingUp: $.one(['', 'Mem', '32bit', heat, '>', 'Value', '', 0]),
+        isAlienLaser: $.one(['', 'Mem', '8bit', icon, '=', 'Value', '', 7]),
+
+        gotLaunched: $.one(['', 'Mem', '32bit', shotsLeft, '<', 'Delta', '32bit', shotsLeft]),
+        shotPlasma: $.one(['', 'Mem', '32bit', heat, '<', 'Delta', '32bit', heat]),
+        shotLeachBeam: $.one(['', 'Mem', '32bit', leachBeamThing, '>', 'Delta', '32bit', leachBeamThing]),
+      }
+    },
+
+    currentWeaponInstance: (() => {
+      const lookup = $.one(['AddAddress', 'Mem', '8bit', 0x11cad0 + inGameOffset, '*', 'Value', '', 88])
+      const isNotFiredCondition = $.one(['', 'Mem', '32bit', 0x12e220 + inGameOffset, '=', 'Value', '', 0])
+
+      return {
+        isNotAlienLaser: $(
+          lookup,
+          ['', 'Mem', '32bit', 0x12e224 + inGameOffset, '!=', 'Value', '', 7],
+        ),
+        isNotScatterGun: $(
+          lookup,
+          ['', 'Mem', '32bit', 0x12e224 + inGameOffset, '!=', 'Value', '', 6],
+        ),
+        isNotFired: $(
+          lookup,
+          isNotFiredCondition,
+        ),
+        isNotFiredAndCoolingDown: $(
+          lookup,
+          ['AndNext', 'Mem', '32bit', 0x12e220 + inGameOffset, '<', 'Delta', '32bit', 0x12e220 + inGameOffset],
+          lookup,
+          isNotFiredCondition
+        )
+      }
+    })(),
+
+    displayedTimeWentBelow: (timeInfFrames: number) => $.one(['', 'Mem', '32bit', 0x11e400 + inGameOffset, '<=', 'Value', '', timeInfFrames]),
+
+    isOnHomeScreen: andNext(
+      ['', 'Mem', '32bit', 0xc4998 + menuOffset, '>', 'Value', '', 0x80000000],
+      ['AddAddress', 'Mem', '24bit', 0xc4998 + menuOffset],
+      ['', 'Mem', '8bit', 0x18, '=', 'Value', '', 1],
     ),
-    isNotScatterGun: $(
-      lookup,
-      ['', 'Mem', '32bit', 0x12e224 + offset, '!=', 'Value', '', 6],
+
+    loadedTheGameFromMemoryCard: andNext(
+      regionCheck,
+      ['', 'Mem', '32bit', 0xc4998 + menuOffset, '>', 'Value', '', 0x80000000],
+      ['', 'Mem', '32bit', 0xc4998 + menuOffset, '>', 'Delta', '32bit', 0xc4998 + menuOffset],
+      ['AddAddress', 'Mem', '24bit', 0xc4998 + menuOffset],
+      ['', 'Mem', '8bit', 0x18, '=', 'Value', '', 78],
+      ['AddAddress', 'Mem', '24bit', 0xc4998 + menuOffset],
+      ['', 'Delta', '8bit', 0x18, '=', 'Value', '', 78],
     ),
-    isNotFired: $(
-      lookup,
-      isNotFiredCondition,
-    ),
-    isNotFiredAndCoolingDown: $(
-      lookup,
-      ['AndNext', 'Mem', '32bit', 0x12e220 + offset, '<', 'Delta', '32bit', 0x12e220 + offset],
-      lookup,
-      isNotFiredCondition
+
+    resetTheGameFromMenu: andNext(
+      regionCheck,
+      ['', 'Mem', '32bit', 0xc4998 + menuOffset, '>', 'Value', '', 0x80000000],
+      ['', 'Mem', '32bit', 0xc4998 + menuOffset, '>', 'Delta', '32bit', 0xc4998 + menuOffset],
+      ['AddAddress', 'Mem', '24bit', 0xc4998 + menuOffset],
+      ['', 'Mem', '8bit', 0x18, '=', 'Value', '', 10],
+      ['AddAddress', 'Mem', '24bit', 0xc4998 + menuOffset],
+      ['', 'Delta', '8bit', 0x18, '=', 'Value', '', 10],
     )
   }
 }
 
-function brokenMissileLock(region = '') {
-  const offset = regionalOffset(region)
-  return $(
-    ['AddAddress', 'Mem', '8bit', 0x11cae0 + offset, '*', 'Value', '', 88],
-    ['AndNext', 'Mem', '32bit', 0x12e228 + offset, '<', 'Delta', '32bit', 0x12e228 + offset],
-    ['', 'Mem', '8bit', 0x11d868 + offset, '<', 'Delta', '8bit', 0x11d868 + offset],
-  )
+const c = {
+  ntsc: codeFor('ntsc'),
+  pal: codeFor('pal'),
 }
 
-function displayedTimeWentBelow(timeInfFrames = 0, region = 'NTSC') {
-  return $.one(['', 'Mem', '32bit', 0x11e400 + regionalOffset(region), '<=', 'Value', '', timeInfFrames])
-}
-
-function isOnHomeScreen(region = '') {
-  const offset = region === 'PAL' ? 0x10 : 0
-  return $(
-    ['AndNext', 'Mem', '32bit', 0xc4998 + offset, '>', 'Value', '', 0x80000000],
-    ['AddAddress', 'Mem', '24bit', 0xc4998 + offset],
-    ['', 'Mem', '8bit', 0x18, '=', 'Value', '', 1],
-  )
-}
-
-function loadedTheGameFromMemoryCard(region = '') {
-  const offset = region === 'PAL' ? 0x10 : 0
-
-  return $(
-    regionIs[region].with({ flag: 'AndNext' }),
-    ['AndNext', 'Mem', '32bit', 0xc4998 + offset, '>', 'Value', '', 0x80000000],
-    ['AndNext', 'Mem', '32bit', 0xc4998 + offset, '>', 'Delta', '32bit', 0xc4998 + offset],
-    ['AddAddress', 'Mem', '24bit', 0xc4998 + offset],
-    ['AndNext', 'Mem', '8bit', 0x18, '=', 'Value', '', 78],
-    ['AddAddress', 'Mem', '24bit', 0xc4998 + offset],
-    ['', 'Delta', '8bit', 0x18, '=', 'Value', '', 78],
-  )
-}
-
-function resetTheGameFromMenu(region = '') {
-  const offset = region === 'PAL' ? 0x10 : 0
-
-  return $(
-    regionIs[region].with({ flag: 'AndNext' }),
-    ['AndNext', 'Mem', '32bit', 0xc4998 + offset, '>', 'Value', '', 0x80000000],
-    ['AndNext', 'Mem', '32bit', 0xc4998 + offset, '>', 'Delta', '32bit', 0xc4998 + offset],
-    ['AddAddress', 'Mem', '24bit', 0xc4998 + offset],
-    ['AndNext', 'Mem', '8bit', 0x18, '=', 'Value', '', 10],
-    ['AddAddress', 'Mem', '24bit', 0xc4998 + offset],
-    ['', 'Delta', '8bit', 0x18, '=', 'Value', '', 10],
-  )
-}
-
-
-
-
-
-
-
-
-
-
+const multiRegionalConditions = makeMultiRegionalConditionsFunction(c)
 
 const set = new AchievementSet({ gameId: 11562, title: 'Colony Wars: Vengeance' })
 
@@ -328,15 +305,16 @@ set.addAchievement({
   points: 1,
   conditions: {
     core: startedMission(),
-    ...givenMultiRegionalAlts(region => [
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
       ),
-      brokenMissileLock(region)
-    ])
+      ['AddAddress', 'Mem', '8bit', 0x11cae0 + c.inGameOffset, '*', 'Value', '', 88],
+      ['AndNext', 'Mem', '32bit', 0x12e228 + c.inGameOffset, '<', 'Delta', '32bit', 0x12e228 + c.inGameOffset],
+      ['', 'Mem', '8bit', 0x11d868 + c.inGameOffset, '<', 'Delta', '8bit', 0x11d868 + c.inGameOffset],
+    ))
   },
-  badge: '201255',
   id: 180743,
 })
 
@@ -345,15 +323,10 @@ set.addAchievement({
   description:
     'Mission 1-1, Escort duty: while piloting Hex, protect the convoy from Tribe attacks',
   points: 5,
-  conditions: [
-    startedMission({
-      ship: HEX,
-      act: 1,
-      mission: 1,
-    }),
+  conditions: $(
+    startedMission({ ship: HEX, act: 1, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201200',
+  ),
   id: 165206,
 })
 
@@ -363,25 +336,24 @@ set.addAchievement({
     'Mission 1-2, Resource collation: while piloting Hex and only using seismic lance, help Navy frigate to collect the crystals from asteroids',
   points: 5,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: HEX, act: 1, mission: 2 }),
       trigger(mission.completed),
-    ],
-    ...givenMultiRegionalAlts(region => [
+    ),
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
       ),
       resetIf(
-        weaponInstance(0, region).isHeatingUp,
-        weaponInstance(1, region).isHeatingUp,
-        weaponInstance(3, region).gotLaunched,
-        weaponInstance(4, region).gotLaunched,
-        weaponInstance(5, region).gotLaunched,
+        c.weaponInstance(0).isHeatingUp,
+        c.weaponInstance(1).isHeatingUp,
+        c.weaponInstance(3).gotLaunched,
+        c.weaponInstance(4).gotLaunched,
+        c.weaponInstance(5).gotLaunched,
       )
-    ])
+    ))
   },
-  badge: '201201',
   id: 180690,
 })
 
@@ -391,13 +363,10 @@ set.addAchievement({
     'Mission 1-3, Bring battle-platform online: while piloting Hex, successfully deliver power cells to Navy platform',
   points: 5,
   type: 'progression',
-  conditions: {
-    core: [
-      startedMission({ ship: HEX, act: 1, mission: 3 }),
-      mission.completed,
-    ]
-  },
-  badge: '201202',
+  conditions: $(
+    startedMission({ ship: HEX, act: 1, mission: 3 }),
+    mission.completed,
+  ),
   id: 165207,
 })
 
@@ -406,11 +375,10 @@ set.addAchievement({
   description:
     'Mission 2-1, Emerging from warphole: while piloting Hex, destroy the communications rig and escape',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: HEX, act: 2, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201203',
+  ),
   id: 180691,
 })
 
@@ -420,25 +388,24 @@ set.addAchievement({
     'Mission 3-1, Rescue besieged installation: while piloting Hex, dispose of unstable reactors without firing a single shot',
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: HEX, act: 3, mission: 1 }),
       trigger(mission.completed),
-    ],
-    ...givenMultiRegionalAlts(region => [
+    ),
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
       ),
       resetIf(
-        weaponInstance(0, region).isHeatingUp,
-        weaponInstance(1, region).isHeatingUp,
-        weaponInstance(3, region).gotLaunched,
-        weaponInstance(4, region).gotLaunched,
-        weaponInstance(5, region).gotLaunched,
+        c.weaponInstance(0).isHeatingUp,
+        c.weaponInstance(1).isHeatingUp,
+        c.weaponInstance(3).gotLaunched,
+        c.weaponInstance(4).gotLaunched,
+        c.weaponInstance(5).gotLaunched,
       )
-    ])
+    ))
   },
-  badge: '201204',
   id: 180692,
 })
 
@@ -447,16 +414,15 @@ set.addAchievement({
   description: `Mission 3-2, Mine sweeping: while piloting Hex, ensure Navy support craft doesn't get hull damage whilst deactivating mines`,
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: HEX, act: 3, mission: 2 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
       resetIf(entityInstance(12).gotHullDamage)
-    ],
+    ),
   },
-  badge: '201205',
   id: 180693,
 })
 
@@ -466,18 +432,21 @@ set.addAchievement({
     'Mission 3-3, Disrupt League supply network: complete the mission without letting a single League fighter to board the Frigate',
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ act: 3, mission: 3 }),
       trigger(mission.completed),
-    ],
-    alt1: [
-      pauseIf(inLoadingScreen)
-        .also(entityIDStats(0).jumpedInHit)
-        .andNext(mission.failed)
-        .resetIf(entityIDStats(2).objectiveAccomplished)
-    ],
+    ),
+    alt1: $(
+      pauseIf(inLoadingScreen),
+      entityIDStats(0).jumpedInHit,
+      resetIf(
+        andNext(
+          mission.failed,
+          entityIDStats(2).objectiveAccomplished
+        )
+      )
+    ),
   },
-  badge: '201206',
   id: 180694,
 })
 
@@ -487,16 +456,15 @@ set.addAchievement({
     'Mission 3-3, Disrupt League supply network: complete the mission without using the Particle gun',
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ act: 3, mission: 3 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
       resetIf(player.isOperatingParticleGun)
-    ],
+    ),
   },
-  badge: '201249',
   id: 180737,
 })
 
@@ -505,11 +473,10 @@ set.addAchievement({
   description:
     'Mission 4-1, Closing League eyes: while piloting Hex, disable the satellites and clear the area of League forces',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: HEX, act: 4, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201207',
+  ),
   id: 180695,
 })
 
@@ -518,44 +485,45 @@ set.addAchievement({
   description: `Mission 4-2, Jump missile threat: while piloting Hex, intercept jump missiles and ensure Navy fleet doesn't suffer hull damage`,
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: HEX, act: 4, mission: 2 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
-      resetIf(...givenRangeOf(9, 16).map(i =>
-        entityInstance(i).withId(5).gotHullDamage
-      )),
-    ],
+      resetIf(
+        ...givenRangeOf(9, 16).map(i =>
+          entityInstance(i).withId(5).gotHullDamage
+        )
+      ),
+    ),
   },
-  badge: '201208',
   id: 180696,
 })
 
 set.addAchievement({
   title: `Navy's Finest Madman`,
-  description:
-    'Mission 4-2, Jump missile threat: survive getting rid of 3 jump missiles by crashing into them',
+  description: 'Mission 4-2, Jump missile threat: survive getting rid of 3 jump missiles by crashing into them',
   points: 5,
   conditions: {
     core: startedMission({ act: 4, mission: 2 }),
-    alt1: [
+    alt1: $(
       pauseIf(inLoadingScreen),
-      orNext(player.sufferedShieldDamage)
-        .andNext(
+      addHits(
+        orNext(
+          player.sufferedShieldDamage
+        ).andNext(
           player.sufferedHullDamage,
           player.hasHulls,
-        )
-        .addHits(
           entityIDStats(0).gotKilled,
-          player.sufferedShieldDamageExtremelyHard
         ),
+
+        player.sufferedShieldDamageExtremelyHard
+      ),
       ['Measured', 'Value', '', 0xcafe, '=', 'Value', '', 0xbeef, 3],
       measuredIf(entityIDStats(0).jumpedInAtleastOnce)
-    ],
+    ),
   },
-  badge: '201250',
   id: 180739,
 })
 
@@ -563,11 +531,10 @@ set.addAchievement({
   title: 'Grounded',
   description: `Mission 4-3, Elimination of League super gun: allow for destruction of League's super gun by depleting reactors of shields`,
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ act: 4, mission: 3 }),
     mission.completed,
-  ],
-  badge: '201209',
+  ),
   id: 180697,
 })
 
@@ -576,16 +543,15 @@ set.addAchievement({
   description: `Mission 5-1, Intercept League sappers: while piloting Hex, protect Navy battleship and ensure it doesn't suffer hull damage from mines and League fighters`,
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: HEX, act: 5, mission: 1 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
       resetIf(entityInstance(2).gotHullDamage)
-    ],
+    ),
   },
-  badge: '201210',
   id: 180698,
 })
 
@@ -594,11 +560,10 @@ set.addAchievement({
   description:
     'Mission 6-1, Erect defense grid: while piloting Hex, assemble the defense turrets and repel League forces',
   points: 5,
-  conditions: [
+  conditions: $(
     startedMission({ ship: HEX, act: 6, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201211',
+  ),
   id: 180699,
 })
 
@@ -607,18 +572,21 @@ set.addAchievement({
   description: `Mission 6-2, Cargo heist: while piloting Hex, don't let any cargo get stolen or destroyed`,
   points: 5,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: HEX, act: 6, mission: 2 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
-      resetIf(entityIDStats(7).gotKilled)
-        .andNext(mission.failed)
-        .resetIf(entityIDStats(7).objectiveAccomplished)
-    ],
+      resetIf(
+        entityIDStats(7).gotKilled,
+        andNext(
+          mission.failed,
+          entityIDStats(7).objectiveAccomplished
+        )
+      )
+    ),
   },
-  badge: '201212',
   id: 180700,
 })
 
@@ -628,20 +596,23 @@ set.addAchievement({
     'Mission 6-3, Last stand: while piloting Hex, prevent League convoy from entering Sol with 1 minute left to spare (or 45 seconds for PAL version)',
   points: 25,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: HEX, act: 6, mission: 3 }),
       trigger(mission.completed),
-    ],
-    ...givenMultiRegionalAlts(region => [
+    ),
+    ...multiRegionalConditions.altsOnly((c, r) => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
+      ),
+      resetIf(
+        andNext(
+          mission.notCompleted,
+          c.displayedTimeWentBelow(r === 'ntsc' ? 1800 : 1126)
+        )
       )
-        .andNext(mission.notCompleted)
-        .resetIf(displayedTimeWentBelow(region === 'NTSC' ? 1800 : 1126, region))
-    ])
+    ))
   },
-  badge: '201213',
   id: 180701,
 })
 
@@ -650,71 +621,67 @@ set.addAchievement({
   description: 'While piloting Hex or Spook, complete any mission leading to Act 7: Loss of a Pawn',
   points: 10,
   type: 'progression',
-  conditions: {
-    core: [
-      startedMission({
-        ship: HEX,
-        missions: [
-          [4, 3, 'ground'],
-          [5, 1],
-          [6, 3]
-        ]
-      }),
-      mission.completed,
-    ]
-  }
+  conditions: $(
+    startedMission({
+      ship: HEX,
+      missions: [
+        [4, 3, 'ground'],
+        [5, 1],
+        [6, 3]
+      ]
+    }),
+    mission.completed,
+  )
 })
 
 set.addAchievement({
   title: 'Unexpected Visitor',
-  description:
-    'Mission 7-1, Scout asteroid field: while piloting Wraith or Hex, secure the asteroid field without suffering hull damage',
+  description: 'Mission 7-1, Scout asteroid field: while piloting Wraith or Hex, secure the asteroid field without suffering hull damage',
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: WRAITH, act: 7, mission: 1 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
       resetIf(player.sufferedHullDamage)
-    ],
+    ),
   },
-  badge: '201214',
   id: 180702,
 })
 
 set.addAchievement({
   title: 'Off Course',
-  description:
-    'Mission 8-1, Support assault: while piloting Wraith or Hex, support Navy fleet in assault on installation and prove to be skilled in your towing technique',
+  description: 'Mission 8-1, Support assault: while piloting Wraith or Hex, support Navy fleet in assault on installation and prove to be skilled in your towing technique',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: WRAITH, act: 8, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201215',
+  ),
   id: 180703,
 })
 
 set.addAchievement({
   title: 'Brilliant but Lazy',
-  description:
-    'Mission 8-2, Installation defence: while piloting Wraith or Hex, defend both Navy installations without getting any of the available mines destroyed',
+  description: 'Mission 8-2, Installation defence: while piloting Wraith or Hex, defend both Navy installations without getting any of the available mines destroyed',
   points: 25,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: WRAITH, act: 8, mission: 2 }),
       trigger(mission.completed),
-    ],
-    alt1: [
-      pauseIf(inLoadingScreen)
-        .resetIf(entityInstance(14).hasNoHulls)
-        .andNext(mission.inProgress)
-        .resetIf(entityIDStats(5).objectiveAccomplished)
-    ],
+    ),
+    alt1: $(
+      pauseIf(inLoadingScreen),
+      resetIf(
+        entityInstance(14).hasNoHulls,
+        andNext(
+          mission.inProgress,
+          entityIDStats(5).objectiveAccomplished
+        )
+      )
+    ),
   },
-  badge: '201216',
   id: 180704,
 })
 
@@ -723,36 +690,35 @@ set.addAchievement({
   description: `Mission 8-3, Hit 'n' run: while piloting Wraith or Hex, steal the Research vessel without firing weapons and suffering hull damage on your ship`,
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: WRAITH, act: 8, mission: 3 }),
       trigger(mission.completed),
-    ],
-    ...givenMultiRegionalAlts(region => [
+    ),
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
       ),
 
       resetIf(
         player.sufferedHullDamage,
-        weaponInstance(0, region).isHeatingUp,
-        weaponInstance(1, region).isHeatingUp,
+        c.weaponInstance(0).isHeatingUp,
+        c.weaponInstance(1).isHeatingUp,
       ).andNext(
         player.isFlyingShip(WRAITH),
       ).resetIf(
-        weaponInstance(2, region).shotPlasma,
-        weaponInstance(3, region).gotLaunched,
-        weaponInstance(4, region).gotLaunched,
-        weaponInstance(5, region).gotLaunched
+        c.weaponInstance(2).shotPlasma,
+        c.weaponInstance(3).gotLaunched,
+        c.weaponInstance(4).gotLaunched,
+        c.weaponInstance(5).gotLaunched
       ).andNext(
         player.isFlyingShip(WRAITH)
       ).resetIf(
-        weaponInstance(6, region).gotLaunched,
-        weaponInstance(7, region).gotLaunched
+        c.weaponInstance(6).gotLaunched,
+        c.weaponInstance(7).gotLaunched
       )
-    ])
+    ))
   },
-  badge: '201217',
   id: 180705,
 })
 
@@ -761,42 +727,37 @@ set.addAchievement({
   description: `Mission 8-3, Hit 'n' run: while piloting Wraith or Hex, steal the research vessel without damaging it's shields and hulls`,
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: WRAITH, act: 8, mission: 3 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
       resetIf(entityInstance(0).gotShieldDamage)
-    ],
+    ),
   },
-  badge: '201218',
   id: 180706,
 })
 
 set.addAchievement({
   title: 'Cronus Fried Asteroids',
-  description:
-    'Mission 9-1, Eliminate League mining facility: while piloting Wraith or Hex, destroy the mining facility using heated asteroids',
+  description: 'Mission 9-1, Eliminate League mining facility: while piloting Wraith or Hex, destroy the mining facility using heated asteroids',
   points: 25,
-  conditions: [
+  conditions: $(
     startedMission({ ship: WRAITH, act: 9, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201219',
+  ),
   id: 180707,
 })
 
 set.addAchievement({
   title: 'Getting Past the Past',
-  description:
-    'Mission 9-2, Scouting graveyard: while piloting Wraith or Hex, escort Navy convoy through the graveyard',
+  description: 'Mission 9-2, Scouting graveyard: while piloting Wraith or Hex, escort Navy convoy through the graveyard',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: WRAITH, act: 9, mission: 2 }),
     mission.completed,
-  ],
-  badge: '201220',
+  ),
   id: 180708,
 })
 
@@ -805,16 +766,15 @@ set.addAchievement({
   description: `Mission 9-3, Sentinel alert: ensure that reactor is protected and doesn't suffer hull damage`,
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ act: 9, mission: 3 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
       resetIf(entityInstance(7).gotHullDamage)
-    ],
+    ),
   },
-  badge: '201221',
   id: 180709,
 })
 
@@ -823,16 +783,15 @@ set.addAchievement({
   description: `Mission 10-1, Investigate distress call: while piloting Wraith or Hex, accept Widowmaker's challenge and defeat him without suffering hull damage`,
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: WRAITH, act: 10, mission: 1 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseCodeBelowUntilSubMission(2),
       resetIf(player.sufferedHullDamage)
-    ],
+    ),
   },
-  badge: '201222',
   id: 180710,
 })
 
@@ -840,41 +799,38 @@ set.addAchievement({
   title: 'Cursed Duel',
   description: 'Mission 10-1, Investigate distress call: defeat the Widowmaker while piloting Hex',
   points: 25,
-  conditions: [
+  conditions: $(
     startedMission({ ship: HEX, act: 10, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201223',
+  ),
   id: 180711,
 })
 
 set.addAchievement({
   title: 'Plasma Fishing',
-  description:
-    'Mission 11-1, Oversee mining operation: while piloting Wraith and using only plasma guns, ensure security of mining fleet',
+  description: 'Mission 11-1, Oversee mining operation: while piloting Wraith and using only plasma guns, ensure security of mining fleet',
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: WRAITH, exactShip: true, act: 11, mission: 1 }),
       trigger(mission.completed),
-    ],
-    ...givenMultiRegionalAlts(region => [
+    ),
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
       ),
       resetIf(
-        weaponInstance(0, region).isHeatingUp,
-        weaponInstance(1, region).isHeatingUp,
-        weaponInstance(3, region).shotLeachBeam,
-        weaponInstance(4, region).gotLaunched,
-        weaponInstance(5, region).gotLaunched,
-        weaponInstance(6, region).gotLaunched,
-        weaponInstance(7, region).gotLaunched,
+        c.weaponInstance(0).isHeatingUp,
+        c.weaponInstance(1).isHeatingUp,
+        c.weaponInstance(3).shotLeachBeam,
+        c.weaponInstance(4).gotLaunched,
+        c.weaponInstance(5).gotLaunched,
+        c.weaponInstance(6).gotLaunched,
+        c.weaponInstance(7).gotLaunched,
       )
-    ])
+    ))
   },
-  badge: '201224',
   id: 180712,
 })
 
@@ -883,29 +839,26 @@ set.addAchievement({
   description: 'While piloting Hex, Wraith or Spook, complete any mission leading to Act 11: The Watch',
   points: 10,
   type: 'progression',
-  conditions: {
-    core: [
-      startedMission({
-        ship: WRAITH,
-        missions: [
-          [9, 3, 'ground'],
-          [10, 1]
-        ]
-      }),
-      mission.completed,
-    ]
-  }
+  conditions: $(
+    startedMission({
+      ship: WRAITH,
+      missions: [
+        [9, 3, 'ground'],
+        [10, 1]
+      ]
+    }),
+    mission.completed,
+  )
 })
 
 set.addAchievement({
   title: 'Anomalous Materials',
   description: `Mission 12-1, Rescue science vessel: while piloting Wraith or Hex, divert dangerous materials from science vessel and ensure it's safety`,
   points: 25,
-  conditions: [
+  conditions: $(
     startedMission({ ship: WRAITH, act: 12, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201225',
+  ),
   id: 180713,
 })
 
@@ -914,63 +867,56 @@ set.addAchievement({
   description: `Mission 12-2, Avert natural disaster: while piloting Wraith or Hex, do not miss too many asteroids and ensure fleet doesn't suffer hull damage`,
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: WRAITH, act: 12, mission: 2 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
       resetIf(
         entityInstance(6).gotHullDamage,
         entityInstance(9).gotHullDamage,
         entityInstance(5).gotShieldsLowerThan(15)
       )
-    ],
+    ),
   },
-  badge: '201226',
   id: 180714,
 })
 
 set.addAchievement({
   title: 'Marked for Death',
-  description:
-    'Mission 12-3, Remote targeting: while piloting Wraith or Hex, destroy League fleet by targeting jump missiles using the probe pod',
+  description: 'Mission 12-3, Remote targeting: while piloting Wraith or Hex, destroy League fleet by targeting jump missiles using the probe pod',
   points: 5,
-  conditions: [
+  conditions: $(
     startedMission({ ship: WRAITH, act: 12, mission: 3 }),
     mission.completed,
-  ],
-  badge: '201227',
+  ),
   id: 180715,
 })
 
 set.addAchievement({
   title: 'Prosecution',
-  description:
-    'Mission 13-1, Data snatch: while piloting Diablo, Wraith or Hex, carry probing operations to uncover the traitor',
+  description: 'Mission 13-1, Data snatch: while piloting Diablo, Wraith or Hex, carry probing operations to uncover the traitor',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: DIABLO, act: 13, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201228',
+  ),
   id: 180716,
 })
 
 set.addAchievement({
   title: 'Smooth Operator',
-  description:
-    'Mission 13-1, Data snatch: after following League Frigate, probe the League installation for the traitor list without taking damage',
+  description: 'Mission 13-1, Data snatch: after following League Frigate, probe the League installation for the traitor list without taking damage',
   points: 10,
   conditions: {
     core: startedMission({ act: 13, mission: 1 }),
-    alt1: [
+    alt1: $(
       pauseCodeBelowUntilSubMission(2),
-      resetIf(player.sufferedShieldDamage)
-        .trigger(entityInstance(1).probed)
-    ],
+      resetIf(player.sufferedShieldDamage),
+      trigger(entityInstance(1).probed)
+    ),
   },
-  badge: '201229',
   id: 180717,
 })
 
@@ -980,71 +926,79 @@ set.addAchievement({
   points: 2,
   conditions: {
     core: startedMission({ act: 13, mission: 1 }),
-    alt1: [
+    alt1: $(
       pauseCodeBelowUntilSubMission(3),
-      once(entityInstance(0).probed)
-        .andNext(entityInstance(0).notProbed)
-        .resetIf(player.markedTraitor)
-        .andNext(mission.inProgress)
-        .resetIf(entityIDStats(5).hasKills)
-        .andNext(entityInstance(0).probed)
-        .trigger('once', player.markedTraitor)
-        .andNext(
-          entityIDStats(5).hasKills,
+      once(entityInstance(0).probed),
+      resetIf(
+        andNext(
+          entityInstance(0).notProbed,
           player.markedTraitor
-        ).trigger('once', player.cameraDetached)
-    ]
+        ),
+        andNext(
+          mission.inProgress,
+          entityIDStats(5).hasKills
+        )
+      ),
+      trigger(
+        'once',
+        andNext(
+          entityInstance(0).probed,
+          player.markedTraitor
+        )
+      ),
+      trigger(
+        'once',
+        andNext(
+          entityIDStats(5).hasKills,
+          player.markedTraitor,
+          player.cameraDetached
+        )
+      )
+    )
   },
-  badge: '201230',
   id: 180718,
 })
 
 set.addAchievement({
   title: 'Atonement',
-  description:
-    'Mission 13-2, Capture traitor: while piloting Diablo, Wraith or Hex, atone for your failure by assisting the Watch during assault on the League',
+  description: 'Mission 13-2, Capture traitor: while piloting Diablo, Wraith or Hex, atone for your failure by assisting the Watch during assault on the League',
   points: 5,
-  conditions: [
+  conditions: $(
     startedMission({ ship: DIABLO, act: 13, mission: 2 }),
     mission.completed,
-  ],
-  badge: '201231',
+  ),
   id: 180719,
 })
 
 set.addAchievement({
   title: 'Humiliation Ride',
-  description:
-    'Mission 13-2, Capture traitor: destroy three League Mace ships while keeping the escaped traitor in your grapple',
+  description: 'Mission 13-2, Capture traitor: destroy three League Mace ships while keeping the escaped traitor in your grapple',
   points: 5,
   conditions: {
     core: startedMission({ act: 13, mission: 2 }),
-    ...givenMultiRegionalAlts(region => [
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
       ),
 
       // grapple holds the escape pod
-      ['AndNext', 'Mem', '16bit', 0x11d704 + regionalOffset(region), '=', 'Value', '', 0x2500],
+      ['AndNext', 'Mem', '16bit', 0x11d704 + c.inGameOffset, '=', 'Value', '', 0x2500],
       measured('hits 3', entityIDStats(1).gotKilled),
-      ['MeasuredIf', 'Mem', '16bit', 0x11d704 + regionalOffset(region), '=', 'Value', '', 9472],
-    ])
+      ['MeasuredIf', 'Mem', '16bit', 0x11d704 + c.inGameOffset, '=', 'Value', '', 9472],
+    ))
   },
-  badge: '201251',
   id: 180740,
 })
 
 set.addAchievement({
   title: 'End of the Watch',
-  description:
-    'Mission 13-3, Traitor hunt: while piloting Diablo, Wraith or Hex, successfully probe and eliminate all traitors',
+  description: 'Mission 13-3, Traitor hunt: while piloting Diablo, Wraith or Hex, successfully probe and eliminate all traitors',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: DIABLO, act: 13, mission: 3 }),
     mission.completed,
-  ],
-  badge: '201232',
+  ),
   id: 180720,
 })
 
@@ -1052,35 +1006,31 @@ set.addAchievement({
   title: 'Execution',
   description: 'Mission 13-3, Traitor hunt: defeat Traitorous leader while piloting Hex',
   points: 25,
-  conditions: [
+  conditions: $(
     startedMission({ ship: HEX, act: 13, mission: 3 }),
     mission.completed,
-  ],
-  badge: '201233',
+  ),
   id: 180721,
 })
 
 set.addAchievement({
   title: 'Acquittal',
-  description:
-    'Mission 14-1, Sentencing: while piloting Diablo, Wraith or Hex, survive the ambush from League',
+  description: 'Mission 14-1, Sentencing: while piloting Diablo, Wraith or Hex, survive the ambush from League',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: DIABLO, act: 14, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201234',
+  ),
   id: 180722,
 })
 
 set.addAchievement({
   title: 'Untamed',
-  description:
-    'Mission 14-1, Sentencing: by acting impatient with your ship controls, escape both grapple locks on your own',
+  description: 'Mission 14-1, Sentencing: by acting impatient with your ship controls, escape both grapple locks on your own',
   points: 1,
   conditions: {
     core: startedMission({ act: 14, mission: 1 }),
-    alt1: [
+    alt1: $(
       pauseIf(inLoadingScreen),
       resetIf(entityIDStats(6).gotKilled),
       trigger(
@@ -1089,9 +1039,8 @@ set.addAchievement({
           ['', 'Mem', '8bit', 0x46016, '<', 'Delta', '8bit', 0x46016, 2]
         )
       ),
-    ],
+    ),
   },
-  badge: '201254',
   id: 165208,
 })
 
@@ -1099,11 +1048,10 @@ set.addAchievement({
   title: 'Against the Odds',
   description: 'Mission 14-1, Sentencing: survive the ambush from League while piloting Hex',
   points: 25,
-  conditions: [
+  conditions: $(
     startedMission({ ship: HEX, act: 14, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201235',
+  ),
   id: 180723,
 })
 
@@ -1112,49 +1060,43 @@ set.addAchievement({
   description: 'While piloting Hex, Wraith or Diablo, complete any mission leading to Act 15: The League Cornered?',
   points: 10,
   type: 'progression',
-  conditions: {
-    core: [
-      startedMission({
-        ship: DIABLO,
-        missions: [
-          [13, 3],
-          [14, 1]
-        ]
-      }),
-      mission.completed,
-    ]
-  }
+  conditions: $(
+    startedMission({
+      ship: DIABLO,
+      missions: [
+        [13, 3],
+        [14, 1]
+      ]
+    }),
+    mission.completed,
+  )
 })
 
 set.addAchievement({
   title: 'Rotten Core',
-  description:
-    'Mission 15-1, Spearhead assault into League home system: while piloting Diablo, Wraith or Hex, destroy all League Hammer ships and penetrate the Astro gun defenses to eliminate it from inside',
+  description: 'Mission 15-1, Spearhead assault into League home system: while piloting Diablo, Wraith or Hex, destroy all League Hammer ships and penetrate the Astro gun defenses to eliminate it from inside',
   points: 5,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: DIABLO, act: 15, mission: 1 }),
       mission.completed,
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
       once(entityIDStats(7).gotKilledExactTimes(6))
-    ],
+    ),
   },
-  badge: '201236',
   id: 180724,
 })
 
 set.addAchievement({
   title: 'Grapple Released',
-  description:
-    'Mission 16-1, Defend crippled battleship: while piloting Diablo or Wraith, prove to be extremely fast in preventing the hijack of Navy battleship',
+  description: 'Mission 16-1, Defend crippled battleship: while piloting Diablo or Wraith, prove to be extremely fast in preventing the hijack of Navy battleship',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: DIABLO, act: 16, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201237',
+  ),
   id: 180725,
 })
 
@@ -1163,129 +1105,123 @@ set.addAchievement({
   description: `Mission 16-2, Answering distress signal: protect command center from alien threat and ensure it doesn't suffer hull damage`,
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ act: 16, mission: 2 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseCodeBelowUntilSubMission(2),
       resetIf(entityInstance(0).gotHullDamage)
-    ],
+    ),
   },
-  badge: '201238',
   id: 180726,
 })
 
 set.addAchievement({
   title: 'Planetary Furball',
-  description:
-    'Mission 16-2, Answering distress signal: eliminate the alien threat in the first sector without using Particle gun',
+  description: 'Mission 16-2, Answering distress signal: eliminate the alien threat in the first sector without using Particle gun',
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ act: 16, mission: 2 }),
       trigger(mission.completedInGame)
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseIf(inLoadingScreen),
       resetIf(player.isOperatingParticleGun),
       trigger(entityIDStats(4).gotKilledExactTimes(5))
-    ],
+    ),
   },
-  badge: '201249',
   id: 180738,
 })
 
 set.addAchievement({
   title: `Navy's Reverse Card`,
-  description:
-    'Mission 16-3, Eliminate alien super beam: while piloting Diablo, Wraith or Hex, install reflective disks to prevent planet destruction',
+  description: 'Mission 16-3, Eliminate alien super beam: while piloting Diablo, Wraith or Hex, install reflective disks to prevent planet destruction',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: DIABLO, act: 16, mission: 3 }),
     mission.completed,
-  ],
-  badge: '201239',
+  ),
   id: 180727,
 })
 
 set.addAchievement({
   title: 'Enemy Unknown',
-  description:
-    'Mission 17-1, Support heavy assault: while piloting Diablo, Wraith or Hex, ensure safety of Navy battleship',
+  description: 'Mission 17-1, Support heavy assault: while piloting Diablo, Wraith or Hex, ensure safety of Navy battleship',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: DIABLO, act: 17, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201240',
+  ),
   id: 180728,
 })
 
 set.addAchievement({
   title: 'Enemy Destroyed',
-  description:
-    'Mission 17-2, Eliminate alien vanguard: while piloting Diablo, Wraith or Hex, eliminate all alien presence including any reinforcements',
+  description: 'Mission 17-2, Eliminate alien vanguard: while piloting Diablo, Wraith or Hex, eliminate all alien presence including any reinforcements',
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: DIABLO, act: 17, mission: 2 }),
       mission.completed,
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseCodeBelowUntilSubMission(2),
       entityIDStats(4).gotKilledExactTimes(8)
-    ],
+    ),
   },
-  badge: '201241',
   id: 180729,
 })
 
 set.addAchievement({
   title: 'Enemy Researched',
-  description:
-    'Mission 17-3, Capturing alien technology: while piloting Diablo, Wraith or Hex, deliver alien fighter through jumpgate without damaging it and escape',
+  description: 'Mission 17-3, Capturing alien technology: while piloting Diablo, Wraith or Hex, deliver alien fighter through jumpgate without damaging it and escape',
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ ship: DIABLO, act: 17, mission: 3 }),
       trigger(mission.completed),
-    ],
-    ...givenMultiRegionalAlts(region => [
+    ),
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
       ),
-
-      once(weaponInstance(0, region).isAlienLaser)
-        .andNext(
-          weaponInstance(0, region).isAlienLaser,
-          weaponInstance(0, region).wasSameWeaponForOneFrame
-        ).resetIf(player.sufferedShieldDamage)
-    ])
+      once(c.weaponInstance(0).isAlienLaser),
+      resetIf(
+        andNext(
+          c.weaponInstance(0).isAlienLaser,
+          c.weaponInstance(0).wasSameWeaponForOneFrame,
+          player.sufferedShieldDamage
+        )
+      )
+    ))
   },
-  badge: '201242',
   id: 180730,
 })
 
 set.addAchievement({
   title: 'Hoisted by Their Own Petard',
-  description:
-    'Mission 17-3, Capturing alien technology: while piloting Diablo, Wraith or Hex, hijack the alien fighter and destroy three alien ships while piloting it',
+  description: 'Mission 17-3, Capturing alien technology: while piloting Diablo, Wraith or Hex, hijack the alien fighter and destroy three alien ships while piloting it',
   points: 5,
   conditions: {
     core: startedMission({ ship: DIABLO, act: 17, mission: 3 }),
-    ...givenMultiRegionalAlts(region => [
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
       ),
-      measuredIf(weaponInstance(0, region).isAlienLaser)
-        .andNext(weaponInstance(0, region).isAlienLaser)
-        .measured('hits 3', entityIDStats(7).gotKilled)
-    ])
+      measuredIf(c.weaponInstance(0).isAlienLaser),
+      measured(
+        'hits 3',
+        andNext(
+          c.weaponInstance(0).isAlienLaser,
+          entityIDStats(7).gotKilled
+        )
+      )
+    ))
   },
-  badge: '201252',
   id: 180741,
 })
 
@@ -1294,45 +1230,40 @@ set.addAchievement({
   description: 'While piloting Hex, Wraith or Diablo, complete any mission leading to Act 19: The Madness of Kron',
   points: 10,
   type: 'progression',
-  conditions: {
-    core: [
-      startedMission({
-        ship: DIABLO,
-        missions: [
-          [17, 3],
-          [18, 1]
-        ]
-      }),
-      mission.completed,
-    ]
-  }
+  conditions: $(
+    startedMission({
+      ship: DIABLO,
+      missions: [
+        [17, 3],
+        [18, 1]
+      ]
+    }),
+    mission.completed,
+  )
 })
 
 set.addAchievement({
   title: `Humanity's Hope`,
-  description:
-    'Mission 18-1, Clear a path to the alien warphole: while piloting Diablo, Wraith or Hex, assemble the cannon to repel the alien threat',
+  description: 'Mission 18-1, Clear a path to the alien warphole: while piloting Diablo, Wraith or Hex, assemble the cannon to repel the alien threat',
   points: 10,
-  conditions: [
+  conditions: $(
     startedMission({ ship: DIABLO, act: 18, mission: 1 }),
     mission.completed,
-  ],
-  badge: '201243',
+  ),
   id: 180731,
 })
 
 set.addAchievement({
   title: 'Simon Says Leave',
-  description:
-    'Mission 19-1, Close alien warphole: close the warphole and escape without taking any damage from the weblock',
+  description: 'Mission 19-1, Close alien warphole: close the warphole and escape without taking any damage from the weblock',
   points: 10,
   conditions: {
-    core: [
+    core: $(
       startedMission({ act: 19, mission: 1 }),
       trigger(mission.completed),
-    ],
-    ...givenMultiRegionalAlts(region => [
-      pauseIf(regionIs.not[region]),
+    ),
+    ...multiRegionalConditions.altsOnly(c => $(
+      pauseIf(c.pauseIfRegionCheck),
       pauseCodeBelowUntilSubMission(2),
 
       resetIf(
@@ -1340,12 +1271,11 @@ set.addAchievement({
           player.sufferedShieldDamage
         ).andNext(
           player.sufferedHullDamage,
-          ['', 'Mem', '8bit', 0x11a96c + regionalOffset(region), '=', 'Value', '', 1]
+          ['', 'Mem', '8bit', 0x11a96c + c.inGameOffset, '=', 'Value', '', 1]
         )
       ),
-    ])
+    ))
   },
-  badge: '201244',
   id: 180732,
 })
 
@@ -1354,18 +1284,22 @@ set.addAchievement({
   description: `Mission 19-2, Stop Kron's super gun: destroy Kron's loyalists before the super gun reveals itself, then destroy the super gun`,
   points: 25,
   conditions: {
-    core: [
+    core: $(
       startedMission({ act: 19, mission: 2 }),
       trigger(mission.completed),
-    ],
-    alt1: [
+    ),
+    alt1: $(
       pauseCodeBelowUntilSubMission(2),
-      orNext(entityIDStats(4).gotKilledLessThan(4))
-        .andNext(entityIDStats(0).gotKilledLessThan(1))
-        .resetIf(entityIDStats(1).jumpedInExactTimes(5))
-    ],
+      resetIf(
+        orNext(
+          entityIDStats(4).gotKilledLessThan(4)
+        ).andNext(
+          entityIDStats(0).gotKilledLessThan(1),
+          entityIDStats(1).jumpedInExactTimes(5)
+        )
+      )
+    ),
   },
-  badge: '201245',
   id: 180733,
 })
 
@@ -1374,11 +1308,10 @@ set.addAchievement({
   description: 'Mission 19-3, Locate and kill Kron: succeed in killing Kron',
   points: 10,
   type: 'win_condition',
-  conditions: [
+  conditions: $(
     startedMission({ act: 19, mission: 3 }),
     mission.completed,
-  ],
-  badge: '201246',
+  ),
   id: 180734,
 })
 
@@ -1386,22 +1319,20 @@ set.addAchievement({
   title: 'Revengeance',
   description: 'Mission 19-3, Locate and kill Kron: Kill Kron while piloting Hex',
   points: 25,
-  conditions: [
+  conditions: $(
     startedMission({ ship: HEX, act: 19, mission: 3 }),
     mission.completed,
-  ],
-  badge: '201247',
+  ),
   id: 180735,
 })
 
 set.addAchievement({
   title: 'One Hit Kron Out Wonder',
-  description:
-    'Mission 19-3, Locate and kill Kron: Kill Kron by penetrating both of his shields and hull with a single torpedo',
+  description: 'Mission 19-3, Locate and kill Kron: Kill Kron by penetrating both of his shields and hull with a single torpedo',
   points: 5,
   conditions: {
     core: startedMission({ act: 19, mission: 3 }),
-    alt1: [
+    alt1: $(
       pauseCodeBelowUntilSubMission(2),
       andNext(
         entityInstance(0).gotShieldDamage,
@@ -1409,9 +1340,8 @@ set.addAchievement({
         entityInstance(0).gotHullDamage,
         entityInstance(0).hasNoHulls,
       ),
-    ],
+    ),
   },
-  badge: '201248',
   id: 180736,
 })
 
@@ -1420,42 +1350,43 @@ set.addAchievement({
   description: 'Complete any mission without getting damage',
   points: 5,
   conditions: {
-    core: [
+    core: $(
       startedMission(),
       mission.completed,
-    ],
-    ...givenMultiRegionalAlts(region => [
+    ),
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
-      )
-        .andNext(player.sufferedShieldDamage)
-        .resetIf(player.cannotMove(region)),
-    ])
+      ),
+      resetIf(
+        andNext(
+          player.sufferedShieldDamage,
+          c.playerCannotMove
+        )
+      ),
+    ))
   },
-  badge: '201441',
   id: 165210,
 })
 
 set.addAchievement({
   title: 'Expert Controls',
-  description:
-    'Complete any mission by only using pitch and roll controls (do not yaw left or right, usage of control scheme 5 and 6 recommended)',
+  description: 'Complete any mission by only using pitch and roll controls (do not yaw left or right, usage of control scheme 5 and 6 recommended)',
   points: 5,
   conditions: {
-    core: [
+    core: $(
       startedMission(),
       mission.completed,
-    ],
-    ...givenMultiRegionalAlts(region => [
+    ),
+    ...multiRegionalConditions.altsOnly(c => $(
       pauseIf(
-        regionIs.not[region],
+        c.pauseIfRegionCheck,
         inLoadingScreen,
       ),
-      ['ResetIf', 'Mem', '32bit', 0x11dfe0 + regionalOffset(region), '!=', 'Value', '', 0],
-    ])
+      ['ResetIf', 'Mem', '32bit', 0x11dfe0 + c.inGameOffset, '!=', 'Value', '', 0],
+    ))
   },
-  badge: '201441',
   id: 180888,
 })
 
@@ -1464,24 +1395,20 @@ set.addAchievement({
   description: 'Complete any mission by only moving backwards',
   points: 5,
   conditions: {
-    core: [
+    core: $(
       startedMission(),
       mission.completed,
-    ],
-    ...givenMultiRegionalAlts(region => {
-      const offset = region === 'PAL' ? 0x2c0 : 0
-      return $(
-        pauseIf(
-          regionIs.not[region],
-          inLoadingScreen,
-        ),
-        ['AndNext', 'Delta', '32bit', 0x11dfec + offset, '!=', 'Mem', '32bit', 0x11dfec + offset],
-        ['AndNext', 'Mem', '32bit', 0x11dfec + offset, '>', 'Value', '', 0],
-        ['ResetIf', 'Mem', '32bit', 0x11dfec + offset, '<=', 'Value', '', 0x7fffffff],
-      )
-    })
+    ),
+    ...multiRegionalConditions.altsOnly(c => $(
+      pauseIf(
+        c.pauseIfRegionCheck,
+        inLoadingScreen,
+      ),
+      ['AndNext', 'Delta', '32bit', 0x11dfec + c.inGameOffset, '!=', 'Mem', '32bit', 0x11dfec + c.inGameOffset],
+      ['AndNext', 'Mem', '32bit', 0x11dfec + c.inGameOffset, '>', 'Value', '', 0],
+      ['ResetIf', 'Mem', '32bit', 0x11dfec + c.inGameOffset, '<=', 'Value', '', 0x7fffffff],
+    ))
   },
-  badge: '201441',
   id: 165209,
 })
 
@@ -1490,27 +1417,26 @@ set.addAchievement({
   description: `Complete any mission while not letting go of infinite afterburners and by using infinite secondary weapons only, activated with "Avalanche" and "Chimera" passwords`,
   points: 5,
   conditions: {
-    core: [
+    core: $(
       pauseIf(
-        infiniteHealthCheat.with({ cmp: '!=' }),
-        noWeaponOverheatCheat.with({ cmp: '!=' }),
-        allWeaponsCheat.with({ cmp: '!=' })
+        infiniteHealthCheatOff.with({ cmp: '!=' }),
+        noWeaponOverheatCheatOff.with({ cmp: '!=' }),
+        allWeaponsCheatOff.with({ cmp: '!=' })
       ),
       startedMission({
         withoutCheatChecks: true,
-        additionalConditions: [
-          infiniteAfterburnersCheat.with({ cmp: '!=' }),
-          infiniteSecondaryWeaponCheat.with({ cmp: '!=' }),
-        ],
+        additionalConditions: $(
+          infiniteAfterburnersCheatOff.with({ cmp: '!=' }),
+          infiniteSecondaryWeaponCheatOff.with({ cmp: '!=' }),
+        ),
       }),
       trigger(mission.completed),
-    ],
-    ...givenMultiRegionalAlts(region => {
-      const offset = regionalOffset(region)
+    ),
+    ...multiRegionalConditions.altsOnly((c, r) => {
       const afterburner = {
-        active: 0x11a2d8 + offset,
-        current: 0x11a2e0 + offset,
-        max: 0x11a2d0 + offset
+        active: 0x11a2d8 + c.inGameOffset,
+        current: 0x11a2e0 + c.inGameOffset,
+        max: 0x11a2d0 + c.inGameOffset
       }
 
       const resetIfPlayerFailedChallenge = $(
@@ -1535,18 +1461,17 @@ set.addAchievement({
         ['ResetIf', 'Mem', '32bit', afterburner.current, '<', 'Mem', '32bit', afterburner.max],
       )
 
-      return [
+      return $(
         pauseIf(
-          regionIs.not[region],
+          c.pauseIfRegionCheck,
           inLoadingScreen,
           player.isGrappled
         ),
         resetIfPlayerFailedChallenge,
         resetIfAfterburnerCoolsDown
-      ]
+      )
     })
   },
-  badge: '201439',
   id: 180889,
 })
 
@@ -1555,43 +1480,48 @@ set.addAchievement({
   description: `Complete any mission while not letting go of primary weapon fire and with no overheat, activated with "Dark*Angel" password`,
   points: 5,
   conditions: {
-    core: [
+    core: $(
       pauseIf(
-        infiniteHealthCheat.with({ cmp: '!=' }),
-        infiniteSecondaryWeaponCheat.with({ cmp: '!=' }),
-        infiniteAfterburnersCheat.with({ cmp: '!=' }),
-        allWeaponsCheat.with({ cmp: '!=' })
+        infiniteHealthCheatOff.with({ cmp: '!=' }),
+        infiniteSecondaryWeaponCheatOff.with({ cmp: '!=' }),
+        infiniteAfterburnersCheatOff.with({ cmp: '!=' }),
+        allWeaponsCheatOff.with({ cmp: '!=' })
       ),
       startedMission({
         withoutCheatChecks: true,
-        additionalConditions: [
-          noWeaponOverheatCheat.with({ cmp: '!=' })
-        ]
+        additionalConditions: $(
+          noWeaponOverheatCheatOff.with({ cmp: '!=' })
+        )
       }),
       trigger(mission.completed),
-    ],
-    ...givenMultiRegionalAlts(region => {
-      const currentWeapon = currentWeaponInstance(region)
+    ),
+    ...multiRegionalConditions.altsOnly(c => {
+      const currentWeapon = c.currentWeaponInstance
 
       const resetIfPlayerFailedChallenge = $(
-        resetNextIf(bailedIntoMainMenu)
-          .orNext(currentWeapon.isNotAlienLaser)
-          .andNext(currentWeapon.isNotScatterGun)
-          .resetIf('hits 180', currentWeapon.isNotFired)
+        resetNextIf(bailedIntoMainMenu),
+        resetIf(
+          'hits 180',
+          orNext(
+            currentWeapon.isNotAlienLaser
+          ).andNext(
+            currentWeapon.isNotScatterGun,
+            currentWeapon.isNotFired
+          )
+        )
       )
 
-      return [
+      return $(
         pauseIf(
-          regionIs.not[region],
+          c.pauseIfRegionCheck,
           inLoadingScreen,
           player.isGrappled
         ),
         resetIfPlayerFailedChallenge,
         resetIf(currentWeapon.isNotFiredAndCoolingDown)
-      ]
+      )
     })
   },
-  badge: '201440',
   id: 180890,
 })
 
@@ -1606,13 +1536,12 @@ set.addAchievement({
         [18, 1]
       ]
     }),
-    alt1: [
+    alt1: $(
       pauseIf(inLoadingScreen),
       player.isDead,
       player.hasHulls
-    ],
+    ),
   },
-  badge: '201253',
   id: 180742,
 })
 
@@ -1622,18 +1551,18 @@ set.addLeaderboard({
   lowerIsBetter: true,
   type: 'FRAMES',
   conditions: {
-    start: [
-      regionIs.NTSC,
-      allCheatsOff,
+    start: $(
+      c.ntsc.regionCheck,
+      allInGameCheatsOff,
       noDemoPlaybackAndParticleGun,
       player.isFlyingShip(HEX),
       actIs(4),
       missionIs(1),
       mission.onFirstFrame
-    ],
-    cancel: [inMainMenu],
-    submit: [mission.completedInGame],
-    value: [timeTrialValue],
+    ),
+    cancel: $(inMainMenu),
+    submit: $(mission.completedInGame),
+    value: $(timeTrialValue),
   },
   id: 27539,
 })
@@ -1644,18 +1573,18 @@ set.addLeaderboard({
   lowerIsBetter: true,
   type: 'FRAMES',
   conditions: {
-    start: [
-      regionIs.PAL,
-      allCheatsOff,
+    start: $(
+      c.pal.regionCheck,
+      allInGameCheatsOff,
       noDemoPlaybackAndParticleGun,
       player.isFlyingShip(HEX),
       actIs(4),
       missionIs(1),
       mission.onFirstFrame
-    ],
-    cancel: [inMainMenu],
-    submit: [mission.completedInGame],
-    value: [timeTrialValue],
+    ),
+    cancel: $(inMainMenu),
+    submit: $(mission.completedInGame),
+    value: $(timeTrialValue),
   },
   id: 27540,
 })
@@ -1666,18 +1595,18 @@ set.addLeaderboard({
   lowerIsBetter: true,
   type: 'FRAMES',
   conditions: {
-    start: [
-      regionIs.NTSC,
-      allCheatsOff,
+    start: $(
+      c.ntsc.regionCheck,
+      allInGameCheatsOff,
       noDemoPlaybackAndParticleGun,
       player.isFlyingShip(HEX),
       actIs(6),
       missionIs(3),
       mission.onFirstFrame
-    ],
-    cancel: [inMainMenu],
-    submit: [mission.completedInGame],
-    value: [timeTrialValue],
+    ),
+    cancel: $(inMainMenu),
+    submit: $(mission.completedInGame),
+    value: $(timeTrialValue),
   },
   id: 27533,
 })
@@ -1688,18 +1617,18 @@ set.addLeaderboard({
   lowerIsBetter: true,
   type: 'FRAMES',
   conditions: {
-    start: [
-      regionIs.PAL,
-      allCheatsOff,
+    start: $(
+      c.pal.regionCheck,
+      allInGameCheatsOff,
       noDemoPlaybackAndParticleGun,
       player.isFlyingShip(HEX),
       actIs(6),
       missionIs(3),
       mission.onFirstFrame
-    ],
-    cancel: [inMainMenu],
-    submit: [mission.completedInGame],
-    value: [timeTrialValue],
+    ),
+    cancel: $(inMainMenu),
+    submit: $(mission.completedInGame),
+    value: $(timeTrialValue),
   },
   id: 27534,
 })
@@ -1710,18 +1639,18 @@ set.addLeaderboard({
   lowerIsBetter: true,
   type: 'FRAMES',
   conditions: {
-    start: [
-      regionIs.NTSC,
-      allCheatsOff,
+    start: $(
+      c.ntsc.regionCheck,
+      allInGameCheatsOff,
       noDemoPlaybackAndParticleGun,
       player.isFlyingShip(DIABLO),
       actIs(14),
       missionIs(1),
       mission.pastFirstFrame
-    ],
-    cancel: [inMainMenu],
-    submit: [['', 'Mem', '8bit', 0x4cfac, '=', 'Value', '', 1]],
-    value: [timeTrialValue],
+    ),
+    cancel: $(inMainMenu),
+    submit: $(['', 'Mem', '8bit', 0x4cfac, '=', 'Value', '', 1]),
+    value: $(timeTrialValue),
   },
   id: 27535,
 })
@@ -1732,18 +1661,18 @@ set.addLeaderboard({
   lowerIsBetter: true,
   type: 'FRAMES',
   conditions: {
-    start: [
-      regionIs.PAL,
-      allCheatsOff,
+    start: $(
+      c.pal.regionCheck,
+      allInGameCheatsOff,
       noDemoPlaybackAndParticleGun,
       player.isFlyingShip(DIABLO),
       actIs(14),
       missionIs(1),
       mission.pastFirstFrame
-    ],
-    cancel: [inMainMenu],
-    submit: [['', 'Mem', '8bit', 0x4cfac, '=', 'Value', '', 1]],
-    value: [timeTrialValue],
+    ),
+    cancel: $(inMainMenu),
+    submit: $(['', 'Mem', '8bit', 0x4cfac, '=', 'Value', '', 1]),
+    value: $(timeTrialValue),
   },
   id: 27536,
 })
@@ -1754,18 +1683,18 @@ set.addLeaderboard({
   lowerIsBetter: true,
   type: 'FRAMES',
   conditions: {
-    start: [
-      regionIs.NTSC,
-      allCheatsOff,
+    start: $(
+      c.ntsc.regionCheck,
+      allInGameCheatsOff,
       noDemoPlaybackAndParticleGun,
       player.isFlyingShip(HEX),
       actIs(14),
       missionIs(1),
       mission.onFirstFrame
-    ],
-    cancel: [inMainMenu],
-    submit: [['', 'Mem', '8bit', 0x4cfac, '=', 'Value', '', 1]],
-    value: [timeTrialValue],
+    ),
+    cancel: $(inMainMenu),
+    submit: $(['', 'Mem', '8bit', 0x4cfac, '=', 'Value', '', 1]),
+    value: $(timeTrialValue),
   },
   id: 27537,
 })
@@ -1776,38 +1705,32 @@ set.addLeaderboard({
   lowerIsBetter: true,
   type: 'FRAMES',
   conditions: {
-    start: [
-      regionIs.PAL,
-      allCheatsOff,
+    start: $(
+      c.pal.regionCheck,
+      allInGameCheatsOff,
       noDemoPlaybackAndParticleGun,
       player.isFlyingShip(HEX),
       actIs(14),
       missionIs(1),
       mission.onFirstFrame
-    ],
-    cancel: [inMainMenu],
-    submit: [['', 'Mem', '8bit', 0x4cfac, '=', 'Value', '', 1]],
-    value: [timeTrialValue],
+    ),
+    cancel: $(inMainMenu),
+    submit: $(['', 'Mem', '8bit', 0x4cfac, '=', 'Value', '', 1]),
+    value: $(timeTrialValue),
   },
   id: 27538,
 })
 
 set.addLeaderboard({
   title: 'Any ending with most tech tokens',
-  description:
-    'Finish the game in one sitting on good or any of the bad endings, must start with clear file. Loading saves or attempting to read password is not allowed.',
+  description: 'Finish the game in one sitting on good or any of the bad endings, must start with clear file. Loading saves or attempting to read password is not allowed.',
   lowerIsBetter: false,
   type: 'SCORE',
   conditions: {
     start: {
-      core: [
-        ...(
-          // HACK: this is mostly to preserve original condition order
-          allCheatsOff
-            .conditions.slice()
-            .concat(levelSelectCheat)
-            .sort((a, b) => a.lvalue.value - b.lvalue.value)
-        ),
+      core: $(
+        levelSelectCheatOff,
+        allInGameCheatsOff,
         actIs(1),
         missionIs(1),
 
@@ -1828,18 +1751,18 @@ set.addLeaderboard({
         ['', 'Mem', '8bit', 0x41411, '=', 'Value', '', 0],
 
         inMainMenu,
-      ],
-      ...givenMultiRegionalAlts(region => [
-        pauseIf(regionIs.not[region]),
-        isOnHomeScreen(region)
-      ])
+      ),
+      ...multiRegionalConditions.altsOnly(c => $(
+        pauseIf(c.pauseIfRegionCheck),
+        c.isOnHomeScreen
+      ))
     },
     cancel: {
       core: '0=0',
-      alt1: loadedTheGameFromMemoryCard('NTSC'),
-      alt2: loadedTheGameFromMemoryCard('PAL'),
-      alt3: resetTheGameFromMenu('NTSC'),
-      alt4: resetTheGameFromMenu('PAL'),
+      alt1: c.ntsc.loadedTheGameFromMemoryCard,
+      alt2: c.pal.loadedTheGameFromMemoryCard,
+      alt3: c.ntsc.resetTheGameFromMenu,
+      alt4: c.pal.resetTheGameFromMenu,
     },
     // endings have weird act number
     submit: andNext(
@@ -1847,7 +1770,7 @@ set.addLeaderboard({
       actIs(91).with({ cmp: '>=' }),
       actIs(96).with({ cmp: '<=' })
     ),
-    value: [techTokens.measuredValue],
+    value: $(techTokens.measuredValue),
   },
   id: 27542,
 })
