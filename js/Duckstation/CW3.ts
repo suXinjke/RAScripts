@@ -1,9 +1,7 @@
-// @ts-check
-import { AchievementSet, define as $, orNext, ConditionBuilder, RichPresence, pauseIf, measuredIf, once, andNext, resetIf, trigger, measured, resetNextIf } from '@cruncheevos/core'
+import { AchievementSet, define as $, orNext, RichPresence, pauseIf, measuredIf, once, andNext, resetIf, trigger, measured, resetNextIf, Condition, ConditionBuilder } from '@cruncheevos/core'
 
-/** @typedef {'pal' | 'ntsc'} Region */
+type Region = 'pal' | 'ntsc'
 
-/** @type Record<string, [number, string]> */
 const missionIds = {
   '1_1': [0, 'Escort Duty'],
   '1_3': [0, 'Covert Insertion'],
@@ -57,24 +55,19 @@ const missionIds = {
   '2_12': [4, 'The Gauntlet pt2'],
   '0_13': [4, 'Destroy Red Sun'],
   '2_13': [4, 'Destroy Red Sun pt2'],
+} as const
+
+interface WeaponMeta {
+  id: number
+  type: 'primary' | 'secondary' | 'passive'
+  station?: number
+  cheat?: boolean
+  missile?: boolean
+  torpedo?: boolean
+  firingCheck: 'delay' | 'charging' | '0x19_bit1' | 'pod' | 'hardpoint'
 }
 
-/**
- * @typedef {Object} WeaponMeta
- * @property {number} id
- * @property {'primary' | 'secondary' | 'passive'} type
- * @property {number} [station]
- * @property {boolean} [cheat]
- * @property {boolean} [missile]
- * @property {boolean} [torpedo]
- * @property {'delay' | 'charging' | '0x19_bit1' | 'pod' | 'hardpoint'} firingCheck
- */
-
-/**
- * @param {WeaponMeta} w
- * @returns WeaponMeta
- */
-const w = w => w
+const w = (w: WeaponMeta) => w
 const weapons = {
   'GP Laser Mk I': w({ id: 0x00, type: 'primary', firingCheck: 'delay', station: 0 }),
   'Shield Laser Mk I': w({ id: 0x03, type: 'primary', firingCheck: 'delay', station: 0 }),
@@ -128,12 +121,10 @@ const weapons = {
   'Cloak': w({ id: 0x2d, type: 'secondary', firingCheck: 'delay', cheat: true }),
 }
 
-/** @typedef {keyof typeof weapons} WeaponName */
-/** @typedef {[WeaponName, WeaponMeta]} WeaponEntry */
+type WeaponName = keyof typeof weapons
 
-/** @param {Region} r */
-const codeFor = (r) => {
-  const m = (addr = 0) => {
+const codeFor = (r: Region) => {
+  const m = (addr: number) => {
     if (addr >= 0x100000) {
       return r === 'pal' ? addr - 0x2C : addr
     }
@@ -147,7 +138,7 @@ const codeFor = (r) => {
     return {
       p,
       notNull: p.with({ flag: '', cmp: '!=', rvalue: ['Value', '', 0] }),
-      idIs: (id = -1) => $(
+      idIs: (id: number) => $(
         p,
         ['', 'Mem', '32bit', 0x00, '=', 'Value', '', id]
       ),
@@ -172,7 +163,7 @@ const codeFor = (r) => {
     return {
       p,
       notNull: p.with({ flag: '', cmp: '!=', rvalue: ['Value', '', 0] }),
-      idIs: (id = -1) => $(
+      idIs: (id: number) => $(
         p,
         ['', 'Mem', '32bit', 0x00, '=', 'Value', '', id]
       ),
@@ -189,11 +180,11 @@ const codeFor = (r) => {
     }
   })()
 
-  const shipIs = (id = -1) => $.one(['', 'Mem', '32bit', m(0x42620), '=', 'Value', '', id])
+  const shipIs = (id: number) => $.one(['', 'Mem', '32bit', m(0x42620), '=', 'Value', '', id])
 
   const timerAdvanced = $.one(['', 'Mem', '32bit', m(0x6a05c), '>', 'Delta', '32bit', m(0x6a05c)])
   const timerIsZero = $.one(['', 'Mem', '32bit', m(0x6a05c), '=', 'Value', '', 0])
-  const timerIsAboveInMsec = (msec = -1) => {
+  const timerIsAboveInMsec = (msec: number) => {
     const time = Math.floor(msec / (r === 'pal' ? 20 : 16.666))
     return $.one(['', 'Mem', '32bit', m(0x6a05c), '>', 'Value', '', time])
   }
@@ -224,6 +215,8 @@ const codeFor = (r) => {
     },
 
     isInGameMission: $.one(['', 'Mem', '32bit', m(0x3ba8c), '=', 'Value', '', 1]),
+    isInGameTutorial: $.one(['', 'Mem', '32bit', m(0x3ba8c), '=', 'Value', '', 8]),
+    isInGameCredits: $.one(['', 'Mem', '32bit', m(0x3ba8c), '=', 'Value', '', 7]),
     isNotInGame: $.one(['', 'Mem', '32bit', m(0x3ba8c), '=', 'Value', '', 3]),
 
     timerAdvanced,
@@ -233,7 +226,7 @@ const codeFor = (r) => {
 
     gamePaused: $.one(['', 'Mem', '32bit', m(0x120f58), '=', 'Value', '', 1]),
 
-    missionIs: (group = -1, id = -1) => $(
+    missionIs: (group: number, id: number) => $(
       ['', 'Mem', '8bit', m(0x425b7), '=', 'Value', '', group],
       ['', 'Mem', '8bit', m(0x425b6), '=', 'Value', '', id],
     ),
@@ -241,8 +234,7 @@ const codeFor = (r) => {
     missionComplete: $.one(['', 'Mem', '32bit', m(0x45470), '=', 'Value', '', 2]),
 
     shipIs,
-    correctShipForMission: (group = -1, id = -1) => {
-
+    correctShipForMission: (group: number, id: number) => {
       if (group === 0 && id === 1) {
         return shipIs(0) // Valdemar... Snapdragon
       }
@@ -251,8 +243,8 @@ const codeFor = (r) => {
         return shipIs(8) // Infilitrate... Sha'Har Fighter
       }
 
-      const [station] = missionIds[group + '_' + id]
-      const shipIsOrWorseThan = (id = -1) => shipIs(id).with({ cmp: '<=' })
+      const [station] = missionIds[group + '_' + id as keyof typeof missionIds]
+      const shipIsOrWorseThan = (id: number) => shipIs(id).with({ cmp: '<=' })
 
       return $(
         station === 0 && shipIsOrWorseThan(1),
@@ -263,8 +255,7 @@ const codeFor = (r) => {
       )
     },
 
-    /** @param {WeaponMeta[]} metas */
-    firedWeapon: (...metas) => {
+    firedWeapon: (...metas: WeaponMeta[]) => {
       const primaryDelay = metas.filter(w => w.type === 'primary' && w.firingCheck === 'delay')
       const primaryCharging = metas.filter(w => w.type === 'primary' && w.firingCheck === 'charging')
       const primary0x19bit = metas.filter(w => w.type === 'primary' && w.firingCheck === '0x19_bit1')
@@ -318,11 +309,7 @@ const codeFor = (r) => {
       )
     },
 
-    /**
-     * @param {number} max
-     * @param  {WeaponMeta[]} metas
-    */
-    haveHardpoints: (max, ...metas) => $(
+    haveHardpoints: (max: number, ...metas: WeaponMeta[]) => $(
       ...Array.from({ length: max }, (_, hardpoint) => orNext(
         ...metas.map(w => $(
           ['', 'Mem', '8bit', m(0x425ec + hardpoint * 0x4), '=', 'Value', '', w.id]
@@ -338,7 +325,7 @@ const codeFor = (r) => {
     ),
 
     // it's stack-like so offset goes backwards
-    entity: (i = -1) => {
+    entity: (i: number) => {
       const o = m(0x4d340) - i * 0x258
 
       return {
@@ -351,44 +338,44 @@ const codeFor = (r) => {
       }
     },
 
-    entityGroup: (i = -1) => {
+    entityGroup: (i: number) => {
       const o = m(0x03c180) + i * 0x378
 
       return {
         killCountByPlayerIsLess: $(
           ['', 'Mem', '16bit', o, '>', 'Mem', '16bit', o + 0x8]
         ),
-        killCountIsLessThan: (c = -1) => $(
+        killCountIsLessThan: (c: number) => $(
           ['', 'Mem', '16bit', o, '<', 'Value', '', c]
         ),
         killCountAddSource: $(
           ['AddSource', 'Mem', '16bit', o]
         ),
-        killCountIsMoreThan: (c = -1) => $(
+        killCountIsMoreThan: (c: number) => $(
           ['', 'Mem', '16bit', o, '>', 'Value', '', c]
         ),
-        killCountIsAtleast: (c = -1) => $(
+        killCountIsAtleast: (c: number) => $(
           ['', 'Mem', '16bit', o, '>=', 'Value', '', c]
         ),
-        escapeCountIsLessThan: (c = -1) => $(
+        escapeCountIsLessThan: (c: number) => $(
           ['', 'Mem', '16bit', o + 0x2, '<', 'Value', '', c]
         ),
-        escapeCountIsMoreThan: (c = -1) => $(
+        escapeCountIsMoreThan: (c: number) => $(
           ['', 'Mem', '16bit', o + 0x2, '>', 'Value', '', c]
         ),
-        escapeCountIsAtLeast: (c = -1) => $(
+        escapeCountIsAtLeast: (c: number) => $(
           ['', 'Mem', '16bit', o + 0x2, '>=', 'Value', '', c]
         ),
-        captureCountIsLessThan: (c = -1) => $(
+        captureCountIsLessThan: (c: number) => $(
           ['', 'Mem', '16bit', o + 0x4, '<', 'Value', '', c]
         ),
-        captureCountIsAtleast: (c = -1) => $(
+        captureCountIsAtleast: (c: number) => $(
           ['', 'Mem', '16bit', o + 0x4, '<', 'Value', '', c]
         ),
       }
     },
 
-    entityGroupPtr: (i = -1) => {
+    entityGroupPtr: (i: number) => {
       const p = $.one(
         ['AddAddress', 'Mem', '24bit', m(0x3bac8) + i * 0x38]
       )
@@ -402,18 +389,17 @@ const codeFor = (r) => {
       }
     },
 
-    semaphore: (i = -1) => {
+    semaphore: (i: number) => {
       const p = $.one(['AddAddress', 'Mem', '24bit', m(0x123b58)])
       return {
-        is: (v = -1) => $(
+        is: (v: number) => $(
           p,
           ['', 'Mem', '8bit', i, '=', 'Value', '', v]
         )
       }
     },
 
-    /** @param  {Array<'big' | 'mid' | 'small'>} types */
-    killCountSumFor: (...types) => {
+    killCountSumFor: (...types: Array<'big' | 'mid' | 'small'>) => {
       const offset = {
         'big': 0,
         'mid': 4,
@@ -427,8 +413,8 @@ const codeFor = (r) => {
       )
 
       return {
-        isAtleast: (value = -1) => base.withLast({ flag: '', cmp: '>=', rvalue: ['Value', '', value] }),
-        isLessThan: (value = -1) => base.withLast({ flag: '', cmp: '<', rvalue: ['Value', '', value] })
+        isAtleast: (value: number) => base.withLast({ flag: '', cmp: '>=', rvalue: ['Value', '', value] }),
+        isLessThan: (value: number) => base.withLast({ flag: '', cmp: '<', rvalue: ['Value', '', value] })
       }
     }
   }
@@ -439,31 +425,29 @@ const _c = {
   pal: codeFor('pal')
 }
 
-/** @typedef {(code: ReturnType<typeof codeFor>, region: Region) => any} CodeCallback */
+type CodeCallback = (code: ReturnType<typeof codeFor>, region: Region) => ConditionBuilder
 
-/**
- * @param {Object} params
- * @param {[number, number]} [params.id]
- * @param {Array<WeaponName>} [params.weaponExceptions]
- * @param {Array<WeaponName>} [params.weaponForbidden]
- * @param {number} [params.shipId]
- * @param {number} [params.maxMissiles]
- * @param {number} [params.maxTorpedoes]
- * @param {CodeCallback} [params.inGameTrigger]
- * @param {CodeCallback} [params.resetIf]
- * @param {CodeCallback} [params.measured]
- */
-function missionAchievement(params) {
+function missionAchievement(params: {
+  id?: [number, number]
+  weaponExceptions?: WeaponName[]
+  weaponForbidden?: WeaponName[]
+  shipId?: number
+  maxMissiles?: number
+  maxTorpedoes?: number
+  inGameTrigger?: CodeCallback
+  resetIf?: CodeCallback
+  measured?: CodeCallback
+}) {
   const { id, weaponExceptions = [], weaponForbidden = [] } = params
-  const [station] = missionIds[id[0] + '_' + id[1]]
+  const [station] = missionIds[id[0] + '_' + id[1] as keyof typeof missionIds]
 
   let notAllowedWeapons = Object.entries(weapons)
-    .filter((/** @type WeaponEntry */[name, w]) => {
-      if (weaponExceptions.includes(name)) {
+    .filter(([name, w]) => {
+      if (weaponExceptions.includes(name as WeaponName)) {
         return false
       }
 
-      if (weaponForbidden.includes(name)) {
+      if (weaponForbidden.includes(name as WeaponName)) {
         return true
       }
 
@@ -568,11 +552,10 @@ function missionAchievement(params) {
     }
   }
 
-  const res = groups.reduce((prev, cur, i) => {
+  return groups.reduce((prev, cur, i) => {
     prev[i === 0 ? 'core' : `alt${i}`] = cur
     return prev
-  }, { core: '' })
-  return res
+  }, {} as Condition.GroupSetObject)
 }
 
 const set = new AchievementSet({ gameId: 11672, title: 'Colony Wars: Red Sun' })
@@ -1023,7 +1006,7 @@ set.addAchievement({
     id: [1, 19],
     weaponForbidden: Object.entries(weapons)
       .filter(x => x[1].type === 'primary')
-      .map(x => /** @type WeaponName */(x[0]))
+      .map(x => x[0] as WeaponName)
   })
 })
 
@@ -1057,7 +1040,7 @@ set.addAchievement({
     measured: c => c.killCountSumFor('small').isAtleast(30),
     weaponForbidden: Object.entries(weapons)
       .filter(x => x[0] !== 'Plasma Cannon' && x[1].type === 'primary')
-      .map(x => /** @type WeaponName */(x[0]))
+      .map(x => x[0] as WeaponName)
   })
 })
 
@@ -1348,80 +1331,75 @@ set.addAchievement({
   })
 })
 
-export const rich = (() => {
-  /** @type Region[] */
-  const regions = ['ntsc', 'pal']
-
-  return RichPresence({
-    lookup: {
-      Station: {
-        values: {
-          0: 'Magenta',
-          1: 'Marjorie',
-          2: 'Cardinale',
-          3: 'Aurora',
-          4: 'Boreas',
-        }
-      },
-      Ship: {
-        values: {
-          0: 'CR8 Snapdragon',
-          1: 'Zu-7 Ryusei',
-          2: 'Zu-15A Shinden',
-          3: 'H2S Cobra',
-          4: 'H4E Magnum',
-          5: 'BSI 919 Medusa II',
-          6: 'BSI 303 Hyper Zeroid',
-          7: 'BSI 606 Super Medusa',
-          8: `Sha'Har Fighter`
-        }
-      },
-      Mission: {
-        values: {
-          ...Object.entries(missionIds).reduce((prev, [key, value]) => {
-            const [group, id] = key.split('_').map(Number)
-            prev[group * 100 + id] = value[1]
-            return prev
-          }, {}),
-          401: 'Craft Handling Exercise',
-          402: 'Tactical Exercises',
-        },
-        compressRanges: false
+export const rich = RichPresence({
+  lookup: {
+    Station: {
+      values: {
+        0: 'Magenta',
+        1: 'Marjorie',
+        2: 'Cardinale',
+        3: 'Aurora',
+        4: 'Boreas',
       }
     },
-    displays: ({ lookup, macro, tag }) => regions.flatMap(r => {
-      const c = codeFor(r)
-      const atStation = lookup.Station.at(c.measured.station)
-      const atShip = lookup.Ship.at(c.measured.ship)
-      const atMission = lookup.Mission.at(c.measured.mission)
-      const atMoney = macro.Number.at(c.measured.money)
+    Ship: {
+      values: {
+        0: 'CR8 Snapdragon',
+        1: 'Zu-7 Ryusei',
+        2: 'Zu-15A Shinden',
+        3: 'H2S Cobra',
+        4: 'H4E Magnum',
+        5: 'BSI 919 Medusa II',
+        6: 'BSI 303 Hyper Zeroid',
+        7: 'BSI 606 Super Medusa',
+        8: `Sha'Har Fighter`
+      }
+    },
+    Mission: {
+      values: {
+        ...Object.entries(missionIds).reduce((prev, [key, value]) => {
+          const [group, id] = key.split('_').map(Number)
+          prev[group * 100 + id] = value[1]
+          return prev
+        }, {} as Record<number, string>),
+        401: 'Craft Handling Exercise',
+        402: 'Tactical Exercises',
+      },
+      compressRanges: false
+    }
+  },
+  displays: ({ lookup, macro, tag }) => (['ntsc', 'pal'] as const).flatMap(r => {
+    const c = codeFor(r)
+    const atStation = lookup.Station.at(c.measured.station)
+    const atShip = lookup.Ship.at(c.measured.ship)
+    const atMission = lookup.Mission.at(c.measured.mission)
+    const atMoney = macro.Number.at(c.measured.money)
 
-      const killCount = '💀' + [
-        c.measured.killsSmall,
-        c.measured.killsMedium,
-        c.measured.killsBig
-      ].map(macro.Number.at).join('/')
+    const killCount = '💀' + [
+      c.measured.killsSmall,
+      c.measured.killsMedium,
+      c.measured.killsBig
+    ].map(macro.Number.at).join('/')
 
-      return /** @type Array<string | [ConditionBuilder, string]> */ ([
-        [
-          $(c.regionCheck, c.isNotInGame),
-          tag`${atStation} 🚀${atShip} ${killCount} 💰${atMoney}`
-        ],
-        [
-          $(c.regionCheck, c.isInGameMission),
-          tag`${atStation} 📍${atMission} 🚀${atShip}`
-        ],
-        [
-          $(c.regionCheck, c.isInGameTutorial),
-          tag`${atMission} 🚀${atShip}`
-        ],
-        [
-          $(c.regionCheck, c.isInGameCredits),
-          `Watching Credits`
-        ],
-      ])
-    }).concat('Playing Colony Wars: Red Sun')
-  })
-})()
+    return [
+      [
+        $(c.regionCheck, c.isNotInGame),
+        tag`${atStation} 🚀${atShip} ${killCount} 💰${atMoney}`
+      ],
+      [
+        $(c.regionCheck, c.isInGameMission),
+        tag`${atStation} 📍${atMission} 🚀${atShip}`
+      ],
+      [
+        $(c.regionCheck, c.isInGameTutorial),
+        tag`${atMission} 🚀${atShip}`
+      ],
+      [
+        $(c.regionCheck, c.isInGameCredits),
+        `Watching Credits`
+      ],
+    ] as Array<string | [ConditionBuilder, string]>
+  }).concat('Playing Colony Wars: Red Sun')
+})
 
 export default set
