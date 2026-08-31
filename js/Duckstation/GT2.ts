@@ -6,12 +6,13 @@ const set = new AchievementSet({ gameId: 11278, title: 'Gran Turismo 2' })
 const main = (() => {
   return {
     notInReplayMode: $.one(['', 'Mem', '8bit', 0x0A951C, '!=', 'Value', '', 1]),
-    licenseTestIs: (license, testId) => $(
+
+    licenseTestIs: (license: number, testId: number) => $(
       ['', 'Mem', '16bit', 0x1D5866, '=', 'Value', '', license],
       ['', 'Mem', '8bit', 0x1D5868, '=', 'Value', '', testId],
     ),
-    /** @param {number[]} ids */
-    carIdIs: (...ids) => orNext(
+
+    carIdIs: (...ids: number[]) => orNext(
       ...ids.map(id => $.one(['', 'Mem', '32bit', 0x1D58B8, '=', 'Value', '', id])),
     ),
     licenseFinished: $(
@@ -30,7 +31,7 @@ const licenseNames = {
   3: "S"
 }
 
-const licenseTests = /** @type const */ ([
+for (const [license, testId, carIds] of [
   [1283, 0, [504236312]],
   [1283, 1, [323803032]],
   [1283, 2, [403462168]],
@@ -91,9 +92,7 @@ const licenseTests = /** @type const */ ([
   [3, 7, [386798044]],
   [3, 8, [321676188]],
   [3, 9, [504177308, 0x1e0d129c]]
-])
-
-for (const [license, testId, carIds] of licenseTests) {
+] as const) {
   const licenseName = licenseNames[license]
 
   set.addLeaderboard({
