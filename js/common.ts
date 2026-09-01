@@ -1,5 +1,6 @@
 import * as path from 'path'
 import * as fs from 'fs'
+import type { Condition, ConditionBuilder } from '@cruncheevos/core'
 
 export type ArrayValue<T> = T extends (infer U)[] ? U : never
 export type ObjectValue<T> = T extends (Record<string, infer U>) ? U : never
@@ -42,6 +43,54 @@ export function arrayToObject<O>(input: O[], cb: (o: O) => string | number) {
     prev[cb(cur)] = cur
     return prev
   }, {} as Record<string, O>)
+}
+
+export function altsFromArray(...args: Array<Condition.Group>) {
+  return args.reduce((prev, cur, i) => {
+    prev[i === 0 ? 'core' : `alt${i}`] = cur
+    return prev
+  }, {} as Condition.GroupSetObject)
+}
+
+export function makeMultiRegionalConditionsFunction<O extends Record<string, O[keyof O]>>(obj: O, opts?: { alwaysTrueCondition?: string | ConditionBuilder }) {
+  function multiRegionalConditions(cb: (c: O[keyof O], r: keyof O) => ConditionBuilder) {
+    const { alwaysTrueCondition = 'hcafe=hcafe' } = opts || {}
+
+    return altsFromArray(
+      alwaysTrueCondition,
+      ...Object.entries(obj).map(([r, code]) => cb(code, r))
+    )
+  }
+
+  multiRegionalConditions.coreIncluded = function (cb: (c: O[keyof O], r: keyof O) => ConditionBuilder) {
+    return altsFromArray(
+      ...Object.entries(obj).map(([r, code]) => cb(code, r))
+    )
+  }
+
+  multiRegionalConditions.altsOnly = function (cb: (c: O[keyof O], r: keyof O) => ConditionBuilder) {
+    const res = multiRegionalConditions(cb)
+    delete res.core
+    return res
+  }
+
+  multiRegionalConditions.severalAltsPerRegion = function (cb: (c: O[keyof O], r: keyof O) => Condition.GroupSetObject) {
+    const { alwaysTrueCondition = 'hcafe=hcafe' } = opts || {}
+
+    return altsFromArray(
+      alwaysTrueCondition,
+      ...Object.entries(obj).flatMap(([r, code]) => {
+        const { core, ...rest } = cb(code, r)
+        return Object.values(rest)
+      })
+    )
+  }
+
+  multiRegionalConditions.toArray = function (cb: (c: O[keyof O], r: keyof O) => ConditionBuilder | ConditionBuilder[]) {
+    return Object.entries(obj).flatMap(([r, code]) => cb(code, r))
+  }
+
+  return multiRegionalConditions
 }
 
 export function givenRangeOf(start = 0, end = 0) {
