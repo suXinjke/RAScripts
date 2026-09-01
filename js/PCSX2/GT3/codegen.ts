@@ -1,29 +1,15 @@
-import { getParsedSheet as _getSheet } from '../../common.ts'
+import { getParsedSheet as _getSheet, arrayToObject } from '../../common.ts'
+import type { ArrayValue } from '../../common.ts'
 import * as fs from 'fs'
 import * as path from 'path'
 
-/**
- * @template T
- * @typedef {T extends (infer U)[] ? Record<string, U> : T} ArrayToObject
- * **/
-
-/**
- * @template T
- * @typedef {T extends (infer U)[] ? U : never} ArrayValue
- * **/
-
 const tmpDir = path.join(import.meta.dirname, 'tmp')
 
-const getParsedSheet = (id) => _getSheet(import.meta.dirname, id)
-
-function arrayToObject(prev, cur) {
-  prev[cur.id] = cur
-  return prev
-}
+const getParsedSheet = (id: string) => _getSheet(import.meta.dirname, id)
 
 // example input: 8:05.123
 // expected output in msec: 485123
-function extractTime(str = '') {
+function extractTime(str: string) {
   const timeString = str.match(/(\d+):(\d{2})\.(\d{3})/)
   return (
     Number(timeString[1]) * 60 * 1000 +
@@ -32,7 +18,7 @@ function extractTime(str = '') {
   )
 }
 
-function generateHash(name) {
+function generateHash(name: string) {
   let hash = BigInt(0)
   const nameChars = name.split('').map(x => BigInt(x.charCodeAt(0)))
 
@@ -51,36 +37,32 @@ function generateHash(name) {
   return BigInt.asUintN(64, hash)
 }
 
-export function getHash(str) {
+export function getHash(str: string) {
   const hash = generateHash(str).toString(16).padStart(16, '0')
-
-  /** @type [number, number, string] */
-  const res = [
-    hash.slice(0, 8),
-    hash.slice(8),
-  ].map(x => parseInt(x, 16)).concat(hash)
-  return res
+  return [
+    parseInt(hash.slice(0, 8), 16),
+    parseInt(hash.slice(8), 16),
+    hash
+  ] as const
 }
 
 async function makeCars() {
   const rows = await getParsedSheet('cars')
 
-  const cars = rows.map((row) => {
-    return {
-      id: row[3],
-      name: row[2],
-      year: row[4] ? Number(row[4]) : '',
-      country: row[5],
-      type: row[6],
-      hidden: row[14]
-    }
-  }, {})
+  const cars = rows.map((row) => ({
+    id: row[3],
+    name: row[2],
+    year: row[4] ? Number(row[4]) : '',
+    country: row[5],
+    type: row[6],
+    hidden: row[14]
+  }))
+
+  type Car = ArrayValue<typeof cars>
 
   return {
-    /** @type ArrayToObject<typeof cars> */
-    carLookup: cars.reduce(arrayToObject, {}),
+    carLookup: arrayToObject(cars, x => x.id),
 
-    /** @type Record<string, Array<ArrayValue<typeof cars>> */
     carLookupByCountry: cars.reduce((prev, cur) => {
       if (!cur.country) {
         return prev
@@ -92,46 +74,39 @@ async function makeCars() {
 
       prev[cur.country].push(cur)
       return prev
-    }, {})
+    }, {} as Record<string, Car[]>)
   }
 }
 
 async function makeTracks() {
   const rows = await getParsedSheet('tracks')
 
-  const tracks = rows.map((row) => {
-    return {
-      id: row[2],
-      name: row[3],
-    }
-  }, {})
+  const tracks = rows.map((row) => ({
+    id: row[2],
+    name: row[3],
+  }))
 
-  /** @type ArrayToObject<typeof tracks> */
-  const res = tracks.reduce(arrayToObject, {})
-  return res
+  return arrayToObject(tracks, x => x.id)
 }
 
 async function makeLicenses() {
   const rows = await getParsedSheet('license')
 
-  const licenses = rows.map((row) => {
-    return {
-      id: row[1],
-      name: row[2],
-      points: Number(row[4]),
-      get letter() {
-        return this.id.match(/L\d?([A-Z]{1,2})/)[1]
-      },
-      get index() {
-        return this.id[this.id.length - 1]
-      },
-    }
-  }, {})
+  const licenses = rows.map((row) => ({
+    id: row[1],
+    name: row[2],
+    points: Number(row[4]),
+    get letter() {
+      return this.id.match(/L\d?([A-Z]{1,2})/)[1]
+    },
+    get index() {
+      return this.id[this.id.length - 1]
+    },
+  }))
 
   return {
     licenses,
 
-    /** @type Record<string, typeof licenses> */
     licenseLookupByLetter: {
       B: licenses.filter(x => x.id.startsWith('L0B')),
       A: licenses.filter(x => x.id.startsWith('L0A')),
@@ -139,7 +114,7 @@ async function makeLicenses() {
       IA: licenses.filter(x => x.id.startsWith('LIA')),
       S: licenses.filter(x => x.id.startsWith('L0S')),
       R: licenses.filter(x => x.id.startsWith('L0R')),
-    }
+    } as Record<string, typeof licenses>
   }
 }
 
@@ -149,8 +124,7 @@ async function makeEvents() {
     getParsedSheet('subEvents'),
   ])
 
-  /** @type Record<string, number> */
-  const eventCount = {}
+  const eventCount: Record<string, number> = {}
 
   const events = _events.map(e => {
     const id = e[0]
@@ -205,8 +179,7 @@ async function makeEvents() {
     }
   })
 
-  /** @type ArrayToObject<typeof events> */
-  const eventLookup = events.reduce(arrayToObject, {})
+  const eventLookup = arrayToObject(events, x => x.id)
 
   subEvents.forEach((s) => {
     const id = s[3]
@@ -220,12 +193,12 @@ async function makeEvents() {
     event.races.push({
       id,
       trackId: s[4],
-      points: s[5] ? Number(s[5]) : ''
+      points: s[5] ? Number(s[5]) : undefined
     })
   })
 
   Object.values(eventLookup).forEach(e => {
-    if (e.races.some(s => s.points === '')) {
+    if (e.races.some(s => s.points === undefined)) {
       e.points = e.races[0].points
       e.races[0].points = 0
       e.oneSession = true
@@ -284,19 +257,18 @@ async function makeTimeTrials() {
 async function makeEventChallenges() {
   const eventChallenges = await getParsedSheet('eventWin')
 
-  return eventChallenges
-    .map(e => ({
-      carIds: e[0].split(','),
-      eventId: e[1],
-      raceIndexes: e[2] ? Number(e[2]) : undefined,
-      title: e[3],
-      description: e[4],
-      points: Number(e[5]),
-      colorRestriction: e[7] ? Number(e[7]) : undefined,
-      expectedOpponents: e[8],
-      frontTiresExcludeId: e[9],
-      rearTiresExcludeId: e[10],
-    }))
+  return eventChallenges.map(e => ({
+    carIds: e[0].split(','),
+    eventId: e[1],
+    raceIndexes: e[2] ? Number(e[2]) : undefined,
+    title: e[3],
+    description: e[4],
+    points: Number(e[5]),
+    colorRestriction: e[7] ? Number(e[7]) : undefined,
+    expectedOpponents: e[8],
+    frontTiresExcludeId: e[9],
+    rearTiresExcludeId: e[10],
+  }))
 }
 
 export default async function main() {
