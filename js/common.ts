@@ -32,6 +32,13 @@ export function mapNumberedObject<T extends object, NewValue>(
   return res
 }
 
+export function arrayToObject<O>(input: O[], cb: (o: O) => string | number) {
+  return input.reduce((prev, cur) => {
+    prev[cb(cur)] = cur
+    return prev
+  }, {} as Record<string, O>)
+}
+
 export function givenRangeOf(start = 0, end = 0) {
   return Array.from({ length: end - start + 1 }, (v, k) => start + k)
 }
