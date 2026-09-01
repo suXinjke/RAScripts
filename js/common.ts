@@ -1,6 +1,8 @@
 import * as path from 'path'
 import * as fs from 'fs'
 
+export type ArrayValue<T> = T extends (infer U)[] ? U : never
+
 export function mapObject<T extends object, NewValue>(
   input: T,
   cb: (value: T[keyof T], key: string) => NewValue
