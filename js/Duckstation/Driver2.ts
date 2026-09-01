@@ -1,15 +1,21 @@
-// @ts-check
+import { AchievementSet, ConditionBuilder, RichPresence, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, once, measuredIf, Condition, Achievement } from '@cruncheevos/core'
+import { makeMultiRegionalConditionsFunction } from '../common.ts'
 
-import { AchievementSet, ConditionBuilder, RichPresence, define as $, pauseIf, trigger, andNext, orNext, resetNextIf, resetIf, once, measuredIf } from '@cruncheevos/core'
+interface Coords {
+  top: number,
+  bottom: number,
+  left: number,
+  right: number
+}
 
-const pursuits = /** @type {const} */ ([
+const pursuits = [
   [0x46, 10, 'Chicago'],
   [0x4e, 5, 'Havana'],
   [0x56, 10, 'Las Vegas'],
   [0x5e, 10, 'Rio'],
-])
+] as const
 
-const getaways = /** @type {const} */ ([
+const getaways = [
   [0x66, 'Chicago - Downtown'],
   [0x67, 'Chicago - Wrigleyville'],
   [0x6e, 'Havana - Necropolis de Colon'],
@@ -18,9 +24,9 @@ const getaways = /** @type {const} */ ([
   [0x77, 'Las Vegas - Upper Strip'],
   [0x7e, 'Rio - Centro'],
   [0x7f, 'Rio - Copacabana', 'damageOk'],
-])
+] as const
 
-const gateRaces = /** @type {const} */ ([
+const gateRaces = [
   [0x86, 'Chicago - Greektown'],
   [0x87, 'Chicago - Grant Park'],
   [0x8e, 'Havana - Necropolis de Colon'],
@@ -29,9 +35,9 @@ const gateRaces = /** @type {const} */ ([
   [0x97, 'Las Vegas - Mid Strip'],
   [0x9e, 'Rio - Copacabana'],
   [0x9f, 'Rio - Santa Tereza'],
-])
+] as const
 
-const trailblzers = /** @type {const} */ ([
+const trailblzers = [
   [0x104, 'Chicago - Grant Park'],
   [0x105, 'Chicago - Downtown'],
   [0x10c, 'Havana - Old Havana'],
@@ -40,9 +46,9 @@ const trailblzers = /** @type {const} */ ([
   [0x115, 'Las Vegas - Upper Strip'],
   [0x11c, 'Rio - Leblon'],
   [0x11d, 'Rio - Praca da Bandeira'],
-])
+] as const
 
-const checkpointRaces = /** @type {const} */ ([
+const checkpointRaces = [
   [0xc4, '01:29.00', 10, 'Chicago - Downtown'],
   [0xc5, '00:59.50', 5, 'Chicago - Meigs Field'],
   [0xcc, '00:58.20', 10, 'Havana - The Docks'],
@@ -51,26 +57,38 @@ const checkpointRaces = /** @type {const} */ ([
   [0xd5, '01:09.99', 5, 'Las Vegas - Lakeside'],
   [0xdc, '01:46.50', 5, 'Rio - Lagoa Rodrigo de Freitas'],
   [0xdd, '01:28.00', 5, 'Rio - Praca da Bandeira'],
-])
+] as const
 
-const survivalRaces = /** @type {const} */ ([
+const survivalRaces = [
   [0x124, 25, 'Chicago'],
   [0x12c, 30, 'Havana'],
   [0x134, 30, 'Las Vegas', 'no-leaderboard'],
   [0x13c, 30, 'Rio', 'no-leaderboard'],
-])
+] as const
 
-const secretRaces = /** @type {const} */ ([
+const secretRaces = [
   [[0x1e0, 0x1e1], '01:30.00', 10, 'Secret Mountain Pass', 'lapTime'],
   [[0x1e2, 0x1e3], '02:15.00', 5, 'Secret Race Track'],
-])
+] as const
 
-const secretCars = /** @type {const} */ ([
+type CarStatNumbers = [number, number, number, number?]
+type SecretCarMeta = [
+  number[],
+  CarStatNumbers,
+  string,
+  string,
+  {
+    title: string,
+    description: string,
+    coords: Coords
+  }?
+]
+
+const secretCars: SecretCarMeta[] = [
   [
     [0x32, 0x33],
     [0x1194, 0x11301000, 0x31],
     'Chicago Secret Car',
-    'Chicago',
     'Take a Drive and get inside secret car in Chicago Stadium',
     {
       title: 'Cannonball Chicago',
@@ -87,7 +105,6 @@ const secretCars = /** @type {const} */ ([
     [0x34, 0x35],
     [0x1000, 0xaf01000, 0x21],
     'Havana Secret Car',
-    'Havana',
     'Take a Drive and get inside secret car in Havana Underground Parking',
     {
       title: 'Mini Delivery',
@@ -104,7 +121,6 @@ const secretCars = /** @type {const} */ ([
     [0x36, 0x37],
     [0x1000, 0x10001000, 0xFF82002B, 0x0D],
     'Las Vegas Secret Truck',
-    'LasVegas',
     'Take a Drive and get inside secret truck in Las Vegas',
     {
       title: 'Cannonball Las Vegas',
@@ -121,10 +137,9 @@ const secretCars = /** @type {const} */ ([
     [0x38, 0x39],
     [0x0B54, 0x0ED81000, 0x47],
     'Rio Secret Truck',
-    'Rio',
     'Take a Drive and get inside the secret truck in Rio. What are you gonna do with it?'
   ],
-])
+] as const
 
 const gameType = {
   mission: 0,
@@ -214,7 +229,7 @@ const missionTitles = {
   ].reduce((prev, array) => {
     prev[array[0]] = array[1]
     return prev
-  }, {}),
+  }, {} as Record<number, string>),
 
   0x1e0: 'Secret Mountain Pass (Day)',
   0x1e1: 'Secret Mountain Pass (Night)',
@@ -228,54 +243,11 @@ function stringTimeToDriverTime(str = '') {
   return totalMilliseconds * 3
 }
 
-const b = (fileName = '') => process.argv.includes('badge') ? `local\\\\driver\\\\${fileName}.png` : undefined
+type Region = 'us' | 'eu' | 'fr' | 'de' | 'it' | 'sp'
 
-/** @typedef {'us' | 'eu' | 'fr' | 'de' | 'it' | 'sp'} Region */
-/** @param {(region: Region) => any} cb */
-function multiRegionalConditions(cb) {
-  const res = [cb('us'), cb('eu'), cb('fr'), cb('de'), cb('it'), cb('sp')]
-  if (res[0].core) {
-    let count = 1
-    const ret = {
-      core: res[0].core
-    }
+const codeFor = (region: Region) => {
 
-    for (const bunch of res) {
-      for (const group of Object.values(bunch).slice(1)) {
-        ret[`alt${count}`] = group
-        count++
-      }
-    }
-
-    return ret
-  }
-
-  if (Array.isArray(res[0]) && res[0].length === 1) {
-    return {
-      core: res[0],
-      alt1: res[1],
-      alt2: res[2],
-      alt3: res[3],
-      alt4: res[4],
-      alt5: res[5],
-    }
-  }
-
-  return {
-    core: 'hcafe=hcafe',
-    alt1: res[0],
-    alt2: res[1],
-    alt3: res[2],
-    alt4: res[3],
-    alt5: res[4],
-    alt6: res[5],
-  }
-}
-
-/** @param {Region} region */
-const codeFor = (region) => {
-
-  const offset = (value) => {
+  const offset = (value: number) => {
     if (region === 'eu') {
       if (value > 0xaa6f0) {
         return value - 0x78
@@ -365,24 +337,24 @@ const codeFor = (region) => {
     region === 'sp' && regionIs.sp,
   )
 
-  const missionIdIs = (missionId) => {
-    missionId = Array.isArray(missionId) ? missionId : [missionId]
+  const missionIdIs = (...missionIds: number[]) => {
+    // const missionIds = Array.isArray(missionId) ? missionId : [missionId]
 
     return orNext(
-      ...missionId.map(id => $.one(['', 'Mem', '32bit', address.mission, '=', 'Value', '', id]))
+      ...missionIds.map(id => $.one(['', 'Mem', '32bit', address.mission, '=', 'Value', '', id]))
     )
   }
-  const gameTypeIdIs = (gameTypeId) => $.one(['', 'Mem', '8bit', address.gameType, '=', 'Value', '', gameTypeId])
+  const gameTypeIdIs = (gameTypeId: number) => $.one(['', 'Mem', '8bit', address.gameType, '=', 'Value', '', gameTypeId])
 
   const score = {
     address: address.score,
-    equalsOrGreaterThan: (scoreTarget) => $.one(['', 'Mem', '16bit', address.score, '>=', 'Value', '', scoreTarget]),
+    equalsOrGreaterThan: (scoreTarget: number) => $.one(['', 'Mem', '16bit', address.score, '>=', 'Value', '', scoreTarget]),
     increased: $.one(['', 'Mem', '16bit', address.score, '>', 'Delta', '16bit', address.score])
   }
 
   const missionTimer = {
-    equalsOrLessThan: (timeTarget) => $.one(['', 'Mem', '32bit', address.missionTimer, '<=', 'Value', '', stringTimeToDriverTime(timeTarget)]),
-    wentAboveTarget: (timeTarget) => $(
+    equalsOrLessThan: (timeTarget: string) => $.one(['', 'Mem', '32bit', address.missionTimer, '<=', 'Value', '', stringTimeToDriverTime(timeTarget)]),
+    wentAboveTarget: (timeTarget: string) => $(
       ['', 'Delta', '32bit', address.missionTimer, '<', 'Value', '', stringTimeToDriverTime(timeTarget)],
       ['', 'Mem', '32bit', address.missionTimer, '>=', 'Value', '', stringTimeToDriverTime(timeTarget)],
     ),
@@ -392,7 +364,7 @@ const codeFor = (region) => {
     )
   }
 
-  const makeDamageBarCode = (address) => {
+  const makeDamageBarCode = (address: number) => {
     const damageAddress = offset(address)
     const maxDamageAddress = damageAddress + 0x2
     const appearanceAddress = damageAddress + 0xc
@@ -404,8 +376,8 @@ const codeFor = (region) => {
         ['', 'Mem', '16bit', damageAddress, '>=', 'Mem', '16bit', maxDamageAddress]
       ),
       hasNoDamage: $.one(['', 'Mem', '16bit', damageAddress, '=', 'Value', '', 0]),
-      hasDamageGreaterThan: value => $.one(['', 'Mem', '16bit', damageAddress, '>', 'Value', '', value]),
-      surpassedDamage: value => $(
+      hasDamageGreaterThan: (value: number) => $.one(['', 'Mem', '16bit', damageAddress, '>', 'Value', '', value]),
+      surpassedDamage: (value: number) => $(
         ['AndNext', 'Mem', '16bit', damageAddress, '>=', 'Value', '', value],
         ['', 'Delta', '16bit', damageAddress, '<', 'Value', '', value],
       ),
@@ -415,7 +387,7 @@ const codeFor = (region) => {
     }
   }
 
-  const makeCarDataCode = (baseAddress) => {
+  const makeCarDataCode = (baseAddress: Condition) => {
     const validId = baseAddress.with({ flag: 'AndNext', cmp: '!=', rvalue: ['Value', '', 0xFF] })
 
     return {
@@ -448,7 +420,7 @@ const codeFor = (region) => {
         )
       },
 
-      carPos: (coords) => $(
+      carPos: (coords: Coords) => $(
         validId,
 
         baseAddress,
@@ -464,8 +436,8 @@ const codeFor = (region) => {
         ['', 'Mem', '32bit', offset(0x0d138c), '<=', 'Value', '', coords.right],
       ),
 
-      hasSpecificStats(stats) {
-        const checkStat = (valueOffset, type, value) => $(
+      hasSpecificStats(stats: CarStatNumbers) {
+        const checkStat = (valueOffset: number, type: Condition.Size, value: number) => $(
           validId,
           baseAddress,
           ['AddAddress', 'Mem', '32bit', offset(0xd14dc)],
@@ -485,7 +457,7 @@ const codeFor = (region) => {
 
   return {
     address,
-    calculateRegionOffset: offset,
+    offset,
     regionCheck,
     protections({
       resetInsteadOfPause = false,
@@ -503,7 +475,8 @@ const codeFor = (region) => {
       return $(
         pauseIf(regionCheck.map(c => c.with({ cmp: '!=' }))),
 
-        (resetInsteadOfPause ? resetIf : pauseIf)(notPlayingTheGame),
+        resetInsteadOfPause && resetIf(notPlayingTheGame),
+        !resetInsteadOfPause && pauseIf(notPlayingTheGame),
 
         !godModeAllowed && pauseIfGodModeCheat,
         !noCopAllowed && pauseIfNoCopCheat,
@@ -515,12 +488,12 @@ const codeFor = (region) => {
       ['OrNext', 'Mem', '8bit', address.gameState, '<=', 'Value', '', gameState.quittingTheGame],
       ['', 'Mem', '8bit', address.gameState, '=', 'Value', '', gameState.nextMission]
     ),
-    gameStateIs: (gameState) => $.one(['', 'Mem', '8bit', address.gameState, '=', 'Value', '', gameState]),
+    gameStateIs: (gameState: number) => $.one(['', 'Mem', '8bit', address.gameState, '=', 'Value', '', gameState]),
 
-    frameCountLessThan: (frameCount) => $.one(['', 'Mem', '32bit', offset(0xab3b0), '<', 'Value', '', frameCount]),
-    frameCountGreaterThan: (frameCount) => $.one(['', 'Mem', '32bit', offset(0xab3b0), '>', 'Value', '', frameCount]),
+    frameCountLessThan: (frameCount: number) => $.one(['', 'Mem', '32bit', offset(0xab3b0), '<', 'Value', '', frameCount]),
+    frameCountGreaterThan: (frameCount: number) => $.one(['', 'Mem', '32bit', offset(0xab3b0), '>', 'Value', '', frameCount]),
 
-    cityIdIs: (id) => $.one(['', 'Mem', '32bit', address.city, '=', 'Value', '', id]),
+    cityIdIs: (id: number) => $.one(['', 'Mem', '32bit', address.city, '=', 'Value', '', id]),
 
     missionIdIs,
     missionTimer,
@@ -541,7 +514,7 @@ const codeFor = (region) => {
       forTarget: makeCarDataCode($.one(
         ['AddAddress', 'Mem', '8bit', address.targetedCarId, '*', 'Value', '', 0x29c]
       )),
-      byIndex: idx => makeCarDataCode($.one(['AddAddress', 'Value', '', idx, '*', 'Value', '', 0x29c]))
+      byIndex: (idx: number) => makeCarDataCode($.one(['AddAddress', 'Value', '', idx, '*', 'Value', '', 0x29c]))
     },
 
     score,
@@ -556,19 +529,19 @@ const codeFor = (region) => {
     playerCarIdChanged: $.one(['', 'Mem', '8bit', address.playerCarId, '!=', 'Delta', '8bit', address.playerCarId]),
     playerIsNotChased: $.one(['', 'Mem', '32bit', address.chased, '=', 'Value', '', 0]),
 
-    lapTimeLessOrEqualThan: (lapIndex, time) => $.one(['', 'Mem', '32bit', address.lapTime1 + lapIndex * 4, '<=', 'Value', '', stringTimeToDriverTime(time)]),
+    lapTimeLessOrEqualThan: (lapIndex: number, time: string) => $.one(['', 'Mem', '32bit', address.lapTime1 + lapIndex * 4, '<=', 'Value', '', stringTimeToDriverTime(time)]),
 
 
     damageBar: makeDamageBarCode(0x0ab93c),
     targetDamageBar: makeDamageBarCode(0x0ab8fc),
 
     proximityBar: {
-      isLessThan: value => $.one(['', 'Mem', '16bit', offset(0x0ab8dc), '<', 'Value', '', value]),
-      isGreaterThan: value => $.one(['', 'Mem', '16bit', offset(0x0ab8dc), '>', 'Value', '', value]),
+      isLessThan: (value: number) => $.one(['', 'Mem', '16bit', offset(0x0ab8dc), '<', 'Value', '', value]),
+      isGreaterThan: (value: number) => $.one(['', 'Mem', '16bit', offset(0x0ab8dc), '>', 'Value', '', value]),
     },
 
     target: {
-      flagsChanged: (targeIndex, from, to) => {
+      flagsChanged: (targeIndex: number, from: number, to: number) => {
         const flagOffset = 0x40 * targeIndex + 0x4
         return $(
           ['AddAddress', 'Mem', '32bit', address.targetsArray],
@@ -580,14 +553,14 @@ const codeFor = (region) => {
     },
 
     playerCarId: {
-      changedTo: (to) => $(
+      changedTo: (to: number) => $(
         ['AndNext', 'Mem', '8bit', address.playerCarId, '!=', 'Delta', '8bit', address.playerCarId],
         ['', 'Mem', '8bit', address.playerCarId, '=', 'Value', '', to]
       ),
     },
 
     targetCarId: {
-      changedExact: (from, to) => $(
+      changedExact: (from: number, to: number) => $(
         ['AndNext', 'Delta', '8bit', address.targetedCarId, '=', 'Value', '', from],
         ['', 'Mem', '8bit', address.targetedCarId, '=', 'Value', '', to]
       ),
@@ -596,36 +569,37 @@ const codeFor = (region) => {
     isHardCopDifficulty: $.one(['', 'Mem', '32bit', offset(0x0aa6bc), '=', 'Value', '', 2]),
     hasAlertedCops: $.one(['', 'Mem', '32bit', address.chased, '>', 'Delta', '32bit', address.chased]),
 
-    hasCompletedMissionInGame: ({
-      missionId,
-      gameTypeId = -1,
-      triggerDecor = false,
-      hardCops = false,
-      scoreTarget = 0,
-      timeTarget = '',
-      deltaFix = true
+    hasCompletedMissionInGame: (o: {
+      missionId: number[]
+      gameTypeId: number
+      triggerDecor?: boolean
+      hardCops?: boolean
+      scoreTarget?: number
+      timeTarget?: string
+      deltaFix?: boolean
     }) => {
+      const { deltaFix = true } = o
       const restOfConditions = $(
         ['', 'Mem', '16bit', offset(0x0d7d20), '=', 'Value', '', pauseMode.missionComplete],
         deltaFix && ['', 'Mem', '16bit', offset(0x0d7d22), '<', 'Delta', '16bit', offset(0x0d7d22)],
         !deltaFix && ['', 'Mem', '16bit', offset(0x0d7d22), '>', 'Value', '', 0],
 
-        scoreTarget > 0 && score.equalsOrGreaterThan(scoreTarget),
-        timeTarget !== '' && missionTimer.equalsOrLessThan(timeTarget),
+        o.scoreTarget > 0 && score.equalsOrGreaterThan(o.scoreTarget),
+        o.timeTarget && missionTimer.equalsOrLessThan(o.timeTarget),
       )
 
       return $(
-        gameTypeId >= 0 && pauseIf(gameTypeIdIs(gameTypeId).with({ cmp: '!=' })),
-        missionIdIs(missionId),
-        hardCops && ['', 'Mem', '16bit', offset(0x0aa6bc), '=', 'Value', '', 2],
-        triggerDecor ? trigger(restOfConditions) : restOfConditions
+        o.gameTypeId >= 0 && pauseIf(gameTypeIdIs(o.gameTypeId).with({ cmp: '!=' })),
+        missionIdIs(...o.missionId),
+        o.hardCops && ['', 'Mem', '16bit', offset(0x0aa6bc), '=', 'Value', '', 2],
+        o.triggerDecor ? trigger(restOfConditions) : restOfConditions
       )
     },
 
-    hasCompletedMissionInPause: ({
-      missionId,
-      gameTypeId = -1,
-      triggerDecor = false
+    hasCompletedMissionInPause: (o: {
+      missionId: number[]
+      gameTypeId?: number,
+      triggerDecor?: boolean
     }) => {
       const isPaused = $.one(['', 'Mem', '32bit', offset(0x0aa6c0), '!=', 'Value', '', 0])
       const missionCompletedAndPaused = $.one(['', 'Mem', '32bit', offset(0x0aafa8), '=', 'Value', '', pauseMode.missionComplete])
@@ -636,45 +610,49 @@ const codeFor = (region) => {
       )
 
       return $(
-        gameTypeId >= 0 && pauseIf(gameTypeIdIs(gameTypeId).with({ cmp: '!=' })),
-        missionId && missionIdIs(missionId),
-        triggerDecor ? trigger(restOfConditions) : restOfConditions
+        o.gameTypeId >= 0 && pauseIf(gameTypeIdIs(o.gameTypeId).with({ cmp: '!=' })),
+        o.missionId && missionIdIs(...o.missionId),
+        o.triggerDecor ? trigger(restOfConditions) : restOfConditions
       )
     },
   }
 }
 
-/**
- * @template T
- * @typedef {(c: typeof codeFor extends (...args: any[]) => infer U ? U : any) => T} CodeForCallbackTemplate
-*/
-/** @typedef {CodeForCallbackTemplate<import('@cruncheevos/core').ConditionBuilder>} CodeForCallback */
+const multiRegionalConditions = makeMultiRegionalConditionsFunction({
+  us: codeFor('us'),
+  eu: codeFor('eu'),
+  fr: codeFor('fr'),
+  de: codeFor('de'),
+  it: codeFor('it'),
+  sp: codeFor('sp'),
+})
 
-/** @param {{
- title?: string
- type?: import('@cruncheevos/core').Achievement.Type
- description?: string
- triggerDecor?: boolean
- additionalConditions?: CodeForCallback
- startConditions?: CodeForCallback
- resetConditions?: CodeForCallback
- customConditions?: CodeForCallback
-}} opts */
+type CodeForCallback = (c: ReturnType<typeof codeFor>) => ConditionBuilder
+
 function missionAchievement(
-  missionId,
-  points,
-  opts = {}
+  missionId: number,
+  points: number,
+  o: {
+    title?: string;
+    type?: Achievement.Type;
+    description?: string;
+    triggerDecor?: boolean;
+    additionalConditions?: CodeForCallback;
+    startConditions?: CodeForCallback;
+    resetConditions?: CodeForCallback;
+    customConditions?: CodeForCallback;
+  }
 ) {
   const {
     title,
-    type,
     description,
+    type,
     startConditions,
     resetConditions,
     additionalConditions,
     triggerDecor,
     customConditions
-  } = opts
+  } = o
 
   const city =
     missionId >= 0x1f ? 'Rio' :
@@ -682,16 +660,12 @@ function missionAchievement(
         missionId >= 0x0a ? 'Havana' :
           'Chicago'
 
-  const missionIdString = `0x${missionId.toString(16).padStart(2, '0')}`
-
   set.addAchievement({
-    title: title,
+    title,
     description: `${city}, ${missionTitles[missionId]}: ` + (description || 'complete the mission'),
     points,
     type,
-    badge: b(missionIdString),
-    conditions: multiRegionalConditions(region => {
-      const c = codeFor(region)
+    conditions: multiRegionalConditions(c => {
       if (customConditions) {
         return customConditions(c)
       }
@@ -700,7 +674,7 @@ function missionAchievement(
 
       let winConditions = $(
         c.hasCompletedMissionInPause({
-          missionId: resetInsteadOfPause ? undefined : missionId,
+          missionId: resetInsteadOfPause ? [] : [missionId],
           gameTypeId: gameType.mission,
           triggerDecor
         }),
@@ -793,18 +767,14 @@ set.addLeaderboard({
   lowerIsBetter: false,
   type: 'MILLISECS',
   conditions: {
-    start: multiRegionalConditions(region => {
-      const c = codeFor(region)
-
-      return c.hasCompletedMissionInGame({
-        missionId: 0x07,
-        gameTypeId: gameType.mission,
-        deltaFix: false
-      })
-    }),
+    start: multiRegionalConditions(c => c.hasCompletedMissionInGame({
+      missionId: [0x07],
+      gameTypeId: gameType.mission,
+      deltaFix: false
+    })),
     submit: '1=1',
     cancel: '0=1',
-    value: multiRegionalConditions(region => [codeFor(region).missionTimer.measured])
+    value: multiRegionalConditions.coreIncluded(c => c.missionTimer.measured)
   },
 })
 missionAchievement(0x09, 5, { title: 'Left for Cuba', type: 'progression' })
@@ -880,7 +850,7 @@ missionAchievement(0x1a, 3, {
     once(c.targetDamageBar.appeared),
     andNext('once', c.targetDamageBar.appeared)
       .resetIf(
-        ['', 'Mem', '32bit', c.calculateRegionOffset(0x0aa300), '>', 'Delta', '32bit', c.calculateRegionOffset(0x0aa300), 30 * 10]
+        ['', 'Mem', '32bit', c.offset(0x0aa300), '>', 'Delta', '32bit', c.offset(0x0aa300), 30 * 10]
       ),
     trigger(c.targetDamageBar.disappeared),
     resetIf(c.gameOverRecently),
@@ -950,31 +920,23 @@ missionAchievement(0x27, 10, {
 })
 missionAchievement(0x28, 10, { title: 'In Which Lenny Finally Gets Caught', type: 'win_condition' })
 
-pursuits.forEach((x, i) => {
-  const [missionId, points, title] = x
-
+for (const [missionId, points, title] of pursuits) {
   set.addAchievement({
     title: `Quick Chase: ${title}`,
     description: `Takedown the escaping car in Quick Chase - ${title} driving game`,
     points,
-    badge: b(`Chase${i + 1}`),
-    conditions: multiRegionalConditions(region => {
-      const c = codeFor(region)
-
-      return $(
-        c.protections({ noCopAllowed: true }),
-        c.hasCompletedMissionInGame({
-          missionId,
-          gameTypeId: gameType.pursuit,
-        }),
-      )
-    })
+    conditions: multiRegionalConditions(c => $(
+      c.protections({ noCopAllowed: true }),
+      c.hasCompletedMissionInGame({
+        missionId: [missionId],
+        gameTypeId: gameType.pursuit,
+      }),
+    ))
   })
-})
+}
 
-getaways.forEach((x, i) => {
-  const [missionId, title] = x
-  const noDamage = Boolean(x[2]) === false
+for (const [missionId, title, noDamageString] of getaways) {
+  const noDamage = Boolean(noDamageString) === false
 
   let description = `Complete ${title} Getaway driving game on Hard Cop Difficulty`
   if (noDamage) {
@@ -985,48 +947,35 @@ getaways.forEach((x, i) => {
     title: `Getaway: ${title}`,
     description,
     points: 2,
-    badge: b(`Getaway${i + 1}`),
-    conditions: multiRegionalConditions(region => {
-
-      const c = codeFor(region)
-
-      return $(
-        c.protections(),
-        noDamage && c.damageBar.hasNoDamage,
-
-        c.hasCompletedMissionInGame({
-          missionId,
-          gameTypeId: gameType.getaway,
-          hardCops: true,
-          triggerDecor: true
-        }),
-      )
-    })
-  })
-})
-
-gateRaces.forEach((x, i) => {
-  const [missionId, title] = x
-
-  const conditions = deltaFix => multiRegionalConditions(region => {
-    const c = codeFor(region)
-
-    return $(
+    conditions: multiRegionalConditions(c => $(
       c.protections(),
+      noDamage && c.damageBar.hasNoDamage,
 
       c.hasCompletedMissionInGame({
-        missionId,
-        gameTypeId: gameType.gateRace,
-        deltaFix
+        missionId: [missionId],
+        gameTypeId: gameType.getaway,
+        hardCops: true,
+        triggerDecor: true
       }),
-    )
+    )),
   })
+}
+
+for (const [missionId, title] of gateRaces) {
+  const conditions = (deltaFix: boolean) => multiRegionalConditions(c => $(
+    c.protections(),
+
+    c.hasCompletedMissionInGame({
+      missionId: [missionId],
+      gameTypeId: gameType.gateRace,
+      deltaFix
+    })
+  ))
 
   set.addAchievement({
     title: `Gate Race: ${title}`,
     description: `Get through the final gate in ${title} Gate Race driving game`,
     points: 5,
-    badge: b(`Gate${i + 1}`),
     conditions: conditions(true)
   })
 
@@ -1039,53 +988,41 @@ gateRaces.forEach((x, i) => {
       start: conditions(false),
       submit: '1=1',
       cancel: '0=1',
-      value: multiRegionalConditions(region => [codeFor(region).missionTimer.measured])
+      value: multiRegionalConditions.coreIncluded(c => c.missionTimer.measured)
     }
   })
-})
+}
 
 set.addAchievement({
   title: `The Perfect Gate`,
   description: `Get through all 100 gates clean in any of Gate Race driving games`,
   points: 25,
-  badge: b('Gate100'),
-  conditions: multiRegionalConditions(region => {
-    const c = codeFor(region)
+  conditions: multiRegionalConditions(c => $(
+    c.protections(),
 
-    return $(
-      c.protections(),
-
-      c.hasCompletedMissionInGame({
-        missionId: gateRaces.map(([missionId]) => missionId),
-        scoreTarget: 100,
-        gameTypeId: gameType.gateRace
-      }),
-    )
-  })
+    c.hasCompletedMissionInGame({
+      missionId: gateRaces.map(([missionId]) => missionId),
+      scoreTarget: 100,
+      gameTypeId: gameType.gateRace
+    }),
+  ))
 })
 
-trailblzers.forEach((x, i) => {
-  const [missionId, title] = x
+for (const [missionId, title] of trailblzers) {
+  const conditions = (deltaFix: boolean) => multiRegionalConditions(c => $(
+    c.protections(),
 
-  const conditions = deltaFix => multiRegionalConditions(region => {
-    const c = codeFor(region)
-
-    return $(
-      c.protections(),
-
-      c.hasCompletedMissionInGame({
-        missionId,
-        gameTypeId: gameType.trailblazer,
-        deltaFix,
-      }),
-    )
-  })
+    c.hasCompletedMissionInGame({
+      missionId: [missionId],
+      gameTypeId: gameType.trailblazer,
+      deltaFix,
+    }),
+  ))
 
   set.addAchievement({
     title: `Trailblazer: ${title}`,
     description: `Smash the final cone in ${title} Trailblazer driving game`,
     points: 5,
-    badge: b(`Trail${i + 1}`),
     conditions: conditions(true)
   })
 
@@ -1098,53 +1035,41 @@ trailblzers.forEach((x, i) => {
       start: conditions(false),
       submit: '1=1',
       cancel: '0=1',
-      value: multiRegionalConditions(region => [codeFor(region).missionTimer.measured])
+      value: multiRegionalConditions.coreIncluded(c => c.missionTimer.measured)
     }
   })
-})
+}
 
 set.addAchievement({
   title: `Blazed It`,
   description: `Smash all 100 cones in any of Trailblazer driving games`,
   points: 10,
-  badge: b('Trail100'),
-  conditions: multiRegionalConditions(region => {
-    const c = codeFor(region)
+  conditions: multiRegionalConditions(c => $(
+    c.protections(),
 
-    return $(
-      c.protections(),
-
-      c.hasCompletedMissionInGame({
-        missionId: trailblzers.map(([missionId]) => missionId),
-        scoreTarget: 100,
-        gameTypeId: gameType.trailblazer
-      }),
-    )
-  })
+    c.hasCompletedMissionInGame({
+      missionId: trailblzers.map(([missionId]) => missionId),
+      scoreTarget: 100,
+      gameTypeId: gameType.trailblazer
+    }),
+  ))
 })
 
-checkpointRaces.forEach((x, i) => {
-  const [missionId, timeTarget, points, title] = x
-
+for (const [missionId, timeTarget, points, title] of checkpointRaces) {
 
   set.addAchievement({
     title: `Checkpoint Race: ${title}`,
     description: `Finish ${title} Checkpoint Race driving game in ${timeTarget} or less`,
     points,
-    badge: b(`Check${i + 1}`),
-    conditions: multiRegionalConditions(region => {
-      const c = codeFor(region)
+    conditions: multiRegionalConditions(c => $(
+      c.protections(),
 
-      return $(
-        c.protections(),
-
-        c.hasCompletedMissionInGame({
-          missionId,
-          gameTypeId: gameType.checkpoint,
-          timeTarget
-        }),
-      )
-    })
+      c.hasCompletedMissionInGame({
+        missionId: [missionId],
+        gameTypeId: gameType.checkpoint,
+        timeTarget
+      }),
+    ))
   })
 
   set.addLeaderboard({
@@ -1153,46 +1078,36 @@ checkpointRaces.forEach((x, i) => {
     lowerIsBetter: true,
     type: 'MILLISECS',
     conditions: {
-      start: multiRegionalConditions(region => {
-        const c = codeFor(region)
+      start: multiRegionalConditions(c => $(
+        c.protections(),
 
-        return $(
-          c.protections(),
-
-          c.hasCompletedMissionInGame({
-            missionId,
-            gameTypeId: gameType.checkpoint,
-            deltaFix: false,
-          }),
-        )
-      }),
+        c.hasCompletedMissionInGame({
+          missionId: [missionId],
+          gameTypeId: gameType.checkpoint,
+          deltaFix: false,
+        }),
+      )),
       submit: '1=1',
       cancel: '0=1',
-      value: multiRegionalConditions(region => [codeFor(region).missionTimer.measured])
+      value: multiRegionalConditions.coreIncluded(c => c.missionTimer.measured)
     }
   })
-})
+}
 
-survivalRaces.forEach((x, i) => {
-  const [missionId, secondsTarget, title, noLeaderboard] = x
+for (const [missionId, secondsTarget, title, noLeaderboard] of survivalRaces) {
 
   set.addAchievement({
     title: `Survival: ${title}`,
     description: `Last for ${secondsTarget} seconds or more in Survival: ${title} Driving game`,
     points: 5,
-    badge: b(`Survival${i + 1}`),
-    conditions: multiRegionalConditions(region => {
-      const c = codeFor(region)
+    conditions: multiRegionalConditions(c => $(
+      c.protections(),
+      pauseIf(c.gameTypeIdIs(gameType.survival).with({ cmp: '!=' })),
 
-      return $(
-        c.protections(),
-        pauseIf(c.gameTypeIdIs(gameType.survival).with({ cmp: '!=' })),
-
-        c.missionIdIs(missionId),
-        c.damageBar.isNotFull,
-        c.missionTimer.wentAboveTarget(`00:${secondsTarget}.00`)
-      )
-    })
+      c.missionIdIs(missionId),
+      c.damageBar.isNotFull,
+      c.missionTimer.wentAboveTarget(`00:${secondsTarget}.00`)
+    ))
   })
 
   if (noLeaderboard === undefined) {
@@ -1202,28 +1117,22 @@ survivalRaces.forEach((x, i) => {
       lowerIsBetter: false,
       type: 'MILLISECS',
       conditions: {
-        start: multiRegionalConditions(region => {
-          const c = codeFor(region)
+        start: multiRegionalConditions(c => $(
+          c.protections(),
+          pauseIf(c.gameTypeIdIs(gameType.survival).with({ cmp: '!=' })),
 
-          return $(
-            c.protections(),
-            pauseIf(c.gameTypeIdIs(gameType.survival).with({ cmp: '!=' })),
-
-            c.missionIdIs(missionId),
-            c.damageBar.gotFull
-          )
-        }),
+          c.missionIdIs(missionId),
+          c.damageBar.gotFull
+        )),
         submit: '1=1',
         cancel: '0=1',
-        value: multiRegionalConditions(region => [codeFor(region).missionTimer.measured])
+        value: multiRegionalConditions.coreIncluded(c => c.missionTimer.measured)
       }
     })
   }
-})
+}
 
-secretRaces.forEach((x, i) => {
-  const [missionId, targetTime, points, title, checkLapTime] = x
-
+for (const [missionIds, targetTime, points, title, checkLapTime] of secretRaces) {
   const checkingLapTime = Boolean(checkLapTime)
   const checkingTotalTime = !checkingLapTime
 
@@ -1233,31 +1142,26 @@ secretRaces.forEach((x, i) => {
       `Set a lap time of ${targetTime} or less on ${title}` :
       `Set a total time time of ${targetTime} or less on ${title}`,
     points,
-    badge: b(`Secret${i + 1}`),
-    conditions: multiRegionalConditions(region => {
-      const c = codeFor(region)
+    conditions: multiRegionalConditions(c => $(
+      c.protections({ noCopAllowed: true }),
+      pauseIf(c.gameTypeIdIs(gameType.secret).with({ cmp: '!=' })),
 
-      return $(
-        c.protections({ noCopAllowed: true }),
-        pauseIf(c.gameTypeIdIs(gameType.secret).with({ cmp: '!=' })),
+      c.missionIdIs(...missionIds),
 
-        c.missionIdIs(missionId),
+      checkingLapTime && orNext(
+        c.lapTimeLessOrEqualThan(0, targetTime),
+        c.lapTimeLessOrEqualThan(1, targetTime),
+      ).andNext(
+        c.lapTimeLessOrEqualThan(2, targetTime),
+        c.score.increased
+      ),
 
-        checkingLapTime && orNext(
-          c.lapTimeLessOrEqualThan(0, targetTime),
-          c.lapTimeLessOrEqualThan(1, targetTime),
-        ).andNext(
-          c.lapTimeLessOrEqualThan(2, targetTime),
-          c.score.increased
-        ),
-
-        checkingTotalTime && andNext(
-          c.score.increased,
-          c.score.equalsOrGreaterThan(3),
-          c.missionTimer.equalsOrLessThan(targetTime),
-        )
+      checkingTotalTime && andNext(
+        c.score.increased,
+        c.score.equalsOrGreaterThan(3),
+        c.missionTimer.equalsOrLessThan(targetTime),
       )
-    })
+    ))
   })
 
   set.addLeaderboard({
@@ -1266,19 +1170,16 @@ secretRaces.forEach((x, i) => {
     lowerIsBetter: true,
     type: 'MILLISECS',
     conditions: {
-      start: multiRegionalConditions(region => {
-        const c = codeFor(region)
-        return $(
-          c.protections({ noCopAllowed: true }),
-          pauseIf(c.gameTypeIdIs(gameType.secret).with({ cmp: '!=' })),
-          c.missionIdIs(missionId),
-          ['', 'Delta', '16bit', c.score.address, '=', 'Value', '', 2],
-          ['', 'Mem', '16bit', c.score.address, '=', 'Value', '', 3],
-        )
-      }),
+      start: multiRegionalConditions(c => $(
+        c.protections({ noCopAllowed: true }),
+        pauseIf(c.gameTypeIdIs(gameType.secret).with({ cmp: '!=' })),
+        c.missionIdIs(...missionIds),
+        ['', 'Delta', '16bit', c.score.address, '=', 'Value', '', 2],
+        ['', 'Mem', '16bit', c.score.address, '=', 'Value', '', 3],
+      )),
       submit: '1=1',
       cancel: '0=1',
-      value: multiRegionalConditions(region => [codeFor(region).missionTimer.measured])
+      value: multiRegionalConditions.coreIncluded(c => c.missionTimer.measured)
     }
   })
 
@@ -1288,21 +1189,20 @@ secretRaces.forEach((x, i) => {
     lowerIsBetter: true,
     type: 'MILLISECS',
     conditions: {
-      start: multiRegionalConditions(region => {
-        const c = codeFor(region)
+      start: multiRegionalConditions.severalAltsPerRegion(c => {
         const commonConditions = $(
           c.protections({ noCopAllowed: true }),
           pauseIf(c.gameTypeIdIs(gameType.secret).with({ cmp: '!=' })),
-          c.missionIdIs(missionId),
+          c.missionIdIs(...missionIds),
         )
 
-        const lapChangedFromTo = (from, to) => $(
+        const lapChangedFromTo = (from: number, to: number) => $(
           ['', 'Delta', '16bit', c.score.address, '=', 'Value', '', from],
           ['', 'Mem', '16bit', c.score.address, '=', 'Value', '', to],
         )
 
         return {
-          core: 'hcafe=hcafe',
+          core: null,
           alt1: $(
             commonConditions,
             lapChangedFromTo(0, 1)
@@ -1322,41 +1222,36 @@ secretRaces.forEach((x, i) => {
       }),
       submit: '1=1',
       cancel: '0=1',
-      value: multiRegionalConditions(region => [codeFor(region).measuredLastLapTime])
+      value: multiRegionalConditions.coreIncluded(c => c.measuredLastLapTime)
     }
   })
-})
+}
 
 for (const x of secretCars) {
-  const [missionId, statData, title, cityName, description, deliveryChallenge] = x
+  const [missionIds, statData, title, description, deliveryChallenge] = x
 
   set.addAchievement({
     title,
     description,
     points: 3,
-    badge: b('Secret-' + cityName),
-    conditions: multiRegionalConditions(region => {
-      const c = codeFor(region)
+    conditions: multiRegionalConditions(c => $(
+      c.protections(),
+      pauseIf(c.gameTypeIdIs(gameType.takeADrive).with({ cmp: '!=' })),
 
-      return $(
-        c.protections(),
-        pauseIf(c.gameTypeIdIs(gameType.takeADrive).with({ cmp: '!=' })),
+      c.missionIdIs(...missionIds),
 
-        c.missionIdIs(missionId),
+      c.frameCountGreaterThan(2),
+      c.playerCarIdChanged,
+      c.carData.forPlayer.hasSpecificStats(statData),
 
-        c.frameCountGreaterThan(2),
-        c.playerCarIdChanged,
-        c.carData.forPlayer.hasSpecificStats(statData),
-
-        resetNextIf(c.frameCountLessThan(2)),
-        pauseIf(
-          andNext(
-            'hits 2',
-            c.carData.forPlayer.hasSpecificStats(statData)
-          )
+      resetNextIf(c.frameCountLessThan(2)),
+      pauseIf(
+        andNext(
+          'hits 2',
+          c.carData.forPlayer.hasSpecificStats(statData)
         )
       )
-    })
+    ))
   })
 
   if (deliveryChallenge) {
@@ -1366,29 +1261,24 @@ for (const x of secretCars) {
       title,
       description,
       points: 5,
-      badge: b('Secret-' + cityName + 'Dest'),
-      conditions: multiRegionalConditions(region => {
-        const c = codeFor(region)
+      conditions: multiRegionalConditions(c => $(
+        c.protections(),
+        pauseIf(c.gameTypeIdIs(gameType.takeADrive).with({ cmp: '!=' })),
+        c.missionIdIs(...missionIds),
 
-        return $(
-          c.protections(),
-          pauseIf(c.gameTypeIdIs(gameType.takeADrive).with({ cmp: '!=' })),
-          c.missionIdIs(missionId),
+        c.playerIsNotChased,
+        c.carData.forPlayer.hasSpecificStats(statData),
+        trigger(c.carData.forPlayer.carPos(coords)),
 
-          c.playerIsNotChased,
-          c.carData.forPlayer.hasSpecificStats(statData),
-          trigger(c.carData.forPlayer.carPos(coords)),
-
-          resetNextIf(c.frameCountLessThan(2)),
-          pauseIf(
-            andNext(
-              'once',
-              c.frameCountLessThan(3),
-              c.carData.forPlayer.hasSpecificStats(statData)
-            )
+        resetNextIf(c.frameCountLessThan(2)),
+        pauseIf(
+          andNext(
+            'once',
+            c.frameCountLessThan(3),
+            c.carData.forPlayer.hasSpecificStats(statData)
           )
         )
-      })
+      ))
     })
   }
 }
@@ -1397,44 +1287,33 @@ set.addAchievement({
   title: 'Nothing to See Here',
   description: 'Visit the Fortaleza de San Carlos in Havana',
   points: 2,
-  badge: b('HavanaFortress'),
-  conditions: multiRegionalConditions(region => {
-    const c = codeFor(region)
-
-    return $(
-      c.protections(),
-      c.cityIdIs(1),
-      orNext(
-        c.gameTypeIdIs(gameType.mission),
-        c.gameTypeIdIs(gameType.takeADrive)
-      ),
-      c.carData.forPlayer.carPos({
-        top: 0x026400,
-        bottom: 0x026200,
-        left: 0x066900,
-        right: 0x067600
-      })
-    )
-  })
+  conditions: multiRegionalConditions(c => $(
+    c.protections(),
+    c.cityIdIs(1),
+    orNext(
+      c.gameTypeIdIs(gameType.mission),
+      c.gameTypeIdIs(gameType.takeADrive)
+    ),
+    c.carData.forPlayer.carPos({
+      top: 0x026400,
+      bottom: 0x026200,
+      left: 0x066900,
+      right: 0x067600
+    })
+  ))
 })
 
 set.addAchievement({
   title: 'Immersion',
   description: "Not only you can walk around, but also sit - revolutionary",
   points: 1,
-  badge: b('DriverSit'),
-  conditions: multiRegionalConditions(region => {
-    const c = codeFor(region)
-
-    return $(
-      c.protections(),
-      c.playerSatDown
-    )
-  })
+  conditions: multiRegionalConditions(c => $(
+    c.protections(),
+    c.playerSatDown
+  ))
 })
 
-/** @type {Region[]} */
-const regions = ['us', 'eu', 'fr', 'de', 'it', 'sp']
+const regions: Region[] = ['us', 'eu', 'fr', 'de', 'it', 'sp'] as const
 export const rich = RichPresence({
   lookupDefaultParameters: {
     compressRanges: false,
@@ -1475,7 +1354,7 @@ export const rich = RichPresence({
     const atMission = lookup.Mission.at(`0xX` + c.address.mission.toString(16).toUpperCase())
     const atPoliceEmoji = lookup.PoliceEmoji.at(`0xX` + c.address.chased.toString(16).toUpperCase())
 
-    return /** @type Array<string | [ConditionBuilder, string]> */ ([
+    return [
       [
         $(
           c.regionCheck,
@@ -1532,7 +1411,7 @@ export const rich = RichPresence({
         `Undercover in ${atCity} and dealing with... ${atMission}`
         + atPoliceEmoji
       ]
-    ])
+    ] as Array<string | [ConditionBuilder, string]>
   }).concat(`Playing Driver 2`)
 })
 
