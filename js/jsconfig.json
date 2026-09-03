@@ -4,6 +4,7 @@
     "moduleResolution": "NodeNext",
     "module": "NodeNext",
     "strict": false,
-    "allowImportingTsExtensions": true
+    "allowImportingTsExtensions": true,
+    "noImplicitThis": true
   }
 }
