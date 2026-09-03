@@ -4,6 +4,8 @@ import * as fs from 'fs'
 export type ArrayValue<T> = T extends (infer U)[] ? U : never
 export type ObjectValue<T> = T extends (Record<string, infer U>) ? U : never
 
+export type Unpromisify<T> = T extends Promise<infer U> ? U : T;
+
 export function mapObject<T extends object, NewValue>(
   input: T,
   cb: (value: T[keyof T], key: string) => NewValue
