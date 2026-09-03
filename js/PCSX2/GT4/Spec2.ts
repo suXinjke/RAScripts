@@ -296,4 +296,4 @@ export default function () {
   return set
 }
 
-export const rich = makeRichPresence()
+export const rich = makeRichPresence({ spec2: true })

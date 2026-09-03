@@ -1363,7 +1363,7 @@ export async function code(r: 'retail' | 'online' = 'retail') {
     })
   }
 
-  function rich() {
+  function rich({ spec2 = false } = {}) {
     const substringEventString = $(
       main.p.rootAux,
       ['Measured', 'Mem', '8bit', o ? 0x3CC : 0x3c8]
@@ -1533,7 +1533,7 @@ export async function code(r: 'retail' | 'online' = 'retail') {
             tag`[📸 Photo Travel] 🚗 ${lookup.Car}`
           ],
 
-          ...makeEventRich(true),
+          ...(spec2 ? makeEventRich(true) : []),
           ...makeEventRich(false),
 
           ...regions.map(region => {
