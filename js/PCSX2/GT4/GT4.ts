@@ -1,38 +1,21 @@
-// @ts-check
-import {
-  AchievementSet, define as $,
-  addHits, andNext, orNext, resetIf, trigger, pauseIf
-} from '@cruncheevos/core'
-import { code, pointerNullCheck } from './CommonGT4.js'
+import { AchievementSet, define as $, addHits, andNext, orNext, resetIf, trigger, pauseIf } from '@cruncheevos/core'
+import { code, pointerNullCheck } from './CommonGT4.ts'
 const {
   meta, stat, main, generalProtections, rich: makeRichPresence,
   defineIndividualRace, defineAllRacesInOneSitting, defineAnySubEventWin,
   defineArcadeTimeTrial, defineCarEventWin, defineChampionship,
   defineLicenseAchievements, defineCarChallenge
 } = await code('retail')
-import { dumpAll } from './icongen.js'
-
-/**
- * @template T
- * @typedef {T extends (Record <string, infer U>) ? U : never} ObjectValue
- * **/
-
-/**
- * @template T
- * @typedef {T extends (infer U)[] ? U : never} ArrayValue
- * **/
 
 const set = new AchievementSet({ gameId: 20580, title: 'Gran Turismo 4' })
 
-/**
- * @param {Object} params
- * @param {string} params.title
- * @param {string} params.description
- * @param {number} params.points
- * @param {number} params.speedKPH
- * @param {number} params.speedMPH
- */
-function defineSpeedAchievement(params) {
+function defineSpeedAchievement(params: {
+  title: string;
+  description: string;
+  points: number;
+  speedKPH: number;
+  speedMPH: number;
+}) {
   const { speedKPH, speedMPH, ...rest } = params
   set.addAchievement({
     ...rest,
@@ -121,13 +104,13 @@ export default function () {
     defineLicenseAchievements({ set, l })
   }
 
-  for (const [letter, points, title] of /** @type const */ ([
+  for (const [letter, points, title] of [
     ['B', 5, 'National B License'],
     ['A', 5, 'National A License'],
     ['IB', 10, 'International IB License'],
     ['IA', 10, 'International IA License'],
     ['S', 25, 'Superlicense'],
-  ])) {
+  ] as const) {
     const tests = Object.values(meta.licenses)
       .filter(license => license.license === letter && license.isCoffee === false)
 
@@ -409,7 +392,3 @@ export default function () {
 }
 
 export const rich = makeRichPresence()
-
-if (process.argv.includes('icons')) {
-  dumpAll()
-}

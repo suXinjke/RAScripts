@@ -1,20 +1,15 @@
-import { getParsedSheet as _getSheet } from '../../common.ts'
+import { getParsedSheet as _getSheet, arrayToObject } from '../../common.ts'
+import type { Unpromisify } from '../../common.ts'
 import * as fs from 'fs'
 import * as path from 'path'
-
-/**
- * @template T
- * @typedef {T extends (infer U)[] ? Record<string, U> : T} ArrayToObject
- * **/
 
 const tmpDir = path.join(import.meta.dirname, 'tmp')
 
 let linksFileName = 'links'
 let gameType = 'retail'
 
-const getParsedSheet = (id) => _getSheet(import.meta.dirname, id, linksFileName, gameType)
+const getParsedSheet = (id: string) => _getSheet(import.meta.dirname, id, linksFileName, gameType)
 
-/** @returns {Promise<Record<number, string>} */
 async function makeCars() {
   const rows = await getParsedSheet('cars')
 
@@ -24,10 +19,9 @@ async function makeCars() {
 
     prev[id] = name
     return prev
-  }, {})
+  }, {} as Record<string, string>)
 }
 
-/** @returns {Promise<Record<number, string>} */
 async function makeTracks() {
   const rows = await getParsedSheet('tracks')
 
@@ -39,12 +33,7 @@ async function makeTracks() {
       prev[id] = name
     }
     return prev
-  }, {})
-}
-
-function arrayToObject(prev, cur) {
-  prev[cur.id] = cur
-  return prev
+  }, {} as Record<string, string>)
 }
 
 async function makeEvents() {
@@ -73,17 +62,32 @@ async function makeEvents() {
 
       const multiPoints = col[3].split('|').map(Number)
 
+      const achType: 'progression' | '' = id.startsWith('am_') || id.startsWith('pr_') ? 'progression' : ''
+
+      const carIdAnyEvent = col[8] ?
+        col[8].split('|').map((x, i) => i === 0 ? Number(x) : x) as [number, string] :
+        [] as []
+
+      const races = [] as Array<{
+        idx: number,
+        trackId: number,
+        raceId: number,
+        aSpec200?: {
+          requirement: number,
+          achPoints: number
+          descriptionSuffix: string,
+        }
+      }>
+
       return {
         id,
         name,
         nameWithSuffix: eventNameSuffix ? name + ' ' + eventNameSuffix : name,
 
-        /** @type {'progression' || ''} */
-        achType: id.startsWith('am_') || id.startsWith('pr_') ? 'progression' : '',
+        achType,
 
         descriptionSuffix: descriptionSuffix ? ' ' + descriptionSuffix : '',
         points: multiPoints[0],
-        /** @type {number[] | null} */
         multiPoints: multiPoints.length > 1 ? multiPoints : null,
 
         aSpecPoints: Number(col[4]),
@@ -92,34 +96,21 @@ async function makeEvents() {
         isChampionship: Boolean(col[6]),
         nitrousAllowed: Boolean(col[7]),
 
-        /** @type {[number, string]} */
-        carIdAnyEvent: col[8] ? col[8].split('|').map((x, i) => i === 0 ? Number(x) : x) : [],
+        carIdAnyEvent,
         carIdsForbidden,
         noCheese: specialFlags.includes('noCheese'),
         noPenalty: specialFlags.includes('noPenalty'),
         subsetOnly: specialFlags.includes('subsetOnly'),
 
-        /** @type {Array<{
-         * idx: number,
-         * trackId: number,
-         * raceId: number,
-         * aSpec200?: {
-         *  requirement: number,
-         *  achPoints: number
-         *  descriptionSuffix: string,
-         * }
-         * }>} */
-        races: [],
+        races,
         get raceIds() {
           return this.races.map(r => r.raceId)
         }
-      }
+      } as const
     })
 
-  /** @type ArrayToObject<typeof eventArray> */
-  const events = eventArray.reduce(arrayToObject, {})
+  const events = arrayToObject(eventArray, x => x.id)
 
-  /** @type {Record<string, number> */
   const licenseMissionPoints = eventRows
     .filter((col) => {
       const isLicense = col[1].startsWith('l')
@@ -129,10 +120,10 @@ async function makeEvents() {
       const id = col[1]
       prev[id] = Number(col[3])
       return prev
-    }, {})
+    }, {} as Record<string, number>)
 
 
-  const subEventCount = {}
+  const subEventCount: Record<string, number> = {}
 
   subEventRows = subEventRows.filter(col => {
     const readableName = col[4]
@@ -186,10 +177,9 @@ async function makeEvents() {
     .filter((col) => col[3].match(licenseRegex) || col[3].match(coffeeRegex))
     .map((col) => {
       const id = col[3] // coffee: l0c0001 , license: lib0016
-      const licenses = { 1: 'b', 2: 'a', 3: 'ib', 4: 'ia', 5: 's' }
+      const licenses: Record<string, string> = { 1: 'b', 2: 'a', 3: 'ib', 4: 'ia', 5: 's' }
       const isCoffee = col[3].match(coffeeRegex) !== null
 
-      /** @type {string} */
       const license = isCoffee ? licenses[id.slice(-1)] : id.slice(1, 3).replace('0', '')
 
       const [pal, ntsc] = [col[0], col[1]].map(Number)
@@ -204,7 +194,7 @@ async function makeEvents() {
         isCoffee,
         points: licenseMissionPoints[id],
         eventId: { pal, ntsc },
-      }
+      } as const
     })
 
   const missionArray = subEventRows
@@ -220,10 +210,9 @@ async function makeEvents() {
         index: Number(id.slice(-2)),
         points: licenseMissionPoints[id],
         eventId: { pal, ntsc },
-      }
+      } as const
     })
 
-  /** @type {Record<number, string> */
   const eventLookup = subEventRows
     .reduce((prev, col) => {
       const name = col[4]
@@ -233,17 +222,12 @@ async function makeEvents() {
       }
 
       return prev
-    }, {})
+    }, {} as Record<number, string>)
 
   return {
     events,
-
-    /** @type {ArrayToObject<typeof licensesAndCoffee} */
-    licenses: licensesAndCoffee.reduce(arrayToObject, {}),
-
-    /** @type {ArrayToObject<typeof missionArray} */
-    missions: missionArray.reduce(arrayToObject, {}),
-
+    licenses: arrayToObject(licensesAndCoffee, x => x.id),
+    missions: arrayToObject(missionArray, x => x.id),
     eventLookup
   }
 }
@@ -269,11 +253,14 @@ async function makeCarChallenges() {
       description = ''
     }
 
-    const {
-      laps = -1,
-      colorId = -1,
-      forbiddenGearboxId = []
-    } = col[10] ? JSON.parse(col[10]) : {}
+    interface MetaColumn {
+      laps: number,
+      colorId: number,
+      forbiddenGearboxId: number[]
+    }
+
+    const meta: MetaColumn = col[10] ? JSON.parse(col[10]) : {}
+    const { laps = -1, colorId = -1, forbiddenGearboxId = [] } = meta
 
     return {
       aSpecPoints,
@@ -288,10 +275,8 @@ async function makeCarChallenges() {
 
       laps,
       colorId,
-
-      /** @type {number[]} */
       forbiddenGearboxId
-    }
+    } as const
   })
 }
 
@@ -313,7 +298,7 @@ async function makeAnySubEvents() {
       carIdsRequired: col[7] ? col[7].split('|').map(Number) : [],
       descriptionSuffix: col[8],
       forbiddenCarIds: col[9] ? col[9].split('|').map(Number) : [],
-    }
+    } as const
   })
 }
 
@@ -346,11 +331,12 @@ async function makeCarEventWin() {
         achDescription.includes('o nitrous'),
 
       singleRace: achDescription.includes('ingle race')
-    }
+    } as const
   })
 }
 
-function extractTires(str = '') {
+type TireClass = ReturnType<typeof extractTires> | 'dr'
+function extractTires(str: string) {
   if (str.includes('Normal Comfort')) return 'n2'
   if (str.includes('Normal Road')) return 'n3'
   if (str.includes('Sports Hard')) return 'sh'
@@ -395,19 +381,16 @@ async function makeArcadeTimeTrial() {
       carIds: col[0].split(',').map(Number),
       trackId: Number(col[2]),
 
-      /** @type { ReturnType<typeof extractTires> | 'dr' | 'sn' } */
-      tires: col[10] || extractTires(description),
+      tires: col[10] as TireClass || extractTires(description),
 
-      /** @type {'' | 'manual'} */
       gearbox: description.includes('manual transmission') ? 'manual' : '',
-      /** @type {'' | 'none'} */
       aid: description.includes('no driving aids') ? 'none' : '',
       powerTune: Number(powerTuneMatch[1]),
       topSpeedTune: Number(col[7]),
       crashSensitivity: col[8] ? Number(col[8]) : 0.05,
       laps: Number(col[9]),
       interiorCamera: description.includes('interior camera')
-    }
+    } as const
   })
 }
 
@@ -437,7 +420,6 @@ async function makeArcadeRace() {
       playerCarIds,
       opponentCarIds,
 
-      /** @type { ReturnType<typeof extractTires> } */
       tires: extractTires(description),
 
       powerTune: powerTuneMatch ? Number(powerTuneMatch[1]) : null,
@@ -452,11 +434,11 @@ async function makeArcadeRace() {
       penalties: description.includes('Speed Limiter'),
       forceRandomOpponents: description.includes('opponents random'),
       aSpecPoints: Number(col[13]),
-    }
+    } as const
   })
 }
 
-export default async function main(r = 'retail') {
+export default async function main(r: 'retail' | 'online' = 'retail') {
   if (r === 'online') {
     linksFileName = 'links2'
     gameType = 'online'
@@ -465,6 +447,9 @@ export default async function main(r = 'retail') {
   if (fs.existsSync(tmpDir) === false) {
     fs.mkdirSync(tmpDir)
   }
+
+  type CarChallanges = Unpromisify<ReturnType<typeof makeCarChallenges>>
+  const carChallanges = r === 'online' ? [] as CarChallanges : makeCarChallenges()
 
   const [
     carLookup,
@@ -478,7 +463,7 @@ export default async function main(r = 'retail') {
   ] = await Promise.all([
     makeCars(),
     makeTracks(),
-    r === 'online' ? [] : makeCarChallenges(),
+    carChallanges,
     makeEvents(),
     makeAnySubEvents(),
     makeCarEventWin(),

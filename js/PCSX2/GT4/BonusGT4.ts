@@ -1,43 +1,15 @@
-// @ts-check
-import {
-  AchievementSet, define as $,
-  orNext, andNext, resetIf, trigger, once
-} from '@cruncheevos/core'
-import { code } from './CommonGT4.js'
+import { AchievementSet, define as $, orNext, andNext, resetIf, trigger, once } from '@cruncheevos/core'
+import { code } from './CommonGT4.ts'
 const { meta, stat, main, generalProtections, defineIndividualRace, defineArcadeRace } = await code('retail')
 
-import * as path from 'path'
-import { makeBadge } from './icongen.js'
-const badgeOutputDirectory = path.join(import.meta.dirname, 'tmp', 'icon_output')
-
-/**
- * @param filePath {string}
- * @param {(badge: ReturnType<typeof makeBadge>) => ReturnType<typeof makeBadge>} cb
- */
-function b(filePath, cb) {
-  filePath = `local\\\\` + filePath
-
-  if (process.argv.includes('icons')) {
-    cb(makeBadge(filePath)).finish().dump(badgeOutputDirectory)
-  }
-
-  return filePath
-}
-
-/**
- * @template T
- * @typedef {T extends (Record <string, infer U>) ? U : never} ObjectValue
- * **/
+import type { ObjectValue } from '../../common.ts'
 
 const set = new AchievementSet({ gameId: 20580, id: 9517, title: 'Gran Turismo 4 [Subset - Bonus]' })
 
 const events = Object.values(meta.events)
 const subsetOnlyEvents = events.filter(e => e.subsetOnly)
 
-/**
- * @param {ObjectValue<typeof meta["events"]>} e
- * */
-function define24HourEvent(e) {
+function define24HourEvent(e: ObjectValue<typeof meta.events>) {
   // Must destructure, TypeScript check does not understand null check otherwise
   const { multiPoints } = e
   if (!multiPoints) {
@@ -60,14 +32,6 @@ function define24HourEvent(e) {
       title: e.name + ' - ' + subtitle,
       description,
       points: multiPoints[i],
-      badge: b(`${e.id}_${hours}.png`, b => b
-        .bg({ input: `_events/${e.id}.png` })
-        .text({
-          value: hours !== 24 ? `${hours}hr` : '',
-          align: 'left',
-          x: 4, y: 16
-        })
-      ),
       conditions: $(
         main.eventIdIs(e.raceIds[0]),
         stat.gameFlagIs.eventRace,
@@ -108,26 +72,7 @@ for (const e of subsetOnlyEvents) {
         title: `${e.name} - Race #${i + 1}`,
         description: `Win race #${i + 1} of ${e.name} on ${trackName} in A-Spec mode`,
         raceIds: [raceId],
-        points: e.multiPoints ? e.multiPoints[i] : (e.points / e.races.length),
-        badge: b(`${e.id}_${i}.png`, b => {
-          if (e.id === 'eur1000mile') {
-            return b
-              .bg({ input: `_events/eu.png` })
-              .textOverlay({ value: '1000' })
-              .text({
-                value: (i + 1).toString(),
-                align: 'right',
-                x: 60, y: 60
-              })
-          } else {
-            return b
-              .bg({ input: `_events/${e.id}.png` })
-              .text({
-                value: (i + 1).toString(),
-                y: 54
-              })
-          }
-        })
+        points: e.multiPoints ? e.multiPoints[i] : (e.points / e.races.length)
       })
     })
   } else if (e.multiPoints) {
@@ -136,10 +81,7 @@ for (const e of subsetOnlyEvents) {
     defineIndividualRace({
       set,
       e,
-      triggerIcon: true,
-      badge: b(`${e.id}.png`, b => b
-        .bg({ input: `_events/${e.id}.png` })
-      )
+      triggerIcon: true
     })
   }
 }
@@ -174,16 +116,6 @@ for (const e of events) {
         main.eventIdIs(raceId),
         main.wonRace({ aSpecPoints: aSpec200.requirement }),
         generalProtections.noCheese200,
-      ),
-      badge: b(`${e.id}_${i}_200.png`,
-        b => b
-          .bg({ input: `_events/${e.id}.png` })
-          .textOverlay({ value: '200' })
-          .text({
-            value: (i + 1).toString(),
-            align: 'right',
-            x: 60, y: 60
-          })
       )
     })
   })

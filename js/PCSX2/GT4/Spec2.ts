@@ -1,10 +1,5 @@
-// @ts-check
-import {
-  AchievementSet, define as $,
-  orNext, andNext, resetIf, trigger, once, addHits, measuredIf,
-  resetNextIf
-} from '@cruncheevos/core'
-import { code, pointerNullCheck } from './CommonGT4.js'
+import { AchievementSet, define as $, orNext, andNext, resetIf, trigger, once, addHits, measuredIf } from '@cruncheevos/core'
+import { code, pointerNullCheck } from './CommonGT4.ts'
 const {
   meta, stat, main, rich: makeRichPresence,
   defineIndividualRace, defineAllRacesInOneSitting, defineAnySubEventWin,
@@ -119,13 +114,13 @@ export default function () {
     defineLicenseAchievements({ set, l, spec2: true })
   }
 
-  for (const [letter, points, title] of /** @type const */ ([
+  for (const [letter, points, title] of [
     ['B', 5, 'National B License'],
     ['A', 5, 'National A License'],
     ['IB', 10, 'International IB License'],
     ['IA', 10, 'International IA License'],
     ['S', 25, 'Superlicense'],
-  ])) {
+  ] as const) {
     const tests = Object.values(meta.licenses)
       .filter(license => license.license === letter && license.isCoffee === false)
 

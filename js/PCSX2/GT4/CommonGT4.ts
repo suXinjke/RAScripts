@@ -1,24 +1,11 @@
-// @ts-check
-import {
-  AchievementSet, Condition, ConditionBuilder, define as $,
-  andNext, orNext, resetIf, resetNextIf, trigger, pauseIf, addHits, once,
-  RichPresence, stringToNumberLE,
-  measured
-} from '@cruncheevos/core'
-import codegen from './codegen.js'
+import { Condition, ConditionBuilder, define as $, andNext, orNext, resetIf, resetNextIf, trigger, pauseIf, addHits, once, RichPresence, stringToNumberLE } from '@cruncheevos/core'
+import type { AchievementSet } from '@cruncheevos/core'
+import codegen from './codegen.ts'
+import { altsFromArray, type ArrayValue, type ObjectValue } from '../../common.ts'
 
-/**
- * @template T
- * @typedef {T extends (Record <string, infer U>) ? U : never} ObjectValue
- * **/
+type Region = 'ntsc' | 'pal'
 
-/**
- * @template T
- * @typedef {T extends (infer U)[] ? U : never} ArrayValue
- * **/
-
-/** @param {ConditionBuilder | Condition} c */
-export function pointerNullCheck(c) {
+export function pointerNullCheck(c: ConditionBuilder | Condition) {
   return $(c).withLast({ flag: '', cmp: '!=', rvalue: { type: 'Value', value: 0 } })
 }
 
@@ -37,7 +24,7 @@ const tireTypes = {
   'dr': 0xB,
 }
 
-export async function code(r = 'retail') {
+export async function code(r: 'retail' | 'online' = 'retail') {
   const meta = await codegen(r)
   const o = r === 'online'
   const loadFileNameStringAddress = 0x670bf8
@@ -46,7 +33,7 @@ export async function code(r = 'retail') {
     const root = $.one(['AddAddress', 'Mem', '32bit', o ? 0x664edc : 0x622f4c])
 
     const gameFlagIs = (() => {
-      const gameFlagIs = (flag) => $(
+      const gameFlagIs = (flag: number) => $(
         root,
         ['', 'Mem', '32bit', o ? 0x1DA8 : 0x3a370, '=', 'Value', '', flag]
       )
@@ -76,35 +63,34 @@ export async function code(r = 'retail') {
       ['', 'Mem', '32bit', o ? 0xAAF8 : 0x13940, '=', 'Delta', '32bit', o ? 0xAAF8 : 0x13940]
     )
 
-    const gtModeCarIdIsNot = id => gtModeCarId.withLast({
+    const gtModeCarIdIsNot = (id: number) => gtModeCarId.withLast({
       flag: '', cmp: '!=', rvalue: { type: 'Value', value: id }
     })
 
-    const selectedSetupSlotIs = slot => $(
+    const selectedSetupSlotIs = (slot: number) => $(
       root,
       ['', 'Mem', '8bit', o ? 0xAFC8 : 0x13dc8, '=', 'Value', '', slot]
     )
 
-    const forSetupSlot = slot => {
+    const forSetupSlot = (slot: number) => {
       const base = selectedSetupSlotIs(slot)
 
       const partOffset = slot * (o ? 0x190 : 0x178)
 
       return {
-        /** @param {number[]} ids */
-        gearboxIdIsNotOneOf: ids => andNext(
+        gearboxIdIsNotOneOf: (ids: number[]) => andNext(
           base,
           andNext(
-            ...ids.map(id => $(
+            ...ids.map((id: number) => $(
               root,
               ['', 'Mem', '32bit', (o ? 0xAB40 : 0x13988) + partOffset, '!=', 'Value', '', id]
             ))
           )
         ),
-        suspensionIdIsNotOneOf: ids => andNext(
+        suspensionIdIsNotOneOf: (ids: number[]) => andNext(
           base,
           andNext(
-            ...ids.map(id => $(
+            ...ids.map((id: number) => $(
               root,
               ['', 'Mem', '32bit', (o ? 0xAB48 : 0x13990) + partOffset, '!=', 'Value', '', id]
             ))
@@ -137,7 +123,7 @@ export async function code(r = 'retail') {
           ['', 'Mem', '32bit', (o ? 0xABF0 : 0x13a38) + partOffset, '!=', 'Value', '', -1]
         ),
 
-        tiresAreNot: (frontTiresId, rearTiresId) => orNext(
+        tiresAreNot: (frontTiresId: number, rearTiresId: number) => orNext(
           root,
           ['', 'Mem', '32bit', (o ? 0xAB58 : 0x139A0) + partOffset, '!=', 'Value', '', frontTiresId],
         ).andNext(
@@ -180,12 +166,11 @@ export async function code(r = 'retail') {
         ['', 'Mem', '8bit', o ? 0xAB10 : 0x13958, '!=', 'Delta', '8bit', o ? 0xAB10 : 0]
       ),
 
-      /** @param {number[]} ids */
-      gtModeCarIdIs: (...ids) => orNext(
+      gtModeCarIdIs: (...ids: number[]) => orNext(
         ...ids.map(id => gtModeCarIdIsNot(id).withLast({ cmp: '=' }))
       ),
 
-      gearboxSettingIs: gearbox => $(
+      gearboxSettingIs: (gearbox: 'manual' | 'auto') => $(
         root,
         ['', 'Mem', '32bit', o ? 0x1748 : 0x39d78, '=', 'Value', '', gearbox === 'manual' ? 0 : 1]
       ),
@@ -210,8 +195,7 @@ export async function code(r = 'retail') {
         ['', 'Mem', '32bit', o ? 0x2BD8 : 0x398, '>', 'Delta', '32bit', o ? 0x2BD8 : 0x398]
       ),
 
-      /** @param {(setupSlot: ReturnType<typeof forSetupSlot>) => ConditionBuilder} cb */
-      forEachSetupSlot: cb => {
+      forEachSetupSlot: (cb: (setupSlot: ReturnType<typeof forSetupSlot>) => ConditionBuilder) => {
         return $(
           cb(forSetupSlot(0)),
           cb(forSetupSlot(1)),
@@ -258,8 +242,7 @@ export async function code(r = 'retail') {
       ['Measured', 'Mem', '32bit', 0x68]
     )
 
-    /** @param {number[]} ids */
-    const eventIdIs = (...ids) => orNext(
+    const eventIdIs = (...ids: number[]) => orNext(
       ...ids.map(id => $(
         eventIdValue.withLast({ flag: '', cmp: '=', rvalue: { type: 'Value', value: id } })
       ))
@@ -270,8 +253,7 @@ export async function code(r = 'retail') {
       ['Measured', 'Mem', '32bit', 0x78]
     )
 
-    /** @param {number[]} ids */
-    const trackIdIs = (...ids) => orNext(
+    const trackIdIs = (...ids: number[]) => orNext(
       ...ids.map(id => $(
         trackIdValue.withLast({ flag: '', cmp: '=', rvalue: { type: 'Value', value: id } })
       ))
@@ -282,7 +264,7 @@ export async function code(r = 'retail') {
       ['', 'Mem', '8bit', 0x96c, '>', 'Delta', '8bit', 0x96c]
     )
 
-    const earnedAtleastASpecPoints = aSpecPoints => $(
+    const earnedAtleastASpecPoints = (aSpecPoints: number) => $(
       p.root,
       ['', 'Mem', '8bit', 0x96c, '>=', 'Value', '', aSpecPoints],
       p.root,
@@ -313,12 +295,12 @@ export async function code(r = 'retail') {
       ['Measured', 'Mem', '32bit', 0]
     )
 
-    const lapCountIsGte = count => $(
+    const lapCountIsGte = (count: number) => $(
       p.root,
       ['', 'Mem', '32bit', 0, '>=', 'Value', '', count]
     )
 
-    const inGameCar = index => {
+    const inGameCar = (index: number) => {
       const base = $(
         p.root60,
         ['AddAddress', 'Mem', '32bit', 0x8],
@@ -348,17 +330,16 @@ export async function code(r = 'retail') {
       return {
         idValue,
 
-        /** @param {number[]} ids */
-        idIs: (...ids) => orNext(
+        idIs: (...ids: number[]) => orNext(
           ...ids.map(id => idValue.withLast({
             flag: '', cmp: '=', rvalue: { type: 'Value', value: id }
           }))
         ),
-        colorIdIs: (id) => $(
+        colorIdIs: (id: number) => $(
           carBase,
           ['', 'Mem', '8bit', o ? 0xFF0 : 0x38, '=', 'Value', '', id]
         ),
-        tiresAre: (tires) => andNext(
+        tiresAre: (tires: keyof typeof tireTypes) => andNext(
           carBase,
           ['', 'Mem', '8bit', o ? 0x1138 : 0x180, '=', 'Value', '', tireTypes[tires]],
           carBase,
@@ -372,11 +353,11 @@ export async function code(r = 'retail') {
           rvalue: { size: '', type: '', value: 0 }
         }),
 
-        lapsCompletedAre: laps => completedLap.withLast({
+        lapsCompletedAre: (laps: number) => completedLap.withLast({
           cmp: '=', rvalue: { type: 'Value', size: '', value: laps }
         }),
 
-        lapsRemainingAre: laps => $(
+        lapsRemainingAre: (laps: number) => $(
           completedLap.withLast({
             flag: 'SubSource', cmp: '', rvalue: { type: '', size: '', value: 0 }
           }),
@@ -388,12 +369,12 @@ export async function code(r = 'retail') {
           ['Measured', 'Mem', '32bit', o ? 0x12A4 : 0x11dc]
         ),
 
-        lastLapTimeWasLte: target => $(
+        lastLapTimeWasLte: (target: number) => $(
           carBase,
           ['', 'Mem', '32bit', o ? 0x12A4 : 0x11dc, '<=', 'Value', '', target]
         ),
 
-        lastLapTimeWasLt: target => $(
+        lastLapTimeWasLt: (target: number) => $(
           carBase,
           ['', 'Mem', '32bit', o ? 0x12A4 : 0x11dc, '<', 'Value', '', target]
         ),
@@ -407,7 +388,7 @@ export async function code(r = 'retail') {
           ['', 'Mem', '8bit', o ? 0x58B : 0x56B, '=', 'Value', '', 0]
         ),
 
-        isWithinCoordinates: (x1, y1, x2, y2) => andNext(
+        isWithinCoordinates: (x1: number, y1: number, x2: number, y2: number) => andNext(
           carBase18,
           ['', 'Mem', 'Float', 0x104, '>=', 'Float', '', x1],
           carBase18,
@@ -437,8 +418,7 @@ export async function code(r = 'retail') {
           [0x6EB5, 0x6EE9, 0x6F1D],
         ]
 
-      /** @type {ConditionBuilder[]} */
-      const offTrackLimits = []
+      const offTrackLimits: ConditionBuilder[] = []
 
       // having headache from trying to do it declaratively
       for (const combo of tireCombos) {
@@ -505,7 +485,7 @@ export async function code(r = 'retail') {
       )
 
       return {
-        positionIs: position => $(
+        positionIs: (position: number) => $(
           base,
           ['', 'Mem', '32bit', o ? 0x1370 : 0x13b0, '=', 'Value', '', position]
         ),
@@ -536,7 +516,7 @@ export async function code(r = 'retail') {
             base14,
             ['', 'Mem', '8bit', o ? 0x1F : 0x1E, '!=', 'Value', '', 0],
           ),
-          wentPastSpeed: (units, hudIsMini, speed) => {
+          wentPastSpeed: (units: 'kph' | 'mph', hudIsMini: boolean, speed: number) => {
             if (o) {
               throw new Error('wentPastSpeed not implemented for online')
             }
@@ -570,22 +550,22 @@ export async function code(r = 'retail') {
 
     const arcade = (() => {
       return {
-        tiresAre: tires => $(
+        tiresAre: (tires: keyof typeof tireTypes) => $(
           p.rootAux,
           ['', 'Mem', '32bit', 0x3b8, '=', 'Value', '', tireTypes[tires]],
           p.rootAux,
           ['', 'Mem', '32bit', 0x3bc, '=', 'Value', '', tireTypes[tires]]
         ),
 
-        powerTuneIs: tune => $(
+        powerTuneIs: (tune: number) => $(
           p.rootAux,
           ['', 'Mem', '32bit', 0x3b0, '=', 'Value', '', tune]
         ),
-        weightAdjustIs: adjust => $(
+        weightAdjustIs: (adjust: number) => $(
           p.rootAux,
           ['', 'Mem', '32bit', 0x3ac, '=', 'Value', '', adjust]
         ),
-        topSpeedAdjustIs: adjust => $(
+        topSpeedAdjustIs: (adjust: number) => $(
           p.rootAux,
           ['', 'Mem', '8bit', 0x3b4, '=', 'Value', '', adjust]
         )
@@ -602,7 +582,7 @@ export async function code(r = 'retail') {
 
       return {
         isGteThanZero,
-        isGteThan: time => isGteThanZero.withLast({
+        isGteThan: (time: number) => isGteThanZero.withLast({
           rvalue: { value: time }
         }),
         measured: isGteThanZero.withLast({
@@ -617,7 +597,7 @@ export async function code(r = 'retail') {
 
       lapCountMeasured,
       lapCountIsGte,
-      lapCountIs: count => lapCountIsGte(count).withLast({ cmp: '=' }),
+      lapCountIs: (count: number) => lapCountIsGte(count).withLast({ cmp: '=' }),
       totalTimeInMsec,
 
       regionIs: {
@@ -645,7 +625,7 @@ export async function code(r = 'retail') {
         ['', 'Mem', '32bit', 0xDC, '<', 'Delta', '32bit', 0xDC],
       ),
 
-      inGameCameraIs: (camera = 0) => $(
+      inGameCameraIs: (camera: number) => $(
         p.root84,
         ['AddAddress', 'Mem', '32bit', o ? 0x1D4 : 0x1BC],
         ['', 'Mem', '32bit', o ? 0x184 : 0x180, '=', 'Value', '', camera],
@@ -657,7 +637,7 @@ export async function code(r = 'retail') {
         ['', 'Mem', '16bit', o ? 0x704E : 0x6DAA, '>', 'Delta', '16bit', o ? 0x704E : 0x6DAA],
       ),
 
-      currentGearIs: (gear) => $(
+      currentGearIs: (gear: number) => $(
         p.root84,
         ['AddAddress', 'Mem', '32bit', 0x70],
         ['', 'Mem', '8bit', o ? 0x6F64 : 0x6CBC, '=', 'Value', '', gear],
@@ -675,8 +655,7 @@ export async function code(r = 'retail') {
         )
 
         return {
-          /** @param {ObjectValue<meta["licenses"]>["eventId"]} eventIds */
-          finished(eventIds, expectedReward = 0) {
+          finished(eventIds: ObjectValue<(typeof meta.licenses)>['eventId'], expectedReward = 0) {
             return $(
               orNext(
                 eventIdIs(eventIds.pal),
@@ -718,11 +697,7 @@ export async function code(r = 'retail') {
       inGamePlayerCar,
       playerWentOut,
 
-      /**
-       * @param {Object} params
-       * @param {number} [params.aSpecPoints]
-       */
-      wonRace(params = {}) {
+      wonRace(params: { aSpecPoints?: number } = {}) {
         const { aSpecPoints = 0 } = params
         return $(
           aSpecPoints === 0 && earnedASpecPoints,
@@ -768,8 +743,7 @@ export async function code(r = 'retail') {
   const spec2RandomTracks = spec2NoRandomTracks.withLast({ cmp: '=' })
 
   const generalProtections = {
-    /** @param {number[]} ids */
-    forbiddenCarIds(...ids) {
+    forbiddenCarIds(...ids: number[]) {
       return $(
         ...ids.map(id => stat.gtModeCarIdIsNot(id)),
       )
@@ -798,7 +772,7 @@ export async function code(r = 'retail') {
     spec2PauseIfLockIfBypassRegulations: (() => {
       const holdingR1 = $.one(['', 'Mem', '8bit', 0x681353, '>', 'Value', '', 0, 1])
 
-      const pauseLockWith = (flag) =>
+      const pauseLockWith = (valueType: 'Mem' | 'Prior') =>
         resetNextIf(
           $.str('EventInfoDialog.', (s, v) => $(
             ['', 'Mem', s, loadFileNameStringAddress + 0x17, '=', ...v]
@@ -809,7 +783,7 @@ export async function code(r = 'retail') {
               'once',
               holdingR1,
               $.str('CustomRegulation', (s, v) => $(
-                ['', flag, s, loadFileNameStringAddress + 0x11, '=', ...v]
+                ['', valueType, s, loadFileNameStringAddress + 0x11, '=', ...v]
               ))
             ),
             once($.str('EventCourseRoot.', (s, v) => $(
@@ -841,19 +815,17 @@ export async function code(r = 'retail') {
   }
 
 
-  /**
-   * @param {Object} params
-   * @param {AchievementSet} params.set
-   * @param {ObjectValue<typeof meta["events"]>} params.e
-   * @param {string} [params.title]
-   * @param {string} [params.description]
-   * @param {string} [params.badge]
-   * @param {number[]} [params.raceIds]
-   * @param {number} [params.points]
-   * @param {boolean} [params.triggerIcon]
-   * @param {boolean} [params.spec2]
-   * */
-  function defineIndividualRace(params) {
+  function defineIndividualRace(params: {
+    set: AchievementSet;
+    e: ObjectValue<typeof meta.events>;
+    title?: string;
+    description?: string;
+    badge?: string;
+    raceIds?: number[];
+    points?: number;
+    triggerIcon?: boolean;
+    spec2?: boolean;
+  }) {
     let {
       set,
       e,
@@ -923,13 +895,11 @@ export async function code(r = 'retail') {
     })
   }
 
-  /**
-   * @param {Object} params
-   * @param {AchievementSet} params.set
-   * @param {ObjectValue<typeof meta["events"]>} params.e
-   * @param {boolean} [params.spec2]
-   */
-  function defineChampionship({ set, e, spec2 = false }) {
+  function defineChampionship({ set, e, spec2 = false }: {
+    set: AchievementSet;
+    e: ObjectValue<typeof meta.events>;
+    spec2?: boolean;
+  }) {
     set.addAchievement({
       title: e.name,
       description: `Win ${e.name} in A-Spec championship mode in one sitting.` + e.descriptionSuffix,
@@ -962,13 +932,12 @@ export async function code(r = 'retail') {
     })
   }
 
-  /**
-   * @param {Object} params
-   * @param {AchievementSet} params.set
-   * @param {ObjectValue<typeof meta["events"]>} params.e
-   * @param {boolean} [params.spec2]
-   */
-  function defineAllRacesInOneSitting({ set, e, spec2 = false }) {
+
+  function defineAllRacesInOneSitting({ set, e, spec2 = false }: {
+    set: AchievementSet;
+    e: ObjectValue<typeof meta.events>;
+    spec2?: boolean;
+  }) {
     let description = `Win all events of ${e.nameWithSuffix} in A-Spec mode in one sitting.`
     if (e.aSpecPoints) {
       const nitrousSuffix = e.nitrousAllowed ? '' : ' Nitrous is not allowed.'
@@ -1007,13 +976,12 @@ export async function code(r = 'retail') {
     })
   }
 
-  /**
-   * @param {Object} params
-   * @param {AchievementSet} params.set
-   * @param {ArrayValue<typeof meta["anySubEvent"]>} params.c
-   * @param {boolean} [params.spec2]
-   */
-  function defineAnySubEventWin({ set, c, spec2 = false }) {
+
+  function defineAnySubEventWin({ set, c, spec2 = false }: {
+    set: AchievementSet;
+    c: ArrayValue<typeof meta.anySubEvent>;
+    spec2?: boolean;
+  }) {
     const events = c.multiEventId.map(eventId => meta.events[eventId])
     const raceIds = c.specificRaceIds.length > 0 ? c.specificRaceIds : events[0].raceIds
     const eventName = events[0]?.name || ''
@@ -1078,13 +1046,11 @@ export async function code(r = 'retail') {
     })
   }
 
-  /**
-   * @param {Object} params
-   * @param {AchievementSet} params.set
-   * @param {ArrayValue<typeof meta["carEventWin"]>} params.c
-   * @param {boolean} [params.spec2]
-   */
-  function defineCarEventWin({ set, c, spec2 = false }) {
+  function defineCarEventWin({ set, c, spec2 = false }: {
+    set: AchievementSet;
+    c: ArrayValue<typeof meta.carEventWin>;
+    spec2?: boolean;
+  }) {
     const ev = meta.events[c.eventId]
 
     let description = c.achDescription
@@ -1138,13 +1104,11 @@ export async function code(r = 'retail') {
     })
   }
 
-  /**
-   * @param {object} params
-   * @param {AchievementSet} params.set
-   * @param {ArrayValue<typeof meta["arcadeTimeTrial"]>} params.c
-   * @param {boolean} [params.spec2]
-   */
-  function defineArcadeTimeTrial({ set, c, spec2 = false }) {
+  function defineArcadeTimeTrial({ set, c, spec2 = false }: {
+    set: AchievementSet;
+    c: ArrayValue<typeof meta.arcadeTimeTrial>;
+    spec2?: boolean;
+  }) {
     const description = c.description
       .replace('%car%', meta.carLookup[c.carIds[0]])
       .replace('%track%', meta.trackLookup[c.trackId])
@@ -1233,26 +1197,21 @@ export async function code(r = 'retail') {
           spec2 && generalProtections.spec2PauseIfBadVersion,
           startConditions
         ),
-        cancel: {
-          core: '1=1',
-          ...(leaderboardCancelGroups).reduce((prev, cur, idx) => {
-            prev[`alt${idx + 1}`] = cur
-            return prev
-          }, {})
-        },
+        cancel: altsFromArray(
+          '1=1',
+          ...leaderboardCancelGroups
+        ),
         submit: main.inGamePlayerCar.completedLap,
         value: main.inGamePlayerCar.measuredLastLapTime
       }
     })
   }
 
-  /**
-   * @param {object} params
-   * @param {AchievementSet} params.set
-   * @param {ArrayValue<typeof meta["arcadeRace"]>} params.r
-   * @param {boolean} [params.spec2]
-   */
-  function defineArcadeRace({ set, r, spec2 = false }) {
+  function defineArcadeRace({ set, r, spec2 = false }: {
+    set: AchievementSet;
+    r: ArrayValue<typeof meta.arcadeRace>;
+    spec2?: boolean;
+  }) {
     const description = r.description
       .replace('%track%', meta.trackLookup[r.trackId])
 
@@ -1312,13 +1271,12 @@ export async function code(r = 'retail') {
     "IA": ["Cappuccino", "Coffee Break (the car)"],
     "S": ["Americano", "Coffee Break (your day)"],
   }
-  /**
-   * @param {object} params
-   * @param {AchievementSet} params.set
-   * @param {ObjectValue<typeof meta["licenses"]>} params.l
-   * @param {boolean} [params.spec2]
-   */
-  function defineLicenseAchievements({ set, l, spec2 = false }) {
+
+  function defineLicenseAchievements({ set, l, spec2 = false }: {
+    set: AchievementSet;
+    l: ObjectValue<typeof meta.licenses>;
+    spec2?: boolean;
+  }) {
     const [coffeeTitle, funnyCoffee] = coffeeNames[l.license]
     const shortName = `${l.license}-${l.index}`
     set.addAchievement({
@@ -1351,13 +1309,11 @@ export async function code(r = 'retail') {
     })
   }
 
-  /**
-   * @param {object} params
-   * @param {AchievementSet} params.set
-   * @param {ArrayValue<typeof meta["carChallenges"]>} params.c
-   * @param {boolean} [params.spec2]
-   */
-  function defineCarChallenge({ set, c, spec2 = false }) {
+  function defineCarChallenge({ set, c, spec2 = false }: {
+    set: AchievementSet;
+    c: ArrayValue<typeof meta.carChallenges>;
+    spec2?: boolean;
+  }) {
     const { aSpecPoints } = c
     const carName = meta.carLookup[c.carIds[0]]
 
@@ -1455,14 +1411,14 @@ export async function code(r = 'retail') {
           values: Object.values(licenses).reduce((prev, cur) => {
             prev[cur.idKey] = cur.emoji
             return prev
-          }, {})
+          }, {} as Record<string, string>)
         },
         LicenseLetter: {
           defaultAt: substringEventString.withLast({ lvalue: { size: '32bit' } }),
           values: Object.entries(licenses).reduce((prev, [letter, cur]) => {
             prev[cur.idKey] = letter
             return prev
-          }, {})
+          }, {} as Record<string, string>)
         },
 
         Track: {
@@ -1481,7 +1437,8 @@ export async function code(r = 'retail') {
           substringEventString.withLast({ lvalue: { value: o ? 0x3D2 : 0x3CE } }),
         ].map(x => macro.ASCIIChar.at(x)).join('')
 
-        /** @returns {[ConditionBuilder, string][]} */
+        const regions: Region[] = o ? ['ntsc'] : ['pal', 'ntsc']
+
         function makeEventRich(randomTrackCheck = false) {
           const emoji = randomTrackCheck ? '🎲' : '📍'
 
@@ -1493,7 +1450,7 @@ export async function code(r = 'retail') {
                 stat.gameFlagIs.eventRace,
                 randomTrackCheck && spec2RandomTracks,
                 main.totalTimeInMsec.isGtThanZero,
-                main.lapCountIsGte(0).withLast({ cmp: '=' }),
+                main.lapCountIs(0),
                 main.hud.showingRaceResults.withLast({ rvalue: { value: 0 } })
               ),
               tag`[🏁 ${lookup.Event}] ${emoji} ${lookup.Track} 🚗 ${lookup.Car} ⏱ ${macro.Seconds.at(totalTimeTracker)}`
@@ -1519,7 +1476,7 @@ export async function code(r = 'retail') {
               ),
               tag`[🏁 ${lookup.Event}] ${emoji} ${lookup.Track} 🚗 ${lookup.Car}`
             ],
-          ]
+          ] as Array<[ConditionBuilder, string]>
         }
 
         return [
@@ -1578,9 +1535,7 @@ export async function code(r = 'retail') {
           ...makeEventRich(true),
           ...makeEventRich(false),
 
-          ...(
-            o ? ['ntsc'] : ['pal', 'ntsc']
-          ).map(region => {
+          ...regions.map(region => {
             const licenseBadges = Object.entries(licenses).map(([key, l]) => {
               const tests = Object.values(meta.licenses)
                 .filter(license => license.license === key && license.isCoffee === false)
@@ -1608,14 +1563,14 @@ export async function code(r = 'retail') {
             )
 
 
-            return /** @type [ConditionBuilder, string] */ ([
+            return [
               $(
                 !o && main.regionIs[region],
                 stat.gameFlagIs.inGameMenus,
                 stat.inGTModeProject
               ),
               tag`[🏠 Home${licenseBadges}] 🚗 ${lookup.Car.at(stat.gtModeCarId)} 📅 Day ${macro.Number.at(date)} | ${macro.Number.at(mileage)} km`
-            ])
+            ] as [ConditionBuilder, string]
           }),
           'Playing Gran Turismo 4' + (o ? ': Spec II' : '')
         ]
