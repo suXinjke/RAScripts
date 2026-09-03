@@ -585,6 +585,7 @@ export async function code(r: 'retail' | 'online' = 'retail') {
         isGteThan: (time: number) => isGteThanZero.withLast({
           rvalue: { value: time }
         }),
+        isGtThanZero: isGteThanZero.withLast({ cmp: '>' }),
         measured: isGteThanZero.withLast({
           flag: 'Measured', cmp: '',
           rvalue: { type: '', size: '', value: 0 }
