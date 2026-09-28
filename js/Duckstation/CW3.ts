@@ -351,6 +351,9 @@ const codeFor = (r: Region) => {
         killCountAddSource: $(
           ['AddSource', 'Mem', '16bit', o]
         ),
+        killCountIs: (c: number) => $(
+          ['', 'Mem', '16bit', o, '=', 'Value', '', c]
+        ),
         killCountIsMoreThan: (c: number) => $(
           ['', 'Mem', '16bit', o, '>', 'Value', '', c]
         ),
@@ -650,7 +653,11 @@ set.addAchievement({
     inGameTrigger: c => andNext(
       c.entityGroup(3).killCountIsMoreThan(0),
       c.missionInProgress
-    )
+    ),
+    resetIf: c => andNext(
+      c.isNotInGame,
+      c.entityGroup(3).killCountIs(0)
+    ),
   })
 })
 
@@ -745,7 +752,8 @@ set.addAchievement({
       c.entityGroup(1).escapeCountIsMoreThan(0),
       c.missionInProgress,
       c.timerAdvanced
-    )
+    ),
+    resetIf: c => $(c.isNotInGame)
   })
 }).addAchievement({
   title: 'High Card',
